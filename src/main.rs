@@ -63,7 +63,7 @@ fn run_lex(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyhow:
     for token in &tokens {
         let (line, col) = map.line_col(token.span.file, token.span.start);
         println!(
-            "{}:{line}:{col}\t{}",
+            "{}:{line:03}:{col:03}  {}",
             map.file(token.span.file).name,
             token.kind
         );
