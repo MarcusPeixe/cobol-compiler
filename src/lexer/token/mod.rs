@@ -76,6 +76,9 @@ pub enum TokenKind {
     NumericLiteral(String),
     /// Contents of a quoted literal with the quotes removed and doubled quotes collapsed.
     StringLiteral(String),
+    /// Free text of an IDENTIFICATION DIVISION paragraph such as `AUTHOR`, with
+    /// whitespace runs collapsed.
+    CommentEntry(String),
     /// Uppercased picture characters, e.g. `S9(3)V99`.
     PictureString(String),
     Period,
@@ -103,6 +106,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Identifier(s) => write!(f, "IDENTIFIER {s}"),
             TokenKind::NumericLiteral(s) => write!(f, "NUMBER {s}"),
             TokenKind::StringLiteral(s) => write!(f, "STRING {s:?}"),
+            TokenKind::CommentEntry(s) => write!(f, "COMMENT-ENTRY {s:?}"),
             TokenKind::PictureString(s) => write!(f, "PICTURE-STRING {s}"),
             TokenKind::Period => write!(f, "'.'"),
             TokenKind::Comma => write!(f, "','"),

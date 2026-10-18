@@ -17,19 +17,28 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`.
-- Every new module needs unit tests in a `#[cfg(test)] mod tests` block in the same file.
+- Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
 - Library crate (`src/lib.rs`) plus a thin binary (`src/main.rs`). New phases get their own module and their own CLI subcommand (`cobol-compiler lex <file>`, and so on).
 
 ## Layout
 
 ```
-src/main.rs         CLI (clap); anyhow is used only here
-src/lib.rs          module declarations
-src/diagnostics.rs  shared Severity (I/W/E/S), Diagnostic and miette integration
-src/source/         SourceMap, Span, LogicalText and the fixed-format reader
-src/preprocess.rs   COPY expansion (runs before the lexer)
-src/lexer/          token.rs (token types), scanner.rs (lexing)
-documents/          spec PDF and example.cob
+src/main.rs                 CLI (clap); anyhow is used only here
+src/lib.rs                  module declarations
+src/diagnostics/            shared Severity (I/W/E/S), Diagnostic and miette integration
+src/source/                 SourceMap, Span, LogicalText
+src/source/reader/          fixed-format reader
+src/preprocess/             COPY expansion (runs before the lexer)
+src/lexer/                  module root, re-exports the public API
+src/lexer/token/            token types
+src/lexer/scanner/          lexing
+```
+
+Each directory above holds `mod.rs` plus `tests.rs` (except `src/lexer/`, which only re-exports).
+
+```
+documents/                  spec PDF and example.cob
+cobol-examples/             the professor's example programs (git subtree); they target GnuCOBOL, not strictly the spec
 ```
 
 Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> tokens.
@@ -49,6 +58,8 @@ Lexer and source handling:
 - Case-insensitive: keywords and identifiers are uppercased in tokens. The original text stays available through the span.
 - Only the 14 keywords from spec section 2.2 are reserved. Everything else (`PROGRAM-ID`, `VALUE`, `TO`, `AND`, `END-IF`...) is an identifier. The parser decides what they mean. `PIC` and `PICTURE` are special-cased.
 - Identifiers: 1-30 characters of A-Z, 0-9 and `-`, not ending with a hyphen. Longer or hyphen-terminated words are errors.
+- `_` is also accepted inside identifiers (but cannot start one) with a lexer warning `cobol::lexer::underscore_in_identifier`. This deviates from the spec; it exists because the professor's examples in `cobol-examples/` use names like `PROG008_STRING`.
+- Comment-entry paragraphs: inside the IDENTIFICATION DIVISION, a paragraph named `AUTHOR`, `INSTALLATION`, `DATE-WRITTEN`, `DATE-COMPILED`, `SECURITY` or `REMARKS` has free-text contents. The lexer emits the name, `.`, one `CommentEntry` token (whitespace collapsed) and `.`. The text ends at the first `.` followed by whitespace or end of input. These words are ordinary identifiers elsewhere.
 - Numeric literals are unsigned. `+` and `-` are always separate tokens, and the parser folds signs into literals.
 - A `.` followed by a non-digit is a period token, so `1.` lexes as `1` then `.`. A `.` inside digits (`45.67`) is a decimal point.
 - After `PIC`/`PICTURE` (and an optional `IS`, emitted as an identifier) the lexer emits one `PictureString` token, such as `S9(3)V99`. A trailing `.` is not part of it.

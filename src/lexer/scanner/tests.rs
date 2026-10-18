@@ -263,8 +263,131 @@ fn illegal_characters_are_reported_and_skipped() {
 }
 
 #[test]
-fn underscore_is_illegal() {
-    assert_eq!(errors("A_B").len(), 1);
+fn underscore_in_identifier_is_a_warning() {
+    let (tokens, diags) = lex(&logical("PROG008_STRING"));
+    assert_eq!(tokens[0].kind, ident("PROG008_STRING"));
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].severity, Severity::Warning);
+    assert_eq!(diags[0].code, "cobol::lexer::underscore_in_identifier");
+    assert!(!diags[0].is_error());
+}
+
+#[test]
+fn leading_underscore_is_still_illegal() {
+    let d = errors("_AB");
+    assert_eq!(d[0].code, "cobol::lexer::illegal_character");
+}
+
+#[test]
+fn underscore_counts_toward_length_limit() {
+    let d = errors(&format!("{}_", "A".repeat(30)));
+    assert!(
+        d.iter()
+            .any(|d| d.code == "cobol::lexer::identifier_too_long")
+    );
+}
+
+fn entry(s: &str) -> TokenKind {
+    T::CommentEntry(s.to_string())
+}
+
+#[test]
+fn comment_entry_text_is_collapsed_into_one_token() {
+    let src = "IDENTIFICATION DIVISION. PROGRAM-ID. P. REMARKS. O programa 'x @ (dot) 2018-02-24.\nPROCEDURE DIVISION.";
+    let (tokens, diags) = lex(&logical(src));
+    assert!(diags.is_empty(), "{diags:?}");
+    let kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
+    assert_eq!(
+        kinds[7..13],
+        [
+            ident("REMARKS"),
+            T::Period,
+            entry("O programa 'x @ (dot) 2018-02-24"),
+            T::Period,
+            T::Keyword(K::Procedure),
+            T::Keyword(K::Division),
+        ]
+    );
+}
+
+#[test]
+fn all_comment_entry_paragraphs_are_recognised_in_any_case() {
+    for name in [
+        "AUTHOR",
+        "installation",
+        "Date-Written",
+        "DATE-COMPILED",
+        "SECURITY",
+        "REMARKS",
+    ] {
+        let src = format!("IDENTIFICATION DIVISION. {name}. free text here.");
+        let kinds = kinds(&src);
+        assert_eq!(
+            kinds[3..],
+            [
+                ident(&name.to_uppercase()),
+                T::Period,
+                entry("free text here"),
+                T::Period
+            ]
+        );
+    }
+}
+
+#[test]
+fn comment_entry_can_span_lines_and_contain_inner_periods() {
+    let kinds =
+        kinds("IDENTIFICATION DIVISION.\nAUTHOR. Enio B.Basso\n   and others.\nPROGRAM-ID. X.");
+    assert_eq!(
+        kinds[3..7],
+        [
+            ident("AUTHOR"),
+            T::Period,
+            entry("Enio B.Basso and others"),
+            T::Period
+        ]
+    );
+    assert_eq!(kinds[7], ident("PROGRAM-ID"));
+}
+
+#[test]
+fn comment_entry_token_span_covers_the_text() {
+    let src = "IDENTIFICATION DIVISION. AUTHOR.  Some text  .";
+    let (tokens, _) = lex(&logical(src));
+    let t = tokens
+        .iter()
+        .find(|t| matches!(t.kind, T::CommentEntry(_)))
+        .unwrap();
+    assert_eq!(&src[t.span.start..t.span.end], "Some text");
+}
+
+#[test]
+fn comment_entry_without_text_or_terminator() {
+    assert_eq!(
+        kinds("IDENTIFICATION DIVISION. AUTHOR. .")[3..],
+        [ident("AUTHOR"), T::Period, T::Period]
+    );
+    assert_eq!(
+        kinds("IDENTIFICATION DIVISION. AUTHOR. never ends")[3..],
+        [ident("AUTHOR"), T::Period, entry("never ends")]
+    );
+}
+
+#[test]
+fn comment_entry_words_elsewhere_are_ordinary_identifiers() {
+    // Outside the IDENTIFICATION DIVISION.
+    assert_eq!(
+        kinds("PROCEDURE DIVISION. SECURITY. DISPLAY 'X'.")[2..5],
+        [T::Period, ident("SECURITY"), T::Period]
+    );
+    assert_eq!(kinds("AUTHOR. text.").len(), 4);
+    // Not at the start of a paragraph.
+    assert_eq!(kinds("IDENTIFICATION DIVISION. MOVE AUTHOR TO X.").len(), 8);
+    // Not followed by a period.
+    assert_eq!(
+        kinds("IDENTIFICATION DIVISION. AUTHOR Enio.")[3..],
+        [ident("AUTHOR"), ident("ENIO"), T::Period]
+    );
 }
 
 #[test]

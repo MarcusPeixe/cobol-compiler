@@ -1,8 +1,18 @@
 use super::token::{Keyword, Token, TokenKind};
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::{Diagnostic, Severity};
 use crate::source::LogicalText;
 
 const MAX_IDENTIFIER_LEN: usize = 30;
+
+/// Obsolete IDENTIFICATION DIVISION paragraphs whose body is free text.
+const COMMENT_ENTRY_PARAGRAPHS: [&str; 6] = [
+    "AUTHOR",
+    "INSTALLATION",
+    "DATE-WRITTEN",
+    "DATE-COMPILED",
+    "SECURITY",
+    "REMARKS",
+];
 
 /// Tokenizes logical text. Lexical errors are collected and lexing continues
 /// after each one.
@@ -11,6 +21,7 @@ pub fn lex(input: &LogicalText) -> (Vec<Token>, Vec<Diagnostic>) {
         input,
         text: &input.text,
         pos: 0,
+        in_identification: false,
         tokens: Vec::new(),
         diagnostics: Vec::new(),
     };
@@ -22,12 +33,14 @@ struct Scanner<'a> {
     input: &'a LogicalText,
     text: &'a str,
     pos: usize,
+    /// True between `IDENTIFICATION` and the next division keyword.
+    in_identification: bool,
     tokens: Vec<Token>,
     diagnostics: Vec<Diagnostic>,
 }
 
 fn is_word_byte(b: u8) -> bool {
-    b.is_ascii_alphanumeric() || b == b'-'
+    b.is_ascii_alphanumeric() || b == b'-' || b == b'_'
 }
 
 impl Scanner<'_> {
@@ -40,6 +53,13 @@ impl Scanner<'_> {
     }
 
     fn push(&mut self, kind: TokenKind, start: usize, end: usize) {
+        match kind {
+            TokenKind::Keyword(Keyword::Identification) => self.in_identification = true,
+            TokenKind::Keyword(Keyword::Environment | Keyword::Data | Keyword::Procedure) => {
+                self.in_identification = false;
+            }
+            _ => {}
+        }
         let span = self.input.span(start, end);
         self.tokens.push(Token { kind, span });
     }
@@ -186,17 +206,73 @@ impl Scanner<'_> {
             return;
         }
 
+        if word.contains('_') {
+            self.diagnostics.push(
+                Diagnostic::new(
+                    Severity::Warning,
+                    "cobol::lexer::underscore_in_identifier",
+                    format!("identifier '{word}' contains '_'"),
+                )
+                .with_span(self.input.span(start, self.pos))
+                .with_label("underscores are not part of the specified identifier syntax"),
+            );
+        }
+
         if let Some(keyword) = Keyword::from_word(word) {
             self.push(TokenKind::Keyword(keyword), start, self.pos);
         } else if word.eq_ignore_ascii_case("PIC") || word.eq_ignore_ascii_case("PICTURE") {
             self.push(TokenKind::Picture, start, self.pos);
             self.picture_string(start);
         } else {
-            self.push(
-                TokenKind::Identifier(word.to_ascii_uppercase()),
-                start,
-                self.pos,
+            let name = word.to_ascii_uppercase();
+            let paragraph_start = matches!(
+                self.tokens.last(),
+                None | Some(Token {
+                    kind: TokenKind::Period,
+                    ..
+                })
             );
+            let comment_entry = self.in_identification
+                && paragraph_start
+                && COMMENT_ENTRY_PARAGRAPHS.contains(&name.as_str());
+            self.push(TokenKind::Identifier(name), start, self.pos);
+            if comment_entry {
+                self.comment_entry();
+            }
+        }
+    }
+
+    /// After `AUTHOR` and friends: `. free text .` becomes `.`, one
+    /// `CommentEntry` token and `.`. The text ends at the first period that is
+    /// followed by whitespace or the end of input.
+    fn comment_entry(&mut self) {
+        self.skip_whitespace();
+        if self.peek(0) != Some(b'.') || self.peek(1).is_some_and(|b| !b.is_ascii_whitespace()) {
+            return;
+        }
+        self.symbol(TokenKind::Period, 1);
+        self.skip_whitespace();
+
+        let start = self.pos;
+        let b = self.bytes();
+        let mut end = start;
+        while end < b.len()
+            && !(b[end] == b'.' && b.get(end + 1).is_none_or(|n| n.is_ascii_whitespace()))
+        {
+            end += 1;
+        }
+        self.pos = end;
+        let body = self.text[start..end].trim_end();
+        if !body.is_empty() {
+            let words: Vec<&str> = body.split_whitespace().collect();
+            self.push(
+                TokenKind::CommentEntry(words.join(" ")),
+                start,
+                start + body.len(),
+            );
+        }
+        if self.peek(0) == Some(b'.') {
+            self.symbol(TokenKind::Period, 1);
         }
     }
 
