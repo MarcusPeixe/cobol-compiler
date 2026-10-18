@@ -1,6 +1,7 @@
-use cobol_compiler::diagnostics::Diagnostic;
-use cobol_compiler::lexer::{Keyword, Token, TokenKind, lex};
-use cobol_compiler::source::{FileId, LogicalText, ReaderOptions, SourceMap, read_fixed_format};
+use super::*;
+use crate::lexer::token::Keyword as K;
+use crate::lexer::token::TokenKind as T;
+use crate::source::{FileId, ReaderOptions, SourceMap, read_fixed_format};
 
 fn logical(src: &str) -> LogicalText {
     let mut t = LogicalText::default();
@@ -21,15 +22,15 @@ fn errors(src: &str) -> Vec<Diagnostic> {
 }
 
 fn ident(s: &str) -> TokenKind {
-    TokenKind::Identifier(s.to_string())
+    T::Identifier(s.to_string())
 }
 
 fn num(s: &str) -> TokenKind {
-    TokenKind::NumericLiteral(s.to_string())
+    T::NumericLiteral(s.to_string())
 }
 
 fn string(s: &str) -> TokenKind {
-    TokenKind::StringLiteral(s.to_string())
+    T::StringLiteral(s.to_string())
 }
 
 #[test]
@@ -41,7 +42,7 @@ fn empty_and_whitespace_only() {
 #[test]
 fn all_keywords() {
     for k in Keyword::ALL {
-        assert_eq!(kinds(k.as_str()), [TokenKind::Keyword(k)]);
+        assert_eq!(kinds(k.as_str()), [T::Keyword(k)]);
     }
 }
 
@@ -49,7 +50,7 @@ fn all_keywords() {
 fn keywords_are_case_insensitive() {
     assert_eq!(
         kinds("display Display DISPLAY"),
-        vec![TokenKind::Keyword(Keyword::Display); 3]
+        vec![T::Keyword(K::Display); 3]
     );
 }
 
@@ -101,7 +102,7 @@ fn identifier_ending_in_hyphen_is_an_error() {
 
 #[test]
 fn leading_hyphen_is_a_minus_operator() {
-    assert_eq!(kinds("-ABC"), [TokenKind::Minus, ident("ABC")]);
+    assert_eq!(kinds("-ABC"), [T::Minus, ident("ABC")]);
 }
 
 #[test]
@@ -116,7 +117,7 @@ fn integers_and_decimals() {
 fn signs_are_separate_tokens() {
     assert_eq!(
         kinds("-123.45 +7"),
-        [TokenKind::Minus, num("123.45"), TokenKind::Plus, num("7")]
+        [T::Minus, num("123.45"), T::Plus, num("7")]
     );
 }
 
@@ -125,25 +126,25 @@ fn trailing_period_is_a_sentence_terminator_not_a_decimal_point() {
     assert_eq!(
         kinds("MOVE 1 TO X."),
         [
-            TokenKind::Keyword(Keyword::Move),
+            T::Keyword(K::Move),
             num("1"),
             ident("TO"),
             ident("X"),
-            TokenKind::Period
+            T::Period
         ]
     );
-    assert_eq!(kinds("1."), [num("1"), TokenKind::Period]);
-    assert_eq!(kinds("1.\n2"), [num("1"), TokenKind::Period, num("2")]);
+    assert_eq!(kinds("1."), [num("1"), T::Period]);
+    assert_eq!(kinds("1.\n2"), [num("1"), T::Period, num("2")]);
 }
 
 #[test]
 fn leading_period_is_not_part_of_a_number() {
-    assert_eq!(kinds(".5"), [TokenKind::Period, num("5")]);
+    assert_eq!(kinds(".5"), [T::Period, num("5")]);
 }
 
 #[test]
 fn second_decimal_point_ends_the_number() {
-    assert_eq!(kinds("1.2.3"), [num("1.2"), TokenKind::Period, num("3")]);
+    assert_eq!(kinds("1.2.3"), [num("1.2"), T::Period, num("3")]);
 }
 
 #[test]
@@ -186,10 +187,10 @@ fn unterminated_string_stops_at_end_of_line_and_lexing_continues() {
     assert_eq!(
         kinds,
         [
-            TokenKind::Keyword(Keyword::Display),
-            TokenKind::Keyword(Keyword::Stop),
-            TokenKind::Keyword(Keyword::Run),
-            TokenKind::Period
+            T::Keyword(K::Display),
+            T::Keyword(K::Stop),
+            T::Keyword(K::Run),
+            T::Period
         ]
     );
 }
@@ -205,13 +206,7 @@ fn unterminated_string_at_end_of_input() {
 fn punctuation() {
     assert_eq!(
         kinds(". , ; ( )"),
-        [
-            TokenKind::Period,
-            TokenKind::Comma,
-            TokenKind::Semicolon,
-            TokenKind::LParen,
-            TokenKind::RParen,
-        ]
+        [T::Period, T::Comma, T::Semicolon, T::LParen, T::RParen]
     );
 }
 
@@ -220,16 +215,16 @@ fn operators() {
     assert_eq!(
         kinds("+ - * / ** = < > <= >="),
         [
-            TokenKind::Plus,
-            TokenKind::Minus,
-            TokenKind::Star,
-            TokenKind::Slash,
-            TokenKind::Power,
-            TokenKind::Eq,
-            TokenKind::Lt,
-            TokenKind::Gt,
-            TokenKind::LtEq,
-            TokenKind::GtEq,
+            T::Plus,
+            T::Minus,
+            T::Star,
+            T::Slash,
+            T::Power,
+            T::Eq,
+            T::Lt,
+            T::Gt,
+            T::LtEq,
+            T::GtEq
         ]
     );
 }
@@ -238,27 +233,31 @@ fn operators() {
 fn operators_without_whitespace() {
     assert_eq!(
         kinds("A<=B**2"),
-        [ident("A"), TokenKind::LtEq, ident("B"), TokenKind::Power, num("2")]
+        [ident("A"), T::LtEq, ident("B"), T::Power, num("2")]
     );
-    assert_eq!(kinds("(A)"), [TokenKind::LParen, ident("A"), TokenKind::RParen]);
-    assert_eq!(kinds("A>B"), [ident("A"), TokenKind::Gt, ident("B")]);
+    assert_eq!(kinds("(A)"), [T::LParen, ident("A"), T::RParen]);
+    assert_eq!(kinds("A>B"), [ident("A"), T::Gt, ident("B")]);
 }
 
 #[test]
 fn spaced_minus_is_an_operator() {
-    assert_eq!(kinds("A - B"), [ident("A"), TokenKind::Minus, ident("B")]);
+    assert_eq!(kinds("A - B"), [ident("A"), T::Minus, ident("B")]);
 }
 
 #[test]
 fn three_stars_are_power_then_star() {
-    assert_eq!(kinds("***"), [TokenKind::Power, TokenKind::Star]);
+    assert_eq!(kinds("***"), [T::Power, T::Star]);
 }
 
 #[test]
 fn illegal_characters_are_reported_and_skipped() {
     let (tokens, diags) = lex(&logical("A @ B # ç"));
     assert_eq!(diags.len(), 3);
-    assert!(diags.iter().all(|d| d.code == "cobol::lexer::illegal_character"));
+    assert!(
+        diags
+            .iter()
+            .all(|d| d.code == "cobol::lexer::illegal_character")
+    );
     assert_eq!(tokens.len(), 2);
     assert!(diags[2].message.contains('ç'));
 }
@@ -272,7 +271,7 @@ fn underscore_is_illegal() {
 fn picture_clause() {
     assert_eq!(
         kinds("PIC 9(5)V99."),
-        [TokenKind::Picture, TokenKind::PictureString("9(5)V99".into()), TokenKind::Period]
+        [T::Picture, T::PictureString("9(5)V99".into()), T::Period]
     );
 }
 
@@ -280,11 +279,11 @@ fn picture_clause() {
 fn picture_keyword_spellings_and_case() {
     assert_eq!(
         kinds("picture x(10)"),
-        [TokenKind::Picture, TokenKind::PictureString("X(10)".into())]
+        [T::Picture, T::PictureString("X(10)".into())]
     );
     assert_eq!(
         kinds("Pic s9(3)"),
-        [TokenKind::Picture, TokenKind::PictureString("S9(3)".into())]
+        [T::Picture, T::PictureString("S9(3)".into())]
     );
 }
 
@@ -292,7 +291,7 @@ fn picture_keyword_spellings_and_case() {
 fn picture_with_is() {
     assert_eq!(
         kinds("PIC IS 999"),
-        [TokenKind::Picture, ident("IS"), TokenKind::PictureString("999".into())]
+        [T::Picture, ident("IS"), T::PictureString("999".into())]
     );
 }
 
@@ -300,16 +299,16 @@ fn picture_with_is() {
 fn picture_with_embedded_decimal_point_and_terminator() {
     assert_eq!(
         kinds("PIC S9(3).99."),
-        [TokenKind::Picture, TokenKind::PictureString("S9(3).99".into()), TokenKind::Period]
+        [T::Picture, T::PictureString("S9(3).99".into()), T::Period]
     );
     assert_eq!(
         kinds("PIC 9.99 VALUE 1.5."),
         [
-            TokenKind::Picture,
-            TokenKind::PictureString("9.99".into()),
+            T::Picture,
+            T::PictureString("9.99".into()),
             ident("VALUE"),
             num("1.5"),
-            TokenKind::Period,
+            T::Period
         ]
     );
 }
@@ -318,11 +317,11 @@ fn picture_with_embedded_decimal_point_and_terminator() {
 fn picture_on_next_line_and_at_end_of_input() {
     assert_eq!(
         kinds("PIC\n   X(3)."),
-        [TokenKind::Picture, TokenKind::PictureString("X(3)".into()), TokenKind::Period]
+        [T::Picture, T::PictureString("X(3)".into()), T::Period]
     );
     assert_eq!(
         kinds("PIC X."),
-        [TokenKind::Picture, TokenKind::PictureString("X".into()), TokenKind::Period]
+        [T::Picture, T::PictureString("X".into()), T::Period]
     );
 }
 
@@ -330,11 +329,11 @@ fn picture_on_next_line_and_at_end_of_input() {
 fn picture_with_special_characters() {
     assert_eq!(
         kinds("PIC $ZZ,ZZ9.99CR"),
-        [TokenKind::Picture, TokenKind::PictureString("$ZZ,ZZ9.99CR".into())]
+        [T::Picture, T::PictureString("$ZZ,ZZ9.99CR".into())]
     );
     assert_eq!(
         kinds("PIC -9(3)"),
-        [TokenKind::Picture, TokenKind::PictureString("-9(3)".into())]
+        [T::Picture, T::PictureString("-9(3)".into())]
     );
 }
 
@@ -351,7 +350,7 @@ fn missing_picture_string() {
 fn missing_picture_still_lexes_the_period() {
     let (tokens, _) = lex(&logical("PIC ."));
     let kinds: Vec<_> = tokens.into_iter().map(|t| t.kind).collect();
-    assert_eq!(kinds, [TokenKind::Picture, TokenKind::Period]);
+    assert_eq!(kinds, [T::Picture, T::Period]);
 }
 
 #[test]
@@ -367,11 +366,11 @@ fn errors_do_not_stop_lexing() {
     assert_eq!(
         kinds,
         [
-            TokenKind::Keyword(Keyword::Move),
+            T::Keyword(K::Move),
             num("1"),
             ident("TO"),
-            TokenKind::Period,
-            TokenKind::Keyword(Keyword::Display),
+            T::Period,
+            T::Keyword(K::Display)
         ]
     );
 }
@@ -423,27 +422,27 @@ fn end_to_end_program_with_original_positions() {
     assert_eq!(
         kinds,
         [
-            TokenKind::Keyword(Keyword::Identification),
-            TokenKind::Keyword(Keyword::Division),
-            TokenKind::Period,
+            T::Keyword(K::Identification),
+            T::Keyword(K::Division),
+            T::Period,
             ident("PROGRAM-ID"),
-            TokenKind::Period,
+            T::Period,
             ident("HELLO"),
-            TokenKind::Period,
-            TokenKind::Keyword(Keyword::Procedure),
-            TokenKind::Keyword(Keyword::Division),
-            TokenKind::Period,
-            TokenKind::Keyword(Keyword::Display),
+            T::Period,
+            T::Keyword(K::Procedure),
+            T::Keyword(K::Division),
+            T::Period,
+            T::Keyword(K::Display),
             string("HELLO, WORLD"),
-            TokenKind::Period,
-            TokenKind::Keyword(Keyword::Stop),
-            TokenKind::Keyword(Keyword::Run),
-            TokenKind::Period,
+            T::Period,
+            T::Keyword(K::Stop),
+            T::Keyword(K::Run),
+            T::Period,
         ]
     );
     let display = tokens
         .iter()
-        .find(|t| t.kind == TokenKind::Keyword(Keyword::Display))
+        .find(|t| t.kind == T::Keyword(K::Display))
         .unwrap();
     assert_eq!(map.line_col(display.span.file, display.span.start), (5, 12));
     let hello = tokens.iter().find(|t| t.kind == ident("HELLO")).unwrap();
@@ -459,7 +458,7 @@ fn end_to_end_continued_literal() {
     };
     assert!(s.starts_with("AB") && s.ends_with("CD"));
     assert_eq!(s.len(), 2 + 54 + 2);
-    assert_eq!(tokens[2].kind, TokenKind::Period);
+    assert_eq!(tokens[2].kind, T::Period);
 }
 
 #[test]
@@ -480,12 +479,12 @@ fn end_to_end_data_division_entry() {
         [
             num("01"),
             ident("WS-AMOUNT"),
-            TokenKind::Picture,
-            TokenKind::PictureString("S9(5)V99".into()),
+            T::Picture,
+            T::PictureString("S9(5)V99".into()),
             ident("VALUE"),
-            TokenKind::Minus,
+            T::Minus,
             num("12.50"),
-            TokenKind::Period,
+            T::Period
         ]
     );
 }

@@ -115,3 +115,6 @@ impl miette::Diagnostic for Diagnostic {
         ))))
     }
 }
+
+#[cfg(test)]
+mod tests;

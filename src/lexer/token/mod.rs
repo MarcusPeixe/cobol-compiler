@@ -130,4 +130,5 @@ pub struct Token {
     pub span: Span,
 }
 
-
+#[cfg(test)]
+mod tests;

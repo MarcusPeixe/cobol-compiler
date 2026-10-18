@@ -1,4 +1,4 @@
-use cobol_compiler::lexer::{Keyword, TokenKind};
+use super::*;
 
 #[test]
 fn keyword_lookup_is_case_insensitive_and_complete() {

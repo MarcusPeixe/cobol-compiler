@@ -1,5 +1,5 @@
-use cobol_compiler::diagnostics::{Diagnostic, Severity};
-use cobol_compiler::source::{FileId, SourceMap, Span};
+use super::*;
+use crate::source::FileId;
 use miette::Diagnostic as _;
 
 #[test]

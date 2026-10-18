@@ -251,4 +251,5 @@ impl Scanner<'_> {
     }
 }
 
-
+#[cfg(test)]
+mod tests;
