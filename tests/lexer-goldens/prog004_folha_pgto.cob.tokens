@@ -1,0 +1,224 @@
+cobol-examples/prog004_folha_pgto.cob:011:008  KEYWORD IDENTIFICATION
+cobol-examples/prog004_folha_pgto.cob:011:023  KEYWORD DIVISION
+cobol-examples/prog004_folha_pgto.cob:011:031  '.'
+cobol-examples/prog004_folha_pgto.cob:012:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog004_folha_pgto.cob:012:018  '.'
+cobol-examples/prog004_folha_pgto.cob:012:020  IDENTIFIER FOLHA-PGTO
+cobol-examples/prog004_folha_pgto.cob:012:030  '.'
+cobol-examples/prog004_folha_pgto.cob:013:008  KEYWORD DATA
+cobol-examples/prog004_folha_pgto.cob:013:013  KEYWORD DIVISION
+cobol-examples/prog004_folha_pgto.cob:013:021  '.'
+cobol-examples/prog004_folha_pgto.cob:014:008  IDENTIFIER FILE
+cobol-examples/prog004_folha_pgto.cob:014:013  KEYWORD SECTION
+cobol-examples/prog004_folha_pgto.cob:014:020  '.'
+cobol-examples/prog004_folha_pgto.cob:015:008  IDENTIFIER WORKING-STORAGE
+cobol-examples/prog004_folha_pgto.cob:015:024  KEYWORD SECTION
+cobol-examples/prog004_folha_pgto.cob:015:031  '.'
+cobol-examples/prog004_folha_pgto.cob:017:008  NUMBER 01
+cobol-examples/prog004_folha_pgto.cob:017:011  IDENTIFIER TAB-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:017:026  '.'
+cobol-examples/prog004_folha_pgto.cob:018:011  NUMBER 02
+cobol-examples/prog004_folha_pgto.cob:018:014  IDENTIFIER TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:018:026  IDENTIFIER OCCURS
+cobol-examples/prog004_folha_pgto.cob:018:033  NUMBER 3
+cobol-examples/prog004_folha_pgto.cob:018:035  IDENTIFIER TIMES
+cobol-examples/prog004_folha_pgto.cob:018:041  IDENTIFIER INDEXED
+cobol-examples/prog004_folha_pgto.cob:018:049  IDENTIFIER BY
+cobol-examples/prog004_folha_pgto.cob:018:052  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:018:055  '.'
+cobol-examples/prog004_folha_pgto.cob:019:014  NUMBER 03
+cobol-examples/prog004_folha_pgto.cob:019:017  IDENTIFIER NOME
+cobol-examples/prog004_folha_pgto.cob:019:033  PICTURE
+cobol-examples/prog004_folha_pgto.cob:019:037  PICTURE-STRING X(5)
+cobol-examples/prog004_folha_pgto.cob:019:041  '.'
+cobol-examples/prog004_folha_pgto.cob:020:014  NUMBER 03
+cobol-examples/prog004_folha_pgto.cob:020:017  IDENTIFIER SALARIO
+cobol-examples/prog004_folha_pgto.cob:020:033  PICTURE
+cobol-examples/prog004_folha_pgto.cob:020:037  PICTURE-STRING 9(5)V99
+cobol-examples/prog004_folha_pgto.cob:020:044  '.'
+cobol-examples/prog004_folha_pgto.cob:021:014  NUMBER 03
+cobol-examples/prog004_folha_pgto.cob:021:017  IDENTIFIER DPTO
+cobol-examples/prog004_folha_pgto.cob:021:033  PICTURE
+cobol-examples/prog004_folha_pgto.cob:021:037  PICTURE-STRING X(2)
+cobol-examples/prog004_folha_pgto.cob:021:042  IDENTIFIER VALUES
+cobol-examples/prog004_folha_pgto.cob:021:049  IDENTIFIER SPACES
+cobol-examples/prog004_folha_pgto.cob:021:056  IDENTIFIER OCCURS
+cobol-examples/prog004_folha_pgto.cob:021:063  NUMBER 2
+cobol-examples/prog004_folha_pgto.cob:021:065  IDENTIFIER TIMES
+cobol-examples/prog004_folha_pgto.cob:021:070  '.'
+cobol-examples/prog004_folha_pgto.cob:023:008  NUMBER 77
+cobol-examples/prog004_folha_pgto.cob:023:011  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:023:015  PICTURE
+cobol-examples/prog004_folha_pgto.cob:023:019  PICTURE-STRING 9(1)
+cobol-examples/prog004_folha_pgto.cob:023:023  '.'
+cobol-examples/prog004_folha_pgto.cob:025:008  KEYWORD PROCEDURE
+cobol-examples/prog004_folha_pgto.cob:025:018  KEYWORD DIVISION
+cobol-examples/prog004_folha_pgto.cob:025:026  '.'
+cobol-examples/prog004_folha_pgto.cob:026:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog004_folha_pgto.cob:026:022  '.'
+cobol-examples/prog004_folha_pgto.cob:027:013  KEYWORD MOVE
+cobol-examples/prog004_folha_pgto.cob:027:018  STRING "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
+cobol-examples/prog004_folha_pgto.cob:027:069  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:027:072  IDENTIFIER T
+cobol-examples/prog004_folha_pgto.cob:028:008  IDENTIFIER AB-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:028:022  '.'
+cobol-examples/prog004_folha_pgto.cob:029:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:029:021  STRING " "
+cobol-examples/prog004_folha_pgto.cob:029:024  '.'
+cobol-examples/prog004_folha_pgto.cob:030:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:030:021  STRING "====TAB-TRABALHADOR===="
+cobol-examples/prog004_folha_pgto.cob:030:046  '.'
+cobol-examples/prog004_folha_pgto.cob:031:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:031:021  STRING "INITIAL VALUE"
+cobol-examples/prog004_folha_pgto.cob:031:036  '.'
+cobol-examples/prog004_folha_pgto.cob:032:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:032:021  IDENTIFIER TAB-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:032:036  '.'
+cobol-examples/prog004_folha_pgto.cob:034:013  KEYWORD MOVE
+cobol-examples/prog004_folha_pgto.cob:034:018  NUMBER 1
+cobol-examples/prog004_folha_pgto.cob:034:020  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:034:023  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:034:026  '.'
+cobol-examples/prog004_folha_pgto.cob:035:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:035:021  STRING " "
+cobol-examples/prog004_folha_pgto.cob:035:024  '.'
+cobol-examples/prog004_folha_pgto.cob:036:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:036:021  STRING "====00001-DISPLAY-TRABALHADOR===="
+cobol-examples/prog004_folha_pgto.cob:036:056  '.'
+cobol-examples/prog004_folha_pgto.cob:037:013  KEYWORD PERFORM
+cobol-examples/prog004_folha_pgto.cob:037:021  IDENTIFIER 00001-DISPLAY-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:037:047  IDENTIFIER UNTIL
+cobol-examples/prog004_folha_pgto.cob:037:053  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:037:057  '>'
+cobol-examples/prog004_folha_pgto.cob:037:059  NUMBER 3
+cobol-examples/prog004_folha_pgto.cob:037:060  '.'
+cobol-examples/prog004_folha_pgto.cob:039:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:039:021  STRING " "
+cobol-examples/prog004_folha_pgto.cob:039:024  '.'
+cobol-examples/prog004_folha_pgto.cob:040:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:040:021  STRING "====00002-DISPLAY-BY-SEARCH===="
+cobol-examples/prog004_folha_pgto.cob:040:054  '.'
+cobol-examples/prog004_folha_pgto.cob:041:013  KEYWORD PERFORM
+cobol-examples/prog004_folha_pgto.cob:041:021  IDENTIFIER 00002-DISPLAY-BY-SEARCH
+cobol-examples/prog004_folha_pgto.cob:041:044  '.'
+cobol-examples/prog004_folha_pgto.cob:043:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:043:021  STRING " "
+cobol-examples/prog004_folha_pgto.cob:043:024  '.'
+cobol-examples/prog004_folha_pgto.cob:044:013  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:044:021  STRING "====00003-REMOVE-TRABALHADOR===="
+cobol-examples/prog004_folha_pgto.cob:044:055  '.'
+cobol-examples/prog004_folha_pgto.cob:045:013  KEYWORD PERFORM
+cobol-examples/prog004_folha_pgto.cob:045:021  IDENTIFIER 00003-REMOVE-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:045:045  '.'
+cobol-examples/prog004_folha_pgto.cob:047:012  KEYWORD STOP
+cobol-examples/prog004_folha_pgto.cob:047:017  KEYWORD RUN
+cobol-examples/prog004_folha_pgto.cob:047:020  '.'
+cobol-examples/prog004_folha_pgto.cob:049:008  IDENTIFIER 00001-DISPLAY-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:049:033  '.'
+cobol-examples/prog004_folha_pgto.cob:050:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:050:020  STRING " "
+cobol-examples/prog004_folha_pgto.cob:050:023  '.'
+cobol-examples/prog004_folha_pgto.cob:052:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:052:020  STRING "IDX="
+cobol-examples/prog004_folha_pgto.cob:052:027  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:052:030  '.'
+cobol-examples/prog004_folha_pgto.cob:053:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:053:020  STRING "TRABALHADOR(IDX)="
+cobol-examples/prog004_folha_pgto.cob:053:040  IDENTIFIER TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:053:051  '('
+cobol-examples/prog004_folha_pgto.cob:053:052  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:053:055  ')'
+cobol-examples/prog004_folha_pgto.cob:053:056  '.'
+cobol-examples/prog004_folha_pgto.cob:054:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:054:020  STRING "NOME(IDX)="
+cobol-examples/prog004_folha_pgto.cob:054:033  IDENTIFIER NOME
+cobol-examples/prog004_folha_pgto.cob:054:037  '('
+cobol-examples/prog004_folha_pgto.cob:054:038  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:054:041  ')'
+cobol-examples/prog004_folha_pgto.cob:054:042  '.'
+cobol-examples/prog004_folha_pgto.cob:055:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:055:020  STRING "SALARIO(IDX)="
+cobol-examples/prog004_folha_pgto.cob:055:036  IDENTIFIER SALARIO
+cobol-examples/prog004_folha_pgto.cob:055:043  '('
+cobol-examples/prog004_folha_pgto.cob:055:044  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:055:047  ')'
+cobol-examples/prog004_folha_pgto.cob:055:048  '.'
+cobol-examples/prog004_folha_pgto.cob:056:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:056:020  STRING "DPTO(IDX,1)="
+cobol-examples/prog004_folha_pgto.cob:056:035  IDENTIFIER DPTO
+cobol-examples/prog004_folha_pgto.cob:056:039  '('
+cobol-examples/prog004_folha_pgto.cob:056:040  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:056:043  ','
+cobol-examples/prog004_folha_pgto.cob:056:044  NUMBER 1
+cobol-examples/prog004_folha_pgto.cob:056:045  ')'
+cobol-examples/prog004_folha_pgto.cob:056:046  '.'
+cobol-examples/prog004_folha_pgto.cob:057:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:057:020  STRING "DPTO(IDX,2)="
+cobol-examples/prog004_folha_pgto.cob:057:035  IDENTIFIER DPTO
+cobol-examples/prog004_folha_pgto.cob:057:039  '('
+cobol-examples/prog004_folha_pgto.cob:057:040  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:057:043  ','
+cobol-examples/prog004_folha_pgto.cob:057:044  NUMBER 2
+cobol-examples/prog004_folha_pgto.cob:057:045  ')'
+cobol-examples/prog004_folha_pgto.cob:057:046  '.'
+cobol-examples/prog004_folha_pgto.cob:058:012  IDENTIFIER ADD
+cobol-examples/prog004_folha_pgto.cob:058:016  NUMBER 1
+cobol-examples/prog004_folha_pgto.cob:058:018  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:058:021  IDENTIFIER IDX
+cobol-examples/prog004_folha_pgto.cob:058:024  '.'
+cobol-examples/prog004_folha_pgto.cob:060:008  IDENTIFIER 00002-DISPLAY-BY-SEARCH
+cobol-examples/prog004_folha_pgto.cob:060:031  '.'
+cobol-examples/prog004_folha_pgto.cob:062:012  IDENTIFIER SET
+cobol-examples/prog004_folha_pgto.cob:062:016  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:062:020  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:062:023  NUMBER 1
+cobol-examples/prog004_folha_pgto.cob:062:024  '.'
+cobol-examples/prog004_folha_pgto.cob:063:012  IDENTIFIER SEARCH
+cobol-examples/prog004_folha_pgto.cob:063:019  IDENTIFIER TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:064:015  IDENTIFIER AT
+cobol-examples/prog004_folha_pgto.cob:064:018  IDENTIFIER END
+cobol-examples/prog004_folha_pgto.cob:064:022  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:064:030  STRING "TRABALHADOR NOT FOUND"
+cobol-examples/prog004_folha_pgto.cob:065:015  IDENTIFIER WHEN
+cobol-examples/prog004_folha_pgto.cob:065:020  IDENTIFIER NOME
+cobol-examples/prog004_folha_pgto.cob:065:024  '('
+cobol-examples/prog004_folha_pgto.cob:065:025  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:065:028  ')'
+cobol-examples/prog004_folha_pgto.cob:065:030  '='
+cobol-examples/prog004_folha_pgto.cob:065:032  STRING "MARIA"
+cobol-examples/prog004_folha_pgto.cob:066:018  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:066:026  STRING "'WHEN NOME(TID) = MARIA'"
+cobol-examples/prog004_folha_pgto.cob:067:018  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:067:026  STRING "TID="
+cobol-examples/prog004_folha_pgto.cob:067:033  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:068:018  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:068:026  STRING "TRABALHADOR(TID)="
+cobol-examples/prog004_folha_pgto.cob:068:046  IDENTIFIER TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:068:057  '('
+cobol-examples/prog004_folha_pgto.cob:068:058  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:068:061  ')'
+cobol-examples/prog004_folha_pgto.cob:069:012  IDENTIFIER END-SEARCH
+cobol-examples/prog004_folha_pgto.cob:069:022  '.'
+cobol-examples/prog004_folha_pgto.cob:072:008  IDENTIFIER 00003-REMOVE-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:072:032  '.'
+cobol-examples/prog004_folha_pgto.cob:073:012  IDENTIFIER SET
+cobol-examples/prog004_folha_pgto.cob:073:016  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:073:020  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:073:023  NUMBER 2
+cobol-examples/prog004_folha_pgto.cob:073:024  '.'
+cobol-examples/prog004_folha_pgto.cob:074:012  KEYWORD MOVE
+cobol-examples/prog004_folha_pgto.cob:074:017  IDENTIFIER LOW-VALUES
+cobol-examples/prog004_folha_pgto.cob:074:028  IDENTIFIER TO
+cobol-examples/prog004_folha_pgto.cob:074:031  IDENTIFIER TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:074:042  '('
+cobol-examples/prog004_folha_pgto.cob:074:043  IDENTIFIER TID
+cobol-examples/prog004_folha_pgto.cob:074:046  ')'
+cobol-examples/prog004_folha_pgto.cob:075:012  KEYWORD DISPLAY
+cobol-examples/prog004_folha_pgto.cob:075:020  IDENTIFIER TAB-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:075:035  '.'
+cobol-examples/prog004_folha_pgto.cob:077:008  IDENTIFIER END
+cobol-examples/prog004_folha_pgto.cob:077:012  IDENTIFIER PROGRAM
+cobol-examples/prog004_folha_pgto.cob:077:020  IDENTIFIER FOLHA-PGTO
+cobol-examples/prog004_folha_pgto.cob:077:030  '.'
+
+DIAGNOSTICS:

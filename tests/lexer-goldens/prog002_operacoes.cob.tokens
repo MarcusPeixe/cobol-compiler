@@ -1,0 +1,322 @@
+cobol-examples/prog002_operacoes.cob:011:008  KEYWORD IDENTIFICATION
+cobol-examples/prog002_operacoes.cob:011:023  KEYWORD DIVISION
+cobol-examples/prog002_operacoes.cob:011:031  '.'
+cobol-examples/prog002_operacoes.cob:012:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog002_operacoes.cob:012:018  '.'
+cobol-examples/prog002_operacoes.cob:012:020  IDENTIFIER YOUR-PROGRAM-NAME
+cobol-examples/prog002_operacoes.cob:012:037  '.'
+cobol-examples/prog002_operacoes.cob:013:008  KEYWORD DATA
+cobol-examples/prog002_operacoes.cob:013:013  KEYWORD DIVISION
+cobol-examples/prog002_operacoes.cob:013:021  '.'
+cobol-examples/prog002_operacoes.cob:014:008  IDENTIFIER FILE
+cobol-examples/prog002_operacoes.cob:014:013  KEYWORD SECTION
+cobol-examples/prog002_operacoes.cob:014:020  '.'
+cobol-examples/prog002_operacoes.cob:015:008  IDENTIFIER WORKING-STORAGE
+cobol-examples/prog002_operacoes.cob:015:024  KEYWORD SECTION
+cobol-examples/prog002_operacoes.cob:015:031  '.'
+cobol-examples/prog002_operacoes.cob:016:012  NUMBER 77
+cobol-examples/prog002_operacoes.cob:016:015  IDENTIFIER WRK-VALOR1
+cobol-examples/prog002_operacoes.cob:016:032  PICTURE
+cobol-examples/prog002_operacoes.cob:016:036  PICTURE-STRING 9(10)
+cobol-examples/prog002_operacoes.cob:016:042  IDENTIFIER VALUES
+cobol-examples/prog002_operacoes.cob:016:049  NUMBER 10
+cobol-examples/prog002_operacoes.cob:016:051  '.'
+cobol-examples/prog002_operacoes.cob:017:012  NUMBER 77
+cobol-examples/prog002_operacoes.cob:017:015  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:017:032  PICTURE
+cobol-examples/prog002_operacoes.cob:017:036  PICTURE-STRING 9(10)
+cobol-examples/prog002_operacoes.cob:017:042  IDENTIFIER VALUES
+cobol-examples/prog002_operacoes.cob:017:049  IDENTIFIER ZEROS
+cobol-examples/prog002_operacoes.cob:017:054  '.'
+cobol-examples/prog002_operacoes.cob:018:012  NUMBER 77
+cobol-examples/prog002_operacoes.cob:018:015  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:018:032  PICTURE
+cobol-examples/prog002_operacoes.cob:018:036  PICTURE-STRING 9(2)
+cobol-examples/prog002_operacoes.cob:018:041  IDENTIFIER VALUES
+cobol-examples/prog002_operacoes.cob:018:048  NUMBER 1
+cobol-examples/prog002_operacoes.cob:018:049  '.'
+cobol-examples/prog002_operacoes.cob:019:012  NUMBER 77
+cobol-examples/prog002_operacoes.cob:019:015  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:019:032  PICTURE
+cobol-examples/prog002_operacoes.cob:019:036  PICTURE-STRING 9(2)
+cobol-examples/prog002_operacoes.cob:019:041  IDENTIFIER VALUES
+cobol-examples/prog002_operacoes.cob:019:048  NUMBER 1
+cobol-examples/prog002_operacoes.cob:019:049  '.'
+cobol-examples/prog002_operacoes.cob:020:012  NUMBER 77
+cobol-examples/prog002_operacoes.cob:020:015  IDENTIFIER WRK-C
+cobol-examples/prog002_operacoes.cob:020:032  PICTURE
+cobol-examples/prog002_operacoes.cob:020:036  PICTURE-STRING 9(2)
+cobol-examples/prog002_operacoes.cob:020:041  IDENTIFIER VALUES
+cobol-examples/prog002_operacoes.cob:020:048  IDENTIFIER ZEROS
+cobol-examples/prog002_operacoes.cob:020:053  '.'
+cobol-examples/prog002_operacoes.cob:022:012  NUMBER 01
+cobol-examples/prog002_operacoes.cob:022:015  IDENTIFIER WRK-TOTAIS
+cobol-examples/prog002_operacoes.cob:022:025  '.'
+cobol-examples/prog002_operacoes.cob:023:015  NUMBER 05
+cobol-examples/prog002_operacoes.cob:023:018  IDENTIFIER WRK-TOTAL
+cobol-examples/prog002_operacoes.cob:023:032  PICTURE
+cobol-examples/prog002_operacoes.cob:023:036  PICTURE-STRING 9(10)
+cobol-examples/prog002_operacoes.cob:023:042  IDENTIFIER VALUE
+cobol-examples/prog002_operacoes.cob:023:048  NUMBER 19
+cobol-examples/prog002_operacoes.cob:023:050  '.'
+cobol-examples/prog002_operacoes.cob:025:008  KEYWORD PROCEDURE
+cobol-examples/prog002_operacoes.cob:025:018  KEYWORD DIVISION
+cobol-examples/prog002_operacoes.cob:025:026  '.'
+cobol-examples/prog002_operacoes.cob:026:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog002_operacoes.cob:026:022  '.'
+cobol-examples/prog002_operacoes.cob:027:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:027:020  STRING "===== start ======="
+cobol-examples/prog002_operacoes.cob:027:041  '.'
+cobol-examples/prog002_operacoes.cob:028:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:028:017  NUMBER 20
+cobol-examples/prog002_operacoes.cob:028:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:028:023  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:028:033  '.'
+cobol-examples/prog002_operacoes.cob:029:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:029:020  STRING "MOVE 20 TO WRK-VALOR2 -->"
+cobol-examples/prog002_operacoes.cob:029:048  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:029:058  '.'
+cobol-examples/prog002_operacoes.cob:031:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:031:017  IDENTIFIER WRK-VALOR1
+cobol-examples/prog002_operacoes.cob:031:028  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:031:031  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:031:041  '.'
+cobol-examples/prog002_operacoes.cob:032:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:032:020  STRING "MOVE WRK-VALOR1 TO WRK-VALOR2 -->"
+cobol-examples/prog002_operacoes.cob:032:056  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:032:066  '.'
+cobol-examples/prog002_operacoes.cob:034:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:034:017  NUMBER 70
+cobol-examples/prog002_operacoes.cob:034:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:034:023  IDENTIFIER WRK-VALOR1
+cobol-examples/prog002_operacoes.cob:034:034  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:034:044  '.'
+cobol-examples/prog002_operacoes.cob:035:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:035:020  STRING "MOVE 70 TO WRK-VALOR1 WRK-VALOR2 -->"
+cobol-examples/prog002_operacoes.cob:035:059  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:035:069  '.'
+cobol-examples/prog002_operacoes.cob:037:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:037:017  IDENTIFIER WRK-TOTAL
+cobol-examples/prog002_operacoes.cob:037:027  IDENTIFIER OF
+cobol-examples/prog002_operacoes.cob:037:030  IDENTIFIER WRK-TOTAIS
+cobol-examples/prog002_operacoes.cob:037:041  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:037:044  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:037:054  '.'
+cobol-examples/prog002_operacoes.cob:038:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:038:020  STRING "MOVE WRK-TOTAL OF WRK-TOTAIS TO WRK-VALOR2. -->"
+cobol-examples/prog002_operacoes.cob:039:022  IDENTIFIER WRK-VALOR2
+cobol-examples/prog002_operacoes.cob:039:032  '.'
+cobol-examples/prog002_operacoes.cob:041:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:041:020  STRING "--------"
+cobol-examples/prog002_operacoes.cob:041:030  '.'
+cobol-examples/prog002_operacoes.cob:042:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:042:020  STRING "A = 1, B = 1, C = 1"
+cobol-examples/prog002_operacoes.cob:042:041  '.'
+cobol-examples/prog002_operacoes.cob:044:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:044:020  STRING " "
+cobol-examples/prog002_operacoes.cob:044:023  '.'
+cobol-examples/prog002_operacoes.cob:045:012  IDENTIFIER ADD
+cobol-examples/prog002_operacoes.cob:045:016  NUMBER 1
+cobol-examples/prog002_operacoes.cob:045:018  NUMBER 1
+cobol-examples/prog002_operacoes.cob:045:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:045:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:045:028  '.'
+cobol-examples/prog002_operacoes.cob:046:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:046:020  STRING "ADD B C TO A (A = B + C + A) -->"
+cobol-examples/prog002_operacoes.cob:046:055  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:046:060  '.'
+cobol-examples/prog002_operacoes.cob:048:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:048:017  NUMBER 1
+cobol-examples/prog002_operacoes.cob:048:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:048:022  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:048:027  '.'
+cobol-examples/prog002_operacoes.cob:049:012  IDENTIFIER ADD
+cobol-examples/prog002_operacoes.cob:049:016  NUMBER 1
+cobol-examples/prog002_operacoes.cob:049:018  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:049:021  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:049:027  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:049:032  '.'
+cobol-examples/prog002_operacoes.cob:050:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:050:020  STRING " "
+cobol-examples/prog002_operacoes.cob:050:023  '.'
+cobol-examples/prog002_operacoes.cob:051:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:051:020  STRING "ADD 1 TO A B (A = A + 1; B = B + 1) -->"
+cobol-examples/prog002_operacoes.cob:052:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:052:020  STRING "A= "
+cobol-examples/prog002_operacoes.cob:052:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:052:032  STRING " , B= "
+cobol-examples/prog002_operacoes.cob:052:041  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:052:046  '.'
+cobol-examples/prog002_operacoes.cob:054:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:054:020  STRING " "
+cobol-examples/prog002_operacoes.cob:054:023  '.'
+cobol-examples/prog002_operacoes.cob:055:012  IDENTIFIER ADD
+cobol-examples/prog002_operacoes.cob:055:016  NUMBER 1
+cobol-examples/prog002_operacoes.cob:055:018  NUMBER 1
+cobol-examples/prog002_operacoes.cob:055:020  IDENTIFIER GIVING
+cobol-examples/prog002_operacoes.cob:055:027  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:055:032  '.'
+cobol-examples/prog002_operacoes.cob:056:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:056:020  STRING "ADD B C GIVING A (A = B + C) -->"
+cobol-examples/prog002_operacoes.cob:056:055  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:056:060  '.'
+cobol-examples/prog002_operacoes.cob:058:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:058:020  STRING "============ SUBTRACT ============= "
+cobol-examples/prog002_operacoes.cob:058:058  '.'
+cobol-examples/prog002_operacoes.cob:059:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:059:017  NUMBER 99
+cobol-examples/prog002_operacoes.cob:059:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:059:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:059:028  '.'
+cobol-examples/prog002_operacoes.cob:060:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:060:017  NUMBER 0
+cobol-examples/prog002_operacoes.cob:060:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:060:022  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:060:027  '.'
+cobol-examples/prog002_operacoes.cob:061:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:061:020  STRING "A= 99, B= 0"
+cobol-examples/prog002_operacoes.cob:061:033  '.'
+cobol-examples/prog002_operacoes.cob:062:012  IDENTIFIER SUBTRACT
+cobol-examples/prog002_operacoes.cob:062:021  NUMBER 30
+cobol-examples/prog002_operacoes.cob:062:024  NUMBER 23
+cobol-examples/prog002_operacoes.cob:062:027  IDENTIFIER FROM
+cobol-examples/prog002_operacoes.cob:062:032  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:063:027  IDENTIFIER GIVING
+cobol-examples/prog002_operacoes.cob:063:034  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:063:039  '.'
+cobol-examples/prog002_operacoes.cob:064:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:064:020  STRING "SUBTRACT 30 23 FROM A GIVING B.-->"
+cobol-examples/prog002_operacoes.cob:065:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:065:020  STRING "A= "
+cobol-examples/prog002_operacoes.cob:065:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:065:032  STRING " , B= "
+cobol-examples/prog002_operacoes.cob:065:041  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:065:046  '.'
+cobol-examples/prog002_operacoes.cob:067:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:067:020  STRING "============ MULTIPLY ============= "
+cobol-examples/prog002_operacoes.cob:067:058  '.'
+cobol-examples/prog002_operacoes.cob:068:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:068:017  NUMBER 40
+cobol-examples/prog002_operacoes.cob:068:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:068:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:068:028  '.'
+cobol-examples/prog002_operacoes.cob:069:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:069:017  NUMBER 0
+cobol-examples/prog002_operacoes.cob:069:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:069:022  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:069:027  '.'
+cobol-examples/prog002_operacoes.cob:070:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:070:020  STRING "A= 40, B= 0"
+cobol-examples/prog002_operacoes.cob:070:033  '.'
+cobol-examples/prog002_operacoes.cob:071:012  IDENTIFIER MULTIPLY
+cobol-examples/prog002_operacoes.cob:071:021  NUMBER 2
+cobol-examples/prog002_operacoes.cob:071:023  IDENTIFIER BY
+cobol-examples/prog002_operacoes.cob:071:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:071:031  '.'
+cobol-examples/prog002_operacoes.cob:072:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:072:020  STRING "MULTIPLY A BY 2 -->"
+cobol-examples/prog002_operacoes.cob:073:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:073:020  STRING "A= "
+cobol-examples/prog002_operacoes.cob:073:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:073:032  STRING " , B= "
+cobol-examples/prog002_operacoes.cob:073:041  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:073:046  '.'
+cobol-examples/prog002_operacoes.cob:075:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:075:020  STRING "============ MULTIPLY ============= "
+cobol-examples/prog002_operacoes.cob:075:058  '.'
+cobol-examples/prog002_operacoes.cob:076:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:076:017  NUMBER 40
+cobol-examples/prog002_operacoes.cob:076:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:076:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:076:028  '.'
+cobol-examples/prog002_operacoes.cob:077:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:077:017  NUMBER 0
+cobol-examples/prog002_operacoes.cob:077:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:077:022  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:077:027  '.'
+cobol-examples/prog002_operacoes.cob:078:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:078:020  STRING "A= 40, B= 0"
+cobol-examples/prog002_operacoes.cob:078:033  '.'
+cobol-examples/prog002_operacoes.cob:079:012  IDENTIFIER MULTIPLY
+cobol-examples/prog002_operacoes.cob:079:021  NUMBER 2
+cobol-examples/prog002_operacoes.cob:079:023  IDENTIFIER BY
+cobol-examples/prog002_operacoes.cob:079:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:079:032  IDENTIFIER GIVING
+cobol-examples/prog002_operacoes.cob:079:039  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:079:044  '.'
+cobol-examples/prog002_operacoes.cob:080:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:080:020  STRING "MULTIPLY A BY 2 GIVING B.-->"
+cobol-examples/prog002_operacoes.cob:081:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:081:020  STRING "A= "
+cobol-examples/prog002_operacoes.cob:081:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:081:032  STRING " , B= "
+cobol-examples/prog002_operacoes.cob:081:041  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:081:046  '.'
+cobol-examples/prog002_operacoes.cob:083:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:083:020  STRING "============ DIVIDE ============="
+cobol-examples/prog002_operacoes.cob:083:055  '.'
+cobol-examples/prog002_operacoes.cob:084:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:084:017  NUMBER 81
+cobol-examples/prog002_operacoes.cob:084:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:084:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:084:028  '.'
+cobol-examples/prog002_operacoes.cob:085:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:085:017  NUMBER 0
+cobol-examples/prog002_operacoes.cob:085:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:085:022  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:085:027  '.'
+cobol-examples/prog002_operacoes.cob:086:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:086:017  NUMBER 0
+cobol-examples/prog002_operacoes.cob:086:019  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:086:022  IDENTIFIER WRK-C
+cobol-examples/prog002_operacoes.cob:086:027  '.'
+cobol-examples/prog002_operacoes.cob:087:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:087:020  STRING "A= 80, B= 0"
+cobol-examples/prog002_operacoes.cob:087:033  '.'
+cobol-examples/prog002_operacoes.cob:088:012  IDENTIFIER DIVIDE
+cobol-examples/prog002_operacoes.cob:088:019  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:088:025  IDENTIFIER BY
+cobol-examples/prog002_operacoes.cob:088:028  NUMBER 2
+cobol-examples/prog002_operacoes.cob:088:030  IDENTIFIER GIVING
+cobol-examples/prog002_operacoes.cob:088:037  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:088:043  IDENTIFIER REMAINDER
+cobol-examples/prog002_operacoes.cob:088:053  IDENTIFIER WRK-C
+cobol-examples/prog002_operacoes.cob:088:058  '.'
+cobol-examples/prog002_operacoes.cob:089:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:089:020  STRING "DIVIDE A BY 2 GIVING B REMAINDER C .-->"
+cobol-examples/prog002_operacoes.cob:090:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:090:020  STRING "A= "
+cobol-examples/prog002_operacoes.cob:090:026  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:090:032  STRING " , B= "
+cobol-examples/prog002_operacoes.cob:090:041  IDENTIFIER WRK-B
+cobol-examples/prog002_operacoes.cob:090:047  STRING " , C= "
+cobol-examples/prog002_operacoes.cob:090:056  IDENTIFIER WRK-C
+cobol-examples/prog002_operacoes.cob:090:061  '.'
+cobol-examples/prog002_operacoes.cob:093:012  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:093:020  STRING " "
+cobol-examples/prog002_operacoes.cob:093:023  '.'
+cobol-examples/prog002_operacoes.cob:094:012  KEYWORD MOVE
+cobol-examples/prog002_operacoes.cob:094:017  NUMBER 99
+cobol-examples/prog002_operacoes.cob:094:020  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:094:023  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:094:028  '.'
+cobol-examples/prog002_operacoes.cob:095:012  IDENTIFIER ADD
+cobol-examples/prog002_operacoes.cob:095:016  NUMBER 1
+cobol-examples/prog002_operacoes.cob:095:018  IDENTIFIER TO
+cobol-examples/prog002_operacoes.cob:095:021  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:096:012  IDENTIFIER ON
+cobol-examples/prog002_operacoes.cob:096:015  IDENTIFIER SIZE
+cobol-examples/prog002_operacoes.cob:096:020  IDENTIFIER ERROR
+cobol-examples/prog002_operacoes.cob:097:015  KEYWORD DISPLAY
+cobol-examples/prog002_operacoes.cob:097:023  STRING "ON SIZE ERROR -->"
+cobol-examples/prog002_operacoes.cob:097:043  IDENTIFIER WRK-A
+cobol-examples/prog002_operacoes.cob:097:048  '.'
+cobol-examples/prog002_operacoes.cob:099:013  KEYWORD STOP
+cobol-examples/prog002_operacoes.cob:099:018  KEYWORD RUN
+cobol-examples/prog002_operacoes.cob:099:021  '.'
+cobol-examples/prog002_operacoes.cob:100:008  IDENTIFIER END
+cobol-examples/prog002_operacoes.cob:100:012  IDENTIFIER PROGRAM
+cobol-examples/prog002_operacoes.cob:100:020  IDENTIFIER YOUR-PROGRAM-NAME
+cobol-examples/prog002_operacoes.cob:100:037  '.'
+
+DIAGNOSTICS:

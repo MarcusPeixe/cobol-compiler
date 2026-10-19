@@ -18,6 +18,7 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
+- Integration tests live in `tests/`; lexer regression goldens are under `tests/lexer-goldens/` and are exercised automatically by `cargo test`. Golden output contains the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
 - Library crate (`src/lib.rs`) plus a thin binary (`src/main.rs`). New phases get their own module and their own CLI subcommand (`cobol-compiler lex <file>`, and so on).
 
 ## Layout
@@ -32,6 +33,8 @@ src/preprocess/             COPY expansion (runs before the lexer)
 src/lexer/                  module root, re-exports the public API
 src/lexer/token/            token types
 src/lexer/scanner/          lexing
+tests/                      integration tests
+tests/lexer-goldens/        expected token output for professor example programs
 ```
 
 Each directory above holds `mod.rs` plus `tests.rs` (except `src/lexer/`, which only re-exports).

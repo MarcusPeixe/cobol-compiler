@@ -1,0 +1,240 @@
+cobol-examples/prog005_strings.cob:011:008  KEYWORD IDENTIFICATION
+cobol-examples/prog005_strings.cob:011:023  KEYWORD DIVISION
+cobol-examples/prog005_strings.cob:011:031  '.'
+cobol-examples/prog005_strings.cob:012:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog005_strings.cob:012:018  '.'
+cobol-examples/prog005_strings.cob:012:020  IDENTIFIER PROG008_STRING
+cobol-examples/prog005_strings.cob:012:034  '.'
+cobol-examples/prog005_strings.cob:013:008  KEYWORD DATA
+cobol-examples/prog005_strings.cob:013:013  KEYWORD DIVISION
+cobol-examples/prog005_strings.cob:013:021  '.'
+cobol-examples/prog005_strings.cob:014:008  IDENTIFIER FILE
+cobol-examples/prog005_strings.cob:014:013  KEYWORD SECTION
+cobol-examples/prog005_strings.cob:014:020  '.'
+cobol-examples/prog005_strings.cob:015:008  IDENTIFIER WORKING-STORAGE
+cobol-examples/prog005_strings.cob:015:024  KEYWORD SECTION
+cobol-examples/prog005_strings.cob:015:031  '.'
+cobol-examples/prog005_strings.cob:017:008  NUMBER 77
+cobol-examples/prog005_strings.cob:017:011  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:017:027  PICTURE
+cobol-examples/prog005_strings.cob:017:031  PICTURE-STRING X(15)
+cobol-examples/prog005_strings.cob:017:036  '.'
+cobol-examples/prog005_strings.cob:018:008  NUMBER 77
+cobol-examples/prog005_strings.cob:018:011  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:018:027  PICTURE
+cobol-examples/prog005_strings.cob:018:031  PICTURE-STRING 9(2)
+cobol-examples/prog005_strings.cob:018:035  '.'
+cobol-examples/prog005_strings.cob:019:008  NUMBER 77
+cobol-examples/prog005_strings.cob:019:011  IDENTIFIER YESNO
+cobol-examples/prog005_strings.cob:019:027  PICTURE
+cobol-examples/prog005_strings.cob:019:031  PICTURE-STRING 9
+cobol-examples/prog005_strings.cob:019:032  '.'
+cobol-examples/prog005_strings.cob:021:008  NUMBER 77
+cobol-examples/prog005_strings.cob:021:011  IDENTIFIER IDX
+cobol-examples/prog005_strings.cob:021:015  PICTURE
+cobol-examples/prog005_strings.cob:021:019  PICTURE-STRING 9(1)
+cobol-examples/prog005_strings.cob:021:023  '.'
+cobol-examples/prog005_strings.cob:023:008  KEYWORD PROCEDURE
+cobol-examples/prog005_strings.cob:023:018  KEYWORD DIVISION
+cobol-examples/prog005_strings.cob:023:026  '.'
+cobol-examples/prog005_strings.cob:024:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog005_strings.cob:024:022  '.'
+cobol-examples/prog005_strings.cob:025:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:025:018  STRING "HELLO WORLD 123!!"
+cobol-examples/prog005_strings.cob:025:038  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:025:041  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:025:045  '.'
+cobol-examples/prog005_strings.cob:027:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:027:021  STRING " "
+cobol-examples/prog005_strings.cob:027:024  '.'
+cobol-examples/prog005_strings.cob:028:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:028:021  STRING "==== EXEMPLO 1 ===="
+cobol-examples/prog005_strings.cob:028:042  '.'
+cobol-examples/prog005_strings.cob:029:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:029:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:029:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:029:035  STRING "'"
+cobol-examples/prog005_strings.cob:029:038  '.'
+cobol-examples/prog005_strings.cob:031:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:031:018  NUMBER 0
+cobol-examples/prog005_strings.cob:031:020  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:031:023  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:031:027  '.'
+cobol-examples/prog005_strings.cob:032:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:032:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:032:026  IDENTIFIER TALLYING
+cobol-examples/prog005_strings.cob:032:035  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:032:040  IDENTIFIER FOR
+cobol-examples/prog005_strings.cob:032:044  IDENTIFIER CHARACTERS
+cobol-examples/prog005_strings.cob:032:054  '.'
+cobol-examples/prog005_strings.cob:033:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:033:021  STRING "CONT="
+cobol-examples/prog005_strings.cob:033:029  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:033:034  STRING " - FOR CHARACTERS"
+cobol-examples/prog005_strings.cob:033:053  '.'
+cobol-examples/prog005_strings.cob:035:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:035:018  NUMBER 0
+cobol-examples/prog005_strings.cob:035:020  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:035:023  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:035:027  '.'
+cobol-examples/prog005_strings.cob:036:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:036:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:036:026  IDENTIFIER TALLYING
+cobol-examples/prog005_strings.cob:036:035  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:036:040  IDENTIFIER FOR
+cobol-examples/prog005_strings.cob:036:044  IDENTIFIER ALL
+cobol-examples/prog005_strings.cob:036:048  STRING "L"
+cobol-examples/prog005_strings.cob:036:051  '.'
+cobol-examples/prog005_strings.cob:037:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:037:021  STRING "CONT="
+cobol-examples/prog005_strings.cob:037:029  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:037:034  STRING " - FOR ALL 'L'"
+cobol-examples/prog005_strings.cob:037:050  '.'
+cobol-examples/prog005_strings.cob:039:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:039:018  NUMBER 0
+cobol-examples/prog005_strings.cob:039:020  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:039:023  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:039:027  '.'
+cobol-examples/prog005_strings.cob:040:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:040:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:040:026  IDENTIFIER TALLYING
+cobol-examples/prog005_strings.cob:040:035  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:041:021  IDENTIFIER FOR
+cobol-examples/prog005_strings.cob:041:025  IDENTIFIER CHARACTERS
+cobol-examples/prog005_strings.cob:041:036  IDENTIFIER BEFORE
+cobol-examples/prog005_strings.cob:041:043  IDENTIFIER INITIAL
+cobol-examples/prog005_strings.cob:041:051  STRING " "
+cobol-examples/prog005_strings.cob:041:054  '.'
+cobol-examples/prog005_strings.cob:042:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:042:021  STRING "CONT="
+cobol-examples/prog005_strings.cob:042:029  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:042:034  STRING " - BEFORE INITIAL ' '"
+cobol-examples/prog005_strings.cob:042:057  '.'
+cobol-examples/prog005_strings.cob:044:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:044:018  NUMBER 0
+cobol-examples/prog005_strings.cob:044:020  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:044:023  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:044:027  '.'
+cobol-examples/prog005_strings.cob:045:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:045:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:045:026  IDENTIFIER TALLYING
+cobol-examples/prog005_strings.cob:045:035  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:046:021  IDENTIFIER FOR
+cobol-examples/prog005_strings.cob:046:025  IDENTIFIER CHARACTERS
+cobol-examples/prog005_strings.cob:046:036  IDENTIFIER AFTER
+cobol-examples/prog005_strings.cob:046:042  IDENTIFIER INITIAL
+cobol-examples/prog005_strings.cob:046:050  STRING " "
+cobol-examples/prog005_strings.cob:046:053  '.'
+cobol-examples/prog005_strings.cob:047:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:047:021  STRING "CONT="
+cobol-examples/prog005_strings.cob:047:029  IDENTIFIER CONT
+cobol-examples/prog005_strings.cob:047:034  STRING " - AFTER INITIAL ' '"
+cobol-examples/prog005_strings.cob:047:056  '.'
+cobol-examples/prog005_strings.cob:049:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:049:018  NUMBER 0
+cobol-examples/prog005_strings.cob:049:020  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:049:023  IDENTIFIER YESNO
+cobol-examples/prog005_strings.cob:049:028  '.'
+cobol-examples/prog005_strings.cob:050:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:050:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:050:026  IDENTIFIER TALLYING
+cobol-examples/prog005_strings.cob:050:035  IDENTIFIER YESNO
+cobol-examples/prog005_strings.cob:051:021  IDENTIFIER FOR
+cobol-examples/prog005_strings.cob:051:025  IDENTIFIER LEADING
+cobol-examples/prog005_strings.cob:051:033  STRING "H"
+cobol-examples/prog005_strings.cob:051:036  '.'
+cobol-examples/prog005_strings.cob:052:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:052:021  STRING "YESNO="
+cobol-examples/prog005_strings.cob:052:030  IDENTIFIER YESNO
+cobol-examples/prog005_strings.cob:052:036  STRING " - FOR LEADING 'H' 0=N / 1=Y"
+cobol-examples/prog005_strings.cob:052:066  '.'
+cobol-examples/prog005_strings.cob:054:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:054:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:054:026  IDENTIFIER REPLACING
+cobol-examples/prog005_strings.cob:054:036  IDENTIFIER FIRST
+cobol-examples/prog005_strings.cob:054:042  STRING "E"
+cobol-examples/prog005_strings.cob:054:046  IDENTIFIER BY
+cobol-examples/prog005_strings.cob:054:049  STRING "A"
+cobol-examples/prog005_strings.cob:054:052  '.'
+cobol-examples/prog005_strings.cob:055:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:055:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:055:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:055:035  STRING "' - REPLACING FIRST 'E' BY 'A'"
+cobol-examples/prog005_strings.cob:055:067  '.'
+cobol-examples/prog005_strings.cob:057:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:057:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:057:026  IDENTIFIER REPLACING
+cobol-examples/prog005_strings.cob:057:036  IDENTIFIER ALL
+cobol-examples/prog005_strings.cob:057:040  STRING "LLO"
+cobol-examples/prog005_strings.cob:057:046  IDENTIFIER BY
+cobol-examples/prog005_strings.cob:057:049  STRING "PPY"
+cobol-examples/prog005_strings.cob:057:054  '.'
+cobol-examples/prog005_strings.cob:058:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:058:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:058:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:058:035  STRING "' - REPLACING ALL 'LLO' BY 'PPY'"
+cobol-examples/prog005_strings.cob:058:069  '.'
+cobol-examples/prog005_strings.cob:060:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:060:018  STRING " HOLA-DAY"
+cobol-examples/prog005_strings.cob:060:030  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:060:033  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:060:037  '.'
+cobol-examples/prog005_strings.cob:061:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:061:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:061:026  IDENTIFIER REPLACING
+cobol-examples/prog005_strings.cob:061:036  IDENTIFIER ALL
+cobol-examples/prog005_strings.cob:061:040  STRING "HOLA"
+cobol-examples/prog005_strings.cob:061:047  IDENTIFIER BY
+cobol-examples/prog005_strings.cob:061:050  STRING "GOOD"
+cobol-examples/prog005_strings.cob:062:021  IDENTIFIER AFTER
+cobol-examples/prog005_strings.cob:062:027  IDENTIFIER INITIAL
+cobol-examples/prog005_strings.cob:062:035  STRING " "
+cobol-examples/prog005_strings.cob:062:039  IDENTIFIER BEFORE
+cobol-examples/prog005_strings.cob:062:046  IDENTIFIER INITIAL
+cobol-examples/prog005_strings.cob:062:054  STRING "-"
+cobol-examples/prog005_strings.cob:062:057  '.'
+cobol-examples/prog005_strings.cob:063:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:063:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:063:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:063:035  STRING "' - HOLA-DAY TO GOOD-DAY'"
+cobol-examples/prog005_strings.cob:063:062  '.'
+cobol-examples/prog005_strings.cob:065:013  KEYWORD MOVE
+cobol-examples/prog005_strings.cob:065:018  STRING "HELLO WORLD"
+cobol-examples/prog005_strings.cob:065:032  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:065:035  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:065:039  '.'
+cobol-examples/prog005_strings.cob:066:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:066:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:066:026  IDENTIFIER CONVERTING
+cobol-examples/prog005_strings.cob:066:037  STRING "ABCDEFGHIJKLMNOPQRSTUVWXZ"
+cobol-examples/prog005_strings.cob:067:017  IDENTIFIER TO
+cobol-examples/prog005_strings.cob:067:020  STRING "abcdefghijklmnopqrstuvwxz"
+cobol-examples/prog005_strings.cob:067:047  '.'
+cobol-examples/prog005_strings.cob:068:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:068:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:068:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:068:035  STRING "' - CONVERTING'"
+cobol-examples/prog005_strings.cob:068:052  '.'
+cobol-examples/prog005_strings.cob:070:013  IDENTIFIER INSPECT
+cobol-examples/prog005_strings.cob:070:021  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:070:026  IDENTIFIER REPLACING
+cobol-examples/prog005_strings.cob:070:036  IDENTIFIER CHARACTERS
+cobol-examples/prog005_strings.cob:070:047  IDENTIFIER BY
+cobol-examples/prog005_strings.cob:070:050  STRING "F"
+cobol-examples/prog005_strings.cob:070:053  '.'
+cobol-examples/prog005_strings.cob:071:013  KEYWORD DISPLAY
+cobol-examples/prog005_strings.cob:071:021  STRING "SAUX='"
+cobol-examples/prog005_strings.cob:071:030  IDENTIFIER SAUX
+cobol-examples/prog005_strings.cob:071:035  STRING "' - REPLACING "
+cobol-examples/prog005_strings.cob:071:051  '.'
+cobol-examples/prog005_strings.cob:073:012  KEYWORD STOP
+cobol-examples/prog005_strings.cob:073:017  KEYWORD RUN
+cobol-examples/prog005_strings.cob:073:020  '.'
+cobol-examples/prog005_strings.cob:075:008  IDENTIFIER END
+cobol-examples/prog005_strings.cob:075:012  IDENTIFIER PROGRAM
+cobol-examples/prog005_strings.cob:075:020  IDENTIFIER PROG008_STRING
+cobol-examples/prog005_strings.cob:075:034  '.'
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog005_strings.cob:012:020 identifier 'PROG008_STRING' contains '_'
+WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog005_strings.cob:075:020 identifier 'PROG008_STRING' contains '_'

@@ -1,0 +1,61 @@
+cobol-examples/prog001_divisoes.cob:015:008  KEYWORD IDENTIFICATION
+cobol-examples/prog001_divisoes.cob:015:023  KEYWORD DIVISION
+cobol-examples/prog001_divisoes.cob:015:031  '.'
+cobol-examples/prog001_divisoes.cob:016:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog001_divisoes.cob:016:018  '.'
+cobol-examples/prog001_divisoes.cob:016:020  IDENTIFIER PROG0001
+cobol-examples/prog001_divisoes.cob:016:028  '.'
+cobol-examples/prog001_divisoes.cob:019:008  IDENTIFIER AUTHOR
+cobol-examples/prog001_divisoes.cob:019:014  '.'
+cobol-examples/prog001_divisoes.cob:019:016  COMMENT-ENTRY "Enio Basso"
+cobol-examples/prog001_divisoes.cob:019:026  '.'
+cobol-examples/prog001_divisoes.cob:020:008  IDENTIFIER INSTALLATION
+cobol-examples/prog001_divisoes.cob:020:020  '.'
+cobol-examples/prog001_divisoes.cob:020:022  COMMENT-ENTRY "ebasso(dot)net"
+cobol-examples/prog001_divisoes.cob:020:036  '.'
+cobol-examples/prog001_divisoes.cob:021:008  IDENTIFIER DATE-WRITTEN
+cobol-examples/prog001_divisoes.cob:021:020  '.'
+cobol-examples/prog001_divisoes.cob:021:022  COMMENT-ENTRY "2018-02-24"
+cobol-examples/prog001_divisoes.cob:021:032  '.'
+cobol-examples/prog001_divisoes.cob:022:008  IDENTIFIER DATE-COMPILED
+cobol-examples/prog001_divisoes.cob:022:021  '.'
+cobol-examples/prog001_divisoes.cob:022:023  COMMENT-ENTRY "2018-02-24"
+cobol-examples/prog001_divisoes.cob:022:033  '.'
+cobol-examples/prog001_divisoes.cob:023:008  IDENTIFIER SECURITY
+cobol-examples/prog001_divisoes.cob:023:016  '.'
+cobol-examples/prog001_divisoes.cob:023:018  COMMENT-ENTRY "O programa usa criptografia XPTO"
+cobol-examples/prog001_divisoes.cob:023:050  '.'
+cobol-examples/prog001_divisoes.cob:024:008  IDENTIFIER REMARKS
+cobol-examples/prog001_divisoes.cob:024:015  '.'
+cobol-examples/prog001_divisoes.cob:024:017  COMMENT-ENTRY "O programa recebe um valor e imprime na tela"
+cobol-examples/prog001_divisoes.cob:024:061  '.'
+cobol-examples/prog001_divisoes.cob:027:008  KEYWORD ENVIRONMENT
+cobol-examples/prog001_divisoes.cob:027:020  KEYWORD DIVISION
+cobol-examples/prog001_divisoes.cob:027:028  '.'
+cobol-examples/prog001_divisoes.cob:029:008  IDENTIFIER CONFIGURATION
+cobol-examples/prog001_divisoes.cob:029:022  KEYWORD SECTION
+cobol-examples/prog001_divisoes.cob:029:029  '.'
+cobol-examples/prog001_divisoes.cob:037:008  IDENTIFIER INPUT-OUTPUT
+cobol-examples/prog001_divisoes.cob:037:021  KEYWORD SECTION
+cobol-examples/prog001_divisoes.cob:037:028  '.'
+cobol-examples/prog001_divisoes.cob:046:008  KEYWORD DATA
+cobol-examples/prog001_divisoes.cob:046:013  KEYWORD DIVISION
+cobol-examples/prog001_divisoes.cob:046:021  '.'
+cobol-examples/prog001_divisoes.cob:053:008  KEYWORD PROCEDURE
+cobol-examples/prog001_divisoes.cob:053:018  KEYWORD DIVISION
+cobol-examples/prog001_divisoes.cob:053:026  '.'
+cobol-examples/prog001_divisoes.cob:054:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog001_divisoes.cob:054:022  '.'
+cobol-examples/prog001_divisoes.cob:055:013  KEYWORD DISPLAY
+cobol-examples/prog001_divisoes.cob:055:021  STRING "Hello world"
+cobol-examples/prog001_divisoes.cob:056:013  KEYWORD DISPLAY
+cobol-examples/prog001_divisoes.cob:056:021  STRING "Enio Basso - 2"
+cobol-examples/prog001_divisoes.cob:057:013  KEYWORD STOP
+cobol-examples/prog001_divisoes.cob:057:018  KEYWORD RUN
+cobol-examples/prog001_divisoes.cob:057:021  '.'
+cobol-examples/prog001_divisoes.cob:058:008  IDENTIFIER END
+cobol-examples/prog001_divisoes.cob:058:012  IDENTIFIER PROGRAM
+cobol-examples/prog001_divisoes.cob:058:020  IDENTIFIER PROG0001
+cobol-examples/prog001_divisoes.cob:058:028  '.'
+
+DIAGNOSTICS:

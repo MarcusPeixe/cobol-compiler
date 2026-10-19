@@ -1,0 +1,230 @@
+cobol-examples/prog006_files.cob:011:008  KEYWORD IDENTIFICATION
+cobol-examples/prog006_files.cob:011:023  KEYWORD DIVISION
+cobol-examples/prog006_files.cob:011:031  '.'
+cobol-examples/prog006_files.cob:012:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog006_files.cob:012:018  '.'
+cobol-examples/prog006_files.cob:012:020  IDENTIFIER PROG006_FILES
+cobol-examples/prog006_files.cob:012:033  '.'
+cobol-examples/prog006_files.cob:013:008  KEYWORD ENVIRONMENT
+cobol-examples/prog006_files.cob:013:020  KEYWORD DIVISION
+cobol-examples/prog006_files.cob:013:028  '.'
+cobol-examples/prog006_files.cob:014:008  IDENTIFIER INPUT-OUTPUT
+cobol-examples/prog006_files.cob:014:021  KEYWORD SECTION
+cobol-examples/prog006_files.cob:014:028  '.'
+cobol-examples/prog006_files.cob:016:008  IDENTIFIER FILE-CONTROL
+cobol-examples/prog006_files.cob:016:020  '.'
+cobol-examples/prog006_files.cob:017:012  IDENTIFIER SELECT
+cobol-examples/prog006_files.cob:017:019  IDENTIFIER MY-FILE
+cobol-examples/prog006_files.cob:017:027  IDENTIFIER ASSIGN
+cobol-examples/prog006_files.cob:017:034  IDENTIFIER TO
+cobol-examples/prog006_files.cob:017:037  STRING "DADOS.TXT"
+cobol-examples/prog006_files.cob:017:048  '.'
+cobol-examples/prog006_files.cob:019:008  KEYWORD DATA
+cobol-examples/prog006_files.cob:019:013  KEYWORD DIVISION
+cobol-examples/prog006_files.cob:019:021  '.'
+cobol-examples/prog006_files.cob:020:008  IDENTIFIER FILE
+cobol-examples/prog006_files.cob:020:013  KEYWORD SECTION
+cobol-examples/prog006_files.cob:020:020  '.'
+cobol-examples/prog006_files.cob:023:008  IDENTIFIER FD
+cobol-examples/prog006_files.cob:023:011  IDENTIFIER MY-FILE
+cobol-examples/prog006_files.cob:023:018  '.'
+cobol-examples/prog006_files.cob:024:008  NUMBER 01
+cobol-examples/prog006_files.cob:024:011  IDENTIFIER RC-TRABALHADOR
+cobol-examples/prog006_files.cob:024:025  '.'
+cobol-examples/prog006_files.cob:025:011  NUMBER 02
+cobol-examples/prog006_files.cob:025:014  IDENTIFIER RC-TID
+cobol-examples/prog006_files.cob:025:033  PICTURE
+cobol-examples/prog006_files.cob:025:037  PICTURE-STRING 9(5)
+cobol-examples/prog006_files.cob:025:041  '.'
+cobol-examples/prog006_files.cob:026:011  NUMBER 02
+cobol-examples/prog006_files.cob:026:014  IDENTIFIER RC-NOME
+cobol-examples/prog006_files.cob:026:033  PICTURE
+cobol-examples/prog006_files.cob:026:037  PICTURE-STRING X(10)
+cobol-examples/prog006_files.cob:026:042  '.'
+cobol-examples/prog006_files.cob:027:011  NUMBER 02
+cobol-examples/prog006_files.cob:027:014  IDENTIFIER RC-SALARIO
+cobol-examples/prog006_files.cob:027:033  PICTURE
+cobol-examples/prog006_files.cob:027:037  PICTURE-STRING 9(10)V99
+cobol-examples/prog006_files.cob:027:045  '.'
+cobol-examples/prog006_files.cob:028:011  NUMBER 02
+cobol-examples/prog006_files.cob:028:014  IDENTIFIER RC-DPTO-1
+cobol-examples/prog006_files.cob:028:033  PICTURE
+cobol-examples/prog006_files.cob:028:037  PICTURE-STRING X(2)
+cobol-examples/prog006_files.cob:028:041  '.'
+cobol-examples/prog006_files.cob:029:011  NUMBER 02
+cobol-examples/prog006_files.cob:029:014  IDENTIFIER RC-DPTO-2
+cobol-examples/prog006_files.cob:029:033  PICTURE
+cobol-examples/prog006_files.cob:029:037  PICTURE-STRING X(2)
+cobol-examples/prog006_files.cob:029:041  '.'
+cobol-examples/prog006_files.cob:031:008  IDENTIFIER WORKING-STORAGE
+cobol-examples/prog006_files.cob:031:024  KEYWORD SECTION
+cobol-examples/prog006_files.cob:031:031  '.'
+cobol-examples/prog006_files.cob:033:008  NUMBER 01
+cobol-examples/prog006_files.cob:033:011  IDENTIFIER TAB-TRABALHADOR
+cobol-examples/prog006_files.cob:033:026  '.'
+cobol-examples/prog006_files.cob:034:011  NUMBER 02
+cobol-examples/prog006_files.cob:034:014  IDENTIFIER TRABALHADOR
+cobol-examples/prog006_files.cob:034:026  IDENTIFIER OCCURS
+cobol-examples/prog006_files.cob:034:033  NUMBER 3
+cobol-examples/prog006_files.cob:034:035  IDENTIFIER TIMES
+cobol-examples/prog006_files.cob:034:041  IDENTIFIER INDEXED
+cobol-examples/prog006_files.cob:034:049  IDENTIFIER BY
+cobol-examples/prog006_files.cob:034:052  IDENTIFIER TID
+cobol-examples/prog006_files.cob:034:055  '.'
+cobol-examples/prog006_files.cob:035:014  NUMBER 03
+cobol-examples/prog006_files.cob:035:017  IDENTIFIER NOME
+cobol-examples/prog006_files.cob:035:033  PICTURE
+cobol-examples/prog006_files.cob:035:037  PICTURE-STRING X(5)
+cobol-examples/prog006_files.cob:035:041  '.'
+cobol-examples/prog006_files.cob:036:014  NUMBER 03
+cobol-examples/prog006_files.cob:036:017  IDENTIFIER SALARIO
+cobol-examples/prog006_files.cob:036:033  PICTURE
+cobol-examples/prog006_files.cob:036:037  PICTURE-STRING 9(5)V99
+cobol-examples/prog006_files.cob:036:044  '.'
+cobol-examples/prog006_files.cob:037:014  NUMBER 03
+cobol-examples/prog006_files.cob:037:017  IDENTIFIER DPTO
+cobol-examples/prog006_files.cob:037:033  PICTURE
+cobol-examples/prog006_files.cob:037:037  PICTURE-STRING X(2)
+cobol-examples/prog006_files.cob:037:042  IDENTIFIER VALUES
+cobol-examples/prog006_files.cob:037:049  IDENTIFIER SPACES
+cobol-examples/prog006_files.cob:037:056  IDENTIFIER OCCURS
+cobol-examples/prog006_files.cob:037:063  NUMBER 2
+cobol-examples/prog006_files.cob:037:065  IDENTIFIER TIMES
+cobol-examples/prog006_files.cob:037:070  '.'
+cobol-examples/prog006_files.cob:039:008  NUMBER 77
+cobol-examples/prog006_files.cob:039:011  IDENTIFIER SAUX
+cobol-examples/prog006_files.cob:039:027  PICTURE
+cobol-examples/prog006_files.cob:039:031  PICTURE-STRING X(15)
+cobol-examples/prog006_files.cob:039:036  '.'
+cobol-examples/prog006_files.cob:040:008  NUMBER 77
+cobol-examples/prog006_files.cob:040:011  IDENTIFIER CONT
+cobol-examples/prog006_files.cob:040:027  PICTURE
+cobol-examples/prog006_files.cob:040:031  PICTURE-STRING 9(2)
+cobol-examples/prog006_files.cob:040:035  '.'
+cobol-examples/prog006_files.cob:041:008  NUMBER 77
+cobol-examples/prog006_files.cob:041:011  IDENTIFIER YESNO
+cobol-examples/prog006_files.cob:041:027  PICTURE
+cobol-examples/prog006_files.cob:041:031  PICTURE-STRING 9
+cobol-examples/prog006_files.cob:041:032  '.'
+cobol-examples/prog006_files.cob:043:008  NUMBER 77
+cobol-examples/prog006_files.cob:043:011  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:043:015  PICTURE
+cobol-examples/prog006_files.cob:043:019  PICTURE-STRING 9(1)
+cobol-examples/prog006_files.cob:043:023  '.'
+cobol-examples/prog006_files.cob:045:008  KEYWORD PROCEDURE
+cobol-examples/prog006_files.cob:045:018  KEYWORD DIVISION
+cobol-examples/prog006_files.cob:045:026  '.'
+cobol-examples/prog006_files.cob:046:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog006_files.cob:046:022  '.'
+cobol-examples/prog006_files.cob:048:013  KEYWORD MOVE
+cobol-examples/prog006_files.cob:048:018  STRING "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
+cobol-examples/prog006_files.cob:048:069  IDENTIFIER TO
+cobol-examples/prog006_files.cob:048:072  IDENTIFIER T
+cobol-examples/prog006_files.cob:049:008  IDENTIFIER AB-TRABALHADOR
+cobol-examples/prog006_files.cob:049:022  '.'
+cobol-examples/prog006_files.cob:051:013  KEYWORD DISPLAY
+cobol-examples/prog006_files.cob:051:021  STRING " "
+cobol-examples/prog006_files.cob:051:024  '.'
+cobol-examples/prog006_files.cob:052:013  KEYWORD DISPLAY
+cobol-examples/prog006_files.cob:052:021  STRING "====00001-DISPLAY-TRABALHADOR===="
+cobol-examples/prog006_files.cob:052:056  '.'
+cobol-examples/prog006_files.cob:053:013  IDENTIFIER OPEN
+cobol-examples/prog006_files.cob:053:018  IDENTIFIER OUTPUT
+cobol-examples/prog006_files.cob:053:025  IDENTIFIER MY-FILE
+cobol-examples/prog006_files.cob:053:032  '.'
+cobol-examples/prog006_files.cob:055:013  KEYWORD MOVE
+cobol-examples/prog006_files.cob:055:018  NUMBER 1
+cobol-examples/prog006_files.cob:055:020  IDENTIFIER TO
+cobol-examples/prog006_files.cob:055:023  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:055:026  '.'
+cobol-examples/prog006_files.cob:056:013  KEYWORD PERFORM
+cobol-examples/prog006_files.cob:056:021  IDENTIFIER 00001-WRITE-TO-FILE
+cobol-examples/prog006_files.cob:056:041  IDENTIFIER UNTIL
+cobol-examples/prog006_files.cob:056:047  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:056:051  '>'
+cobol-examples/prog006_files.cob:056:053  NUMBER 3
+cobol-examples/prog006_files.cob:056:054  '.'
+cobol-examples/prog006_files.cob:058:013  IDENTIFIER CLOSE
+cobol-examples/prog006_files.cob:058:019  IDENTIFIER MY-FILE
+cobol-examples/prog006_files.cob:058:026  '.'
+cobol-examples/prog006_files.cob:060:012  KEYWORD STOP
+cobol-examples/prog006_files.cob:060:017  KEYWORD RUN
+cobol-examples/prog006_files.cob:060:020  '.'
+cobol-examples/prog006_files.cob:062:008  IDENTIFIER 00001-WRITE-TO-FILE
+cobol-examples/prog006_files.cob:062:027  '.'
+cobol-examples/prog006_files.cob:063:012  KEYWORD DISPLAY
+cobol-examples/prog006_files.cob:063:020  STRING " "
+cobol-examples/prog006_files.cob:063:023  '.'
+cobol-examples/prog006_files.cob:065:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:065:017  IDENTIFIER LOW-VALUES
+cobol-examples/prog006_files.cob:065:028  IDENTIFIER TO
+cobol-examples/prog006_files.cob:065:031  IDENTIFIER RC-TRABALHADOR
+cobol-examples/prog006_files.cob:065:045  '.'
+cobol-examples/prog006_files.cob:066:012  KEYWORD DISPLAY
+cobol-examples/prog006_files.cob:066:020  STRING "IDX="
+cobol-examples/prog006_files.cob:066:027  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:066:030  '.'
+cobol-examples/prog006_files.cob:067:012  KEYWORD DISPLAY
+cobol-examples/prog006_files.cob:067:020  STRING "TRABALHADOR(IDX)="
+cobol-examples/prog006_files.cob:067:040  IDENTIFIER TRABALHADOR
+cobol-examples/prog006_files.cob:067:051  '('
+cobol-examples/prog006_files.cob:067:052  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:067:055  ')'
+cobol-examples/prog006_files.cob:067:056  '.'
+cobol-examples/prog006_files.cob:068:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:068:017  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:068:021  IDENTIFIER TO
+cobol-examples/prog006_files.cob:068:024  IDENTIFIER RC-TID
+cobol-examples/prog006_files.cob:068:030  '.'
+cobol-examples/prog006_files.cob:069:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:069:017  IDENTIFIER NOME
+cobol-examples/prog006_files.cob:069:021  '('
+cobol-examples/prog006_files.cob:069:022  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:069:025  ')'
+cobol-examples/prog006_files.cob:069:027  IDENTIFIER TO
+cobol-examples/prog006_files.cob:069:030  IDENTIFIER RC-NOME
+cobol-examples/prog006_files.cob:069:037  '.'
+cobol-examples/prog006_files.cob:070:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:070:017  IDENTIFIER SALARIO
+cobol-examples/prog006_files.cob:070:024  '('
+cobol-examples/prog006_files.cob:070:025  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:070:028  ')'
+cobol-examples/prog006_files.cob:070:030  IDENTIFIER TO
+cobol-examples/prog006_files.cob:070:033  IDENTIFIER RC-SALARIO
+cobol-examples/prog006_files.cob:070:043  '.'
+cobol-examples/prog006_files.cob:071:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:071:017  IDENTIFIER DPTO
+cobol-examples/prog006_files.cob:071:021  '('
+cobol-examples/prog006_files.cob:071:022  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:071:025  ','
+cobol-examples/prog006_files.cob:071:026  NUMBER 1
+cobol-examples/prog006_files.cob:071:027  ')'
+cobol-examples/prog006_files.cob:071:029  IDENTIFIER TO
+cobol-examples/prog006_files.cob:071:032  IDENTIFIER RC-DPTO-1
+cobol-examples/prog006_files.cob:071:041  '.'
+cobol-examples/prog006_files.cob:072:012  KEYWORD MOVE
+cobol-examples/prog006_files.cob:072:017  IDENTIFIER DPTO
+cobol-examples/prog006_files.cob:072:021  '('
+cobol-examples/prog006_files.cob:072:022  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:072:025  ','
+cobol-examples/prog006_files.cob:072:026  NUMBER 2
+cobol-examples/prog006_files.cob:072:027  ')'
+cobol-examples/prog006_files.cob:072:029  IDENTIFIER TO
+cobol-examples/prog006_files.cob:072:032  IDENTIFIER RC-DPTO-2
+cobol-examples/prog006_files.cob:072:041  '.'
+cobol-examples/prog006_files.cob:073:012  IDENTIFIER WRITE
+cobol-examples/prog006_files.cob:073:018  IDENTIFIER RC-TRABALHADOR
+cobol-examples/prog006_files.cob:073:032  '.'
+cobol-examples/prog006_files.cob:074:012  IDENTIFIER ADD
+cobol-examples/prog006_files.cob:074:016  NUMBER 1
+cobol-examples/prog006_files.cob:074:018  IDENTIFIER TO
+cobol-examples/prog006_files.cob:074:021  IDENTIFIER IDX
+cobol-examples/prog006_files.cob:074:024  '.'
+cobol-examples/prog006_files.cob:076:008  IDENTIFIER END
+cobol-examples/prog006_files.cob:076:012  IDENTIFIER PROGRAM
+cobol-examples/prog006_files.cob:076:020  IDENTIFIER PROG006_FILES
+cobol-examples/prog006_files.cob:076:033  '.'
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog006_files.cob:012:020 identifier 'PROG006_FILES' contains '_'
+WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog006_files.cob:076:020 identifier 'PROG006_FILES' contains '_'

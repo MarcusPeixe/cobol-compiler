@@ -1,0 +1,231 @@
+cobol-examples/prog003_calculadora.cob:011:008  KEYWORD IDENTIFICATION
+cobol-examples/prog003_calculadora.cob:011:023  KEYWORD DIVISION
+cobol-examples/prog003_calculadora.cob:011:031  '.'
+cobol-examples/prog003_calculadora.cob:012:008  IDENTIFIER PROGRAM-ID
+cobol-examples/prog003_calculadora.cob:012:018  '.'
+cobol-examples/prog003_calculadora.cob:012:020  IDENTIFIER CALCULADORA
+cobol-examples/prog003_calculadora.cob:012:031  '.'
+cobol-examples/prog003_calculadora.cob:013:008  KEYWORD DATA
+cobol-examples/prog003_calculadora.cob:013:013  KEYWORD DIVISION
+cobol-examples/prog003_calculadora.cob:013:021  '.'
+cobol-examples/prog003_calculadora.cob:014:008  IDENTIFIER FILE
+cobol-examples/prog003_calculadora.cob:014:013  KEYWORD SECTION
+cobol-examples/prog003_calculadora.cob:014:020  '.'
+cobol-examples/prog003_calculadora.cob:015:008  IDENTIFIER WORKING-STORAGE
+cobol-examples/prog003_calculadora.cob:015:024  KEYWORD SECTION
+cobol-examples/prog003_calculadora.cob:015:031  '.'
+cobol-examples/prog003_calculadora.cob:016:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:016:015  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:016:035  PICTURE
+cobol-examples/prog003_calculadora.cob:016:039  PICTURE-STRING S9(05)V99
+cobol-examples/prog003_calculadora.cob:016:052  IDENTIFIER VALUES
+cobol-examples/prog003_calculadora.cob:016:059  NUMBER 0
+cobol-examples/prog003_calculadora.cob:016:060  '.'
+cobol-examples/prog003_calculadora.cob:017:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:017:015  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:017:035  PICTURE
+cobol-examples/prog003_calculadora.cob:017:039  PICTURE-STRING S9(05)V9(02)
+cobol-examples/prog003_calculadora.cob:017:052  IDENTIFIER VALUES
+cobol-examples/prog003_calculadora.cob:017:059  NUMBER 0
+cobol-examples/prog003_calculadora.cob:017:060  '.'
+cobol-examples/prog003_calculadora.cob:018:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:018:015  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:018:035  PICTURE
+cobol-examples/prog003_calculadora.cob:018:039  PICTURE-STRING S9(10)V99
+cobol-examples/prog003_calculadora.cob:018:052  IDENTIFIER VALUES
+cobol-examples/prog003_calculadora.cob:018:059  IDENTIFIER ZEROS
+cobol-examples/prog003_calculadora.cob:018:064  '.'
+cobol-examples/prog003_calculadora.cob:019:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:019:015  IDENTIFIER WKS-RESTO
+cobol-examples/prog003_calculadora.cob:019:035  PICTURE
+cobol-examples/prog003_calculadora.cob:019:039  PICTURE-STRING 9(2)
+cobol-examples/prog003_calculadora.cob:019:052  IDENTIFIER VALUES
+cobol-examples/prog003_calculadora.cob:019:059  IDENTIFIER ZEROS
+cobol-examples/prog003_calculadora.cob:019:064  '.'
+cobol-examples/prog003_calculadora.cob:020:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:020:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:020:035  PICTURE
+cobol-examples/prog003_calculadora.cob:020:039  PICTURE-STRING A(01)
+cobol-examples/prog003_calculadora.cob:020:044  '.'
+cobol-examples/prog003_calculadora.cob:021:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:021:015  IDENTIFIER WKS-SAIR
+cobol-examples/prog003_calculadora.cob:021:035  PICTURE
+cobol-examples/prog003_calculadora.cob:021:039  PICTURE-STRING 9(1)
+cobol-examples/prog003_calculadora.cob:021:052  IDENTIFIER VALUES
+cobol-examples/prog003_calculadora.cob:021:059  IDENTIFIER ZEROS
+cobol-examples/prog003_calculadora.cob:021:064  '.'
+cobol-examples/prog003_calculadora.cob:022:012  NUMBER 77
+cobol-examples/prog003_calculadora.cob:022:015  IDENTIFIER WKS-RESULT-FORMAT
+cobol-examples/prog003_calculadora.cob:022:035  PICTURE
+cobol-examples/prog003_calculadora.cob:022:039  PICTURE-STRING -ZZZZZZZZZ9.99
+cobol-examples/prog003_calculadora.cob:022:053  '.'
+cobol-examples/prog003_calculadora.cob:024:008  KEYWORD PROCEDURE
+cobol-examples/prog003_calculadora.cob:024:018  KEYWORD DIVISION
+cobol-examples/prog003_calculadora.cob:024:026  '.'
+cobol-examples/prog003_calculadora.cob:025:008  IDENTIFIER MAIN-PROCEDURE
+cobol-examples/prog003_calculadora.cob:025:022  '.'
+cobol-examples/prog003_calculadora.cob:027:012  KEYWORD PERFORM
+cobol-examples/prog003_calculadora.cob:027:020  IDENTIFIER 00000-CALCULADORA
+cobol-examples/prog003_calculadora.cob:027:038  IDENTIFIER UNTIL
+cobol-examples/prog003_calculadora.cob:027:044  IDENTIFIER WKS-SAIR
+cobol-examples/prog003_calculadora.cob:027:053  '='
+cobol-examples/prog003_calculadora.cob:027:055  NUMBER 2
+cobol-examples/prog003_calculadora.cob:027:056  '.'
+cobol-examples/prog003_calculadora.cob:029:012  KEYWORD STOP
+cobol-examples/prog003_calculadora.cob:029:017  KEYWORD RUN
+cobol-examples/prog003_calculadora.cob:029:020  '.'
+cobol-examples/prog003_calculadora.cob:031:008  IDENTIFIER 00000-CALCULADORA
+cobol-examples/prog003_calculadora.cob:031:025  '.'
+cobol-examples/prog003_calculadora.cob:032:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:032:020  STRING "============ CALCULADORA ============= "
+cobol-examples/prog003_calculadora.cob:032:061  '.'
+cobol-examples/prog003_calculadora.cob:033:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:033:020  STRING "1-. USAR CALCULADORA, 2-. SAIR"
+cobol-examples/prog003_calculadora.cob:033:052  '.'
+cobol-examples/prog003_calculadora.cob:034:012  KEYWORD ACCEPT
+cobol-examples/prog003_calculadora.cob:034:019  IDENTIFIER WKS-SAIR
+cobol-examples/prog003_calculadora.cob:034:027  '.'
+cobol-examples/prog003_calculadora.cob:036:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:036:015  IDENTIFIER WKS-SAIR
+cobol-examples/prog003_calculadora.cob:036:024  '='
+cobol-examples/prog003_calculadora.cob:036:026  NUMBER 1
+cobol-examples/prog003_calculadora.cob:037:015  KEYWORD PERFORM
+cobol-examples/prog003_calculadora.cob:037:023  IDENTIFIER 00001-PEDIR-DADOS
+cobol-examples/prog003_calculadora.cob:038:015  KEYWORD PERFORM
+cobol-examples/prog003_calculadora.cob:038:023  IDENTIFIER 00002-EXECUTAR-OPERACOES
+cobol-examples/prog003_calculadora.cob:039:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:039:018  '.'
+cobol-examples/prog003_calculadora.cob:041:008  IDENTIFIER 00001-PEDIR-DADOS
+cobol-examples/prog003_calculadora.cob:041:025  '.'
+cobol-examples/prog003_calculadora.cob:042:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:042:020  STRING "OPERACAO: "
+cobol-examples/prog003_calculadora.cob:042:032  '.'
+cobol-examples/prog003_calculadora.cob:043:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:043:020  STRING "(S)oma, s(U)btracao, (M)ultiplicacao e (D)ivisao"
+cobol-examples/prog003_calculadora.cob:043:070  '.'
+cobol-examples/prog003_calculadora.cob:044:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:044:020  STRING "(P)otencia"
+cobol-examples/prog003_calculadora.cob:044:032  '.'
+cobol-examples/prog003_calculadora.cob:045:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:045:020  STRING "==>"
+cobol-examples/prog003_calculadora.cob:045:025  '.'
+cobol-examples/prog003_calculadora.cob:046:012  KEYWORD ACCEPT
+cobol-examples/prog003_calculadora.cob:046:019  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:046:028  '.'
+cobol-examples/prog003_calculadora.cob:048:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:048:020  STRING "VALOR 1:"
+cobol-examples/prog003_calculadora.cob:048:030  '.'
+cobol-examples/prog003_calculadora.cob:049:012  KEYWORD ACCEPT
+cobol-examples/prog003_calculadora.cob:049:019  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:049:028  '.'
+cobol-examples/prog003_calculadora.cob:051:012  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:051:020  STRING "VALOR 2:"
+cobol-examples/prog003_calculadora.cob:051:030  '.'
+cobol-examples/prog003_calculadora.cob:052:012  KEYWORD ACCEPT
+cobol-examples/prog003_calculadora.cob:052:019  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:052:028  '.'
+cobol-examples/prog003_calculadora.cob:054:008  IDENTIFIER 00002-EXECUTAR-OPERACOES
+cobol-examples/prog003_calculadora.cob:054:032  '.'
+cobol-examples/prog003_calculadora.cob:055:012  KEYWORD MOVE
+cobol-examples/prog003_calculadora.cob:055:017  IDENTIFIER FUNCTION
+cobol-examples/prog003_calculadora.cob:055:026  IDENTIFIER UPPER-CASE
+cobol-examples/prog003_calculadora.cob:055:036  '('
+cobol-examples/prog003_calculadora.cob:055:037  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:055:046  ')'
+cobol-examples/prog003_calculadora.cob:055:048  IDENTIFIER TO
+cobol-examples/prog003_calculadora.cob:055:051  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:055:060  '.'
+cobol-examples/prog003_calculadora.cob:056:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:056:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:056:025  '='
+cobol-examples/prog003_calculadora.cob:056:027  STRING "S"
+cobol-examples/prog003_calculadora.cob:056:031  IDENTIFIER OR
+cobol-examples/prog003_calculadora.cob:056:034  STRING "s"
+cobol-examples/prog003_calculadora.cob:057:015  IDENTIFIER ADD
+cobol-examples/prog003_calculadora.cob:057:019  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:057:029  IDENTIFIER TO
+cobol-examples/prog003_calculadora.cob:057:032  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:057:042  IDENTIFIER GIVING
+cobol-examples/prog003_calculadora.cob:057:049  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:058:012  KEYWORD ELSE
+cobol-examples/prog003_calculadora.cob:059:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:059:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:059:025  '='
+cobol-examples/prog003_calculadora.cob:059:027  STRING "U"
+cobol-examples/prog003_calculadora.cob:060:015  IDENTIFIER SUBTRACT
+cobol-examples/prog003_calculadora.cob:060:024  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:060:034  IDENTIFIER FROM
+cobol-examples/prog003_calculadora.cob:060:039  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:060:049  IDENTIFIER GIVING
+cobol-examples/prog003_calculadora.cob:060:056  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:061:012  KEYWORD ELSE
+cobol-examples/prog003_calculadora.cob:062:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:062:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:062:025  '='
+cobol-examples/prog003_calculadora.cob:062:027  STRING "M"
+cobol-examples/prog003_calculadora.cob:063:015  IDENTIFIER MULTIPLY
+cobol-examples/prog003_calculadora.cob:063:024  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:063:034  IDENTIFIER BY
+cobol-examples/prog003_calculadora.cob:063:037  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:063:047  IDENTIFIER GIVING
+cobol-examples/prog003_calculadora.cob:063:054  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:064:012  KEYWORD ELSE
+cobol-examples/prog003_calculadora.cob:065:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:065:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:065:025  '='
+cobol-examples/prog003_calculadora.cob:065:027  STRING "D"
+cobol-examples/prog003_calculadora.cob:066:015  IDENTIFIER DIVIDE
+cobol-examples/prog003_calculadora.cob:066:022  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:066:032  IDENTIFIER BY
+cobol-examples/prog003_calculadora.cob:066:035  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:066:045  IDENTIFIER GIVING
+cobol-examples/prog003_calculadora.cob:066:052  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:067:042  IDENTIFIER REMAINDER
+cobol-examples/prog003_calculadora.cob:067:052  IDENTIFIER WKS-RESTO
+cobol-examples/prog003_calculadora.cob:068:012  KEYWORD ELSE
+cobol-examples/prog003_calculadora.cob:069:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:069:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:069:025  '='
+cobol-examples/prog003_calculadora.cob:069:027  STRING "P"
+cobol-examples/prog003_calculadora.cob:070:015  IDENTIFIER COMPUTE
+cobol-examples/prog003_calculadora.cob:070:023  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:070:037  '='
+cobol-examples/prog003_calculadora.cob:070:039  IDENTIFIER WKS-NUM-1
+cobol-examples/prog003_calculadora.cob:070:049  '**'
+cobol-examples/prog003_calculadora.cob:070:052  IDENTIFIER WKS-NUM-2
+cobol-examples/prog003_calculadora.cob:071:012  KEYWORD ELSE
+cobol-examples/prog003_calculadora.cob:072:015  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:072:023  STRING "OPCAO INVALIDA"
+cobol-examples/prog003_calculadora.cob:073:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:074:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:075:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:076:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:077:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:077:018  '.'
+cobol-examples/prog003_calculadora.cob:078:012  KEYWORD IF
+cobol-examples/prog003_calculadora.cob:078:015  IDENTIFIER WKS-OPCAO
+cobol-examples/prog003_calculadora.cob:078:025  '='
+cobol-examples/prog003_calculadora.cob:078:027  STRING "S"
+cobol-examples/prog003_calculadora.cob:078:031  IDENTIFIER OR
+cobol-examples/prog003_calculadora.cob:078:034  STRING "U"
+cobol-examples/prog003_calculadora.cob:078:038  IDENTIFIER OR
+cobol-examples/prog003_calculadora.cob:078:041  STRING "M"
+cobol-examples/prog003_calculadora.cob:078:045  IDENTIFIER OR
+cobol-examples/prog003_calculadora.cob:078:048  STRING "D"
+cobol-examples/prog003_calculadora.cob:078:052  IDENTIFIER OR
+cobol-examples/prog003_calculadora.cob:078:055  STRING "P"
+cobol-examples/prog003_calculadora.cob:079:016  KEYWORD MOVE
+cobol-examples/prog003_calculadora.cob:079:021  IDENTIFIER WKS-RESULTADO
+cobol-examples/prog003_calculadora.cob:079:035  IDENTIFIER TO
+cobol-examples/prog003_calculadora.cob:079:038  IDENTIFIER WKS-RESULT-FORMAT
+cobol-examples/prog003_calculadora.cob:080:015  KEYWORD DISPLAY
+cobol-examples/prog003_calculadora.cob:080:023  STRING "Resultado: "
+cobol-examples/prog003_calculadora.cob:080:037  IDENTIFIER WKS-RESULT-FORMAT
+cobol-examples/prog003_calculadora.cob:081:012  IDENTIFIER END-IF
+cobol-examples/prog003_calculadora.cob:081:018  '.'
+cobol-examples/prog003_calculadora.cob:083:008  IDENTIFIER END
+cobol-examples/prog003_calculadora.cob:083:012  IDENTIFIER PROGRAM
+cobol-examples/prog003_calculadora.cob:083:020  IDENTIFIER CALCULADORA
+cobol-examples/prog003_calculadora.cob:083:031  '.'
+
+DIAGNOSTICS:
