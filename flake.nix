@@ -11,10 +11,7 @@
   outputs = { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        # import nixpkgs for this system
-        pkgs = import nixpkgs {
-          inherit system;
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
       in
       {
         devShells.default = pkgs.mkShell {
@@ -24,6 +21,7 @@
             rust-analyzer
             clippy
             rustfmt
+            typst
           ];
         };
       });
