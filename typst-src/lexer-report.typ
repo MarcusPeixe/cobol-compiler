@@ -5,15 +5,17 @@
     Relatório #sym.dot.c Lexer
   ],
   author: [
-    Diego Pedroso de Oliveira
-
-    Marcus Vinícius Araújo Peixoto
-
-    Rafael Moura de Almeida
-
+    #grid(
+      align: (left, right),
+      columns: 2, gutter: 1em, column-gutter: 30pt,
+      "Diego Pedroso de Oliveira", "12684524",
+      "Marcus Vinícius Araújo Peixoto", "13729719",
+      "Rafael Moura de Almeida", "11225505",
+    )
+    *Grupo 13*
   ],
   date: [
-    Outubro de 2026 #sym.dot.c
+    *Outubro de 2026*
   ],
   subject: "Implementação e testes de um analisador léxico COBOL",
   keywords: ("COBOL", "lexer", "Rust", "compiladores"),
