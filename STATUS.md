@@ -11,7 +11,7 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 
 ## Deliverables
 
-- `documents/lexer-report.typ` (Portuguese Typst report). Conclusion written. Still placeholders for the user: authors, AI tools used, and any test/error outputs not yet pasted. Not compiled locally.
+- `typst-src/lexer-report.typ` (Portuguese Typst report source); its compiled PDF is `documents/lexer-report.pdf`. Conclusion written. Still placeholders for the user: authors, AI tools used, and any test/error outputs not yet pasted.
 
 ## Next steps
 

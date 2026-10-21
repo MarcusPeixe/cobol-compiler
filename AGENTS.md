@@ -8,12 +8,11 @@ Scoped rules are in [.github/instructions/](.github/instructions): `tests.instru
 
 ## Project
 
-A COBOL compiler in Rust, built in phases. Each phase is its own module with comprehensive unit tests. The language spec is [documents/EspecificacaoCOBOL.pdf](documents/EspecificacaoCOBOL.pdf) (Portuguese). For usage see [README.md](README.md).
+A COBOL compiler in Rust, built in phases. Each phase is its own module with comprehensive unit tests. The language spec is [misc/EspecificacaoCOBOL.pdf](misc/EspecificacaoCOBOL.pdf) (Portuguese). For usage see [README.md](README.md).
 
 ## Workflow
 
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first. `typst` is not installed, so the report cannot be compiled locally.
-- Pushing a `v*` tag compiles every `documents/*.typ` file and attaches its same-basename PDF to the GitHub release. Generated PDFs are release assets, not CI artifacts or automatically committed files.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`. CI runs fmt check, clippy with `-D warnings` and `cargo test --locked`.
 - Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
@@ -39,7 +38,9 @@ tests/lexer-goldens/        expected token output for professor example programs
 Each directory above holds `mod.rs` plus `tests.rs` (except `src/lexer/`, which only re-exports).
 
 ```
-documents/                  spec PDF and example.cob
+misc/                        language spec, COBOL examples, and example.typ
+documents/                   compiled PDF reports
+typst-src/                   Typst report source files (except example.typ)
 cobol-examples/             the professor's example programs (git subtree); they target GnuCOBOL, not strictly the spec
 ```
 

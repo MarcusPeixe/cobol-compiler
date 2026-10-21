@@ -1,6 +1,6 @@
 # COBOL Compiler
 
-A COBOL compiler written in Rust, built phase by phase. Currently only the first phase is available: the **lexer**, which reads fixed-format COBOL and prints its tokens. The language it follows is described in [documents/EspecificacaoCOBOL.pdf](documents/EspecificacaoCOBOL.pdf).
+A COBOL compiler written in Rust, built phase by phase. Currently only the first phase is available: the **lexer**, which reads fixed-format COBOL and prints its tokens. The language it follows is described in [misc/EspecificacaoCOBOL.pdf](misc/EspecificacaoCOBOL.pdf).
 
 ## Setup
 
@@ -24,14 +24,14 @@ cargo run -- lex <FILE> [-I <DIR>]... [--debug-lines]
 Try it on the included example:
 
 ```sh
-cargo run -- lex documents/example.cob
+cargo run -- lex misc/example.cob
 ```
 
 Each token is printed on its own line as `file:line:column  TOKEN`:
 
 ```
-documents/example.cob:2:8	IDENTIFIER PROGRAM-ID
-documents/example.cob:11:20	STRING "HELLO, "
+misc/example.cob:2:8	IDENTIFIER PROGRAM-ID
+misc/example.cob:11:20	STRING "HELLO, "
 ```
 
 Errors are shown on stderr with the offending source highlighted, and the exit code is non-zero if any occurred.
@@ -48,6 +48,8 @@ Source files must be in COBOL fixed format:
 | 73+ | Ignored |
 
 `COPY name.` is expanded before lexing. `COPY ... REPLACING` is not supported yet.
+
+Typst report sources are in `typst-src/`, and compiled PDF reports are in `documents/`. The separate `misc/example.typ` file is a Typst example, not a report source.
 
 ## Tests
 
