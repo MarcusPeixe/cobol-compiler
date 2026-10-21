@@ -1,22 +1,21 @@
 # AGENTS.md
 
-Guidance for people and AI agents working on this repository. Keep this file up to date: when you make a decision or learn something others need, add it here.
+Guidance for people and AI agents working on this repository. This file is the single source of truth for decisions: when you make a decision or learn something others need, add it here **in the same change** (other documents, such as the report, must cite it rather than redefine it).
+
+Current phase, open questions and next steps live in [STATUS.md](STATUS.md). Read it before starting work.
+
+Scoped rules are in [.github/instructions/](.github/instructions): `tests.instructions.md` (tests and goldens) and `report.instructions.md` (the Typst report).
 
 ## Project
 
 A COBOL compiler in Rust, built in phases. Each phase is its own module with comprehensive unit tests. The language spec is [documents/EspecificacaoCOBOL.pdf](documents/EspecificacaoCOBOL.pdf) (Portuguese). For usage see [README.md](README.md).
 
-| Phase | Status |
-| --- | --- |
-| 1. Lexer (with fixed-format reader and `COPY` preprocessor) | Done |
-| 2. Parser | Not started |
-| 3. Semantic analysis | Not started |
-| 4. Code generation | Not started |
-
 ## Workflow
 
-- Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first.
-- Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`.
+- Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first. `typst` is not installed, so the report cannot be compiled locally.
+- Pushing a `v*` tag compiles every `documents/*.typ` file and attaches its same-basename PDF to the GitHub release. Generated PDFs are release assets, not CI artifacts or automatically committed files.
+- Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`. CI runs fmt check, clippy with `-D warnings` and `cargo test --locked`.
+- Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
 - Integration tests live in `tests/`; lexer regression goldens are under `tests/lexer-goldens/` and are exercised automatically by `cargo test`. Golden output contains the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
 - Library crate (`src/lib.rs`) plus a thin binary (`src/main.rs`). New phases get their own module and their own CLI subcommand (`cobol-compiler lex <file>`, and so on).
@@ -81,8 +80,11 @@ CLI:
 
 - `cobol-compiler lex <file> [-I dir]... [--debug-lines]`. Output is plain text, one token per line: `file:line:col<TAB>TOKEN`. There is no `--format` option. Diagnostics go to stderr, and the exit code is non-zero if any error occurred.
 
-## Notes for the next phases
+## Gotchas
 
-- The lexer output is a `Vec<Token>` plus diagnostics. The parser should handle context-sensitive words (`PROGRAM-ID`, `PIC`, `VALUE`, `OF`, level numbers, paragraph names) itself.
-- Semantic checks are listed in spec section 4 (MOVE compatibility, unique identifiers, `PERFORM`/`GO TO` targets, file association).
-- The spec allows two backends (translate to C, or emit bytecode or machine code). No choice has been made yet, so ask before starting phase 4.
+- The lexer emits no EOF token, and `+`/`-` are always separate tokens.
+- Lexer warnings do not fail lexing (exit code 0); lexer errors do and also fail the golden test.
+- A literal continuation pads the previous line to column 72; an unterminated string stops at end of line.
+- Comment-entry text ends at the first `.` followed by whitespace, so `Enio B. Basso` would end early.
+- Changing lexer output requires reviewing and updating `tests/lexer-goldens/` (there is no automatic regenerate mode yet).
+- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`.
