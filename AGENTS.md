@@ -15,7 +15,7 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first. `typst` is not installed, so the report cannot be compiled locally.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`. CI runs fmt check, clippy with `-D warnings` and `cargo test --locked`.
 - **Version control:** This repository uses [Jujutsu](https://github.com/martinvonz/jj) (`jj`), not Git. Use `jj` commands for all VCS operations: `jj new`, `jj commit`, `jj branch`, `jj log`, `jj diff`, `jj rebase`, etc. When in doubt about syntax, check `jj help` or the [Jujutsu documentation](https://martinvonz.github.io/jj/). Never use `git` commands directly. The `.jj` directory contains the Jujutsu workspace configuration; the `.git` directory remains for compatibility only.
-- **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
+- **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed **directly in the chat** and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
 - Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
 - Integration tests live in `tests/`; lexer regression goldens are under `tests/lexer-goldens/` and are exercised automatically by `cargo test`. Golden output contains the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
@@ -53,6 +53,7 @@ Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> 
 - **Errors:** `thiserror` for typed errors in library code, `anyhow` only in `main.rs`, `miette` for rendering. Every compiler message is a `diagnostics::Diagnostic` with a stable code like `cobol::lexer::illegal_character`.
 - **Error recovery:** phases collect all diagnostics and keep going rather than stopping at the first one.
 - **Spans:** `Span` is a byte range in an original file (`FileId` into `SourceMap`). Text from copybooks keeps spans pointing into the copybook. `LogicalText` carries a per-byte origin map so spans survive column stripping and `COPY` expansion.
+- **Snapshot testing:** Integration tests use `insta` for snapshot assertions. When output changes intentionally, use `cargo insta test` to review and accept new snapshots.
 
 ## Decisions
 

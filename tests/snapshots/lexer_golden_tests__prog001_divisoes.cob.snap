@@ -1,3 +1,7 @@
+---
+source: tests/lexer_golden_tests.rs
+expression: actual
+---
 cobol-examples/prog001_divisoes.cob:015:008  KEYWORD IDENTIFICATION
 cobol-examples/prog001_divisoes.cob:015:023  KEYWORD DIVISION
 cobol-examples/prog001_divisoes.cob:015:031  '.'

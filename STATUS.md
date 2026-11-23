@@ -21,4 +21,4 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 
 ## Open questions
 
-- Adopt `insta` for snapshot testing once parser/AST outputs get large (recommended, not decided).
+(None - insta adopted and integration tests rewritten.)

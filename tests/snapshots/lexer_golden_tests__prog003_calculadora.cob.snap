@@ -1,3 +1,7 @@
+---
+source: tests/lexer_golden_tests.rs
+expression: actual
+---
 cobol-examples/prog003_calculadora.cob:011:008  KEYWORD IDENTIFICATION
 cobol-examples/prog003_calculadora.cob:011:023  KEYWORD DIVISION
 cobol-examples/prog003_calculadora.cob:011:031  '.'

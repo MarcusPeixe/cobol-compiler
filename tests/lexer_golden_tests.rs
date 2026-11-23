@@ -6,48 +6,49 @@ use cobol_compiler::lexer::lex;
 use cobol_compiler::preprocess::{FsLoader, preprocess};
 use cobol_compiler::source::{ReaderOptions, SourceMap};
 
-const EXAMPLE_FILES: [&str; 7] = [
-    "prog001_divisoes.cob",
-    "prog002_operacoes.cob",
-    "prog003_calculadora.cob",
-    "prog004_folha_pgto.cob",
-    "prog005_strings.cob",
-    "prog006_files.cob",
-    "prog007_loja.cob",
-];
+#[test]
+fn test_prog001_divisoes() {
+    test_lexer_golden("prog001_divisoes.cob");
+}
 
 #[test]
-fn professor_examples_match_lexer_goldens() {
+fn test_prog002_operacoes() {
+    test_lexer_golden("prog002_operacoes.cob");
+}
+
+#[test]
+fn test_prog003_calculadora() {
+    test_lexer_golden("prog003_calculadora.cob");
+}
+
+#[test]
+fn test_prog004_folha_pgto() {
+    test_lexer_golden("prog004_folha_pgto.cob");
+}
+
+#[test]
+fn test_prog005_strings() {
+    test_lexer_golden("prog005_strings.cob");
+}
+
+#[test]
+fn test_prog006_files() {
+    test_lexer_golden("prog006_files.cob");
+}
+
+#[test]
+fn test_prog007_loja() {
+    test_lexer_golden("prog007_loja.cob");
+}
+
+fn test_lexer_golden(file_name: &str) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let mut mismatches = Vec::new();
+    let relative_path = Path::new("cobol-examples").join(file_name);
+    let source_path = root.join(&relative_path);
 
-    for file_name in EXAMPLE_FILES {
-        let relative_path = Path::new("cobol-examples").join(file_name);
-        let source_path = root.join(&relative_path);
-        let result = lex_example(&root, &relative_path, &source_path);
+    let actual = lex_example(&root, &relative_path, &source_path).expect("lexing should succeed");
 
-        match result {
-            Ok(actual) => {
-                let golden_path = root
-                    .join("tests/lexer-goldens")
-                    .join(format!("{file_name}.tokens"));
-                match std::fs::read_to_string(&golden_path) {
-                    Ok(expected) if expected == actual => {}
-                    Ok(_) => mismatches.push(file_name.to_string()),
-                    Err(error) => {
-                        mismatches.push(format!("{file_name} (cannot read golden: {error})"))
-                    }
-                }
-            }
-            Err(error) => mismatches.push(format!("{file_name} ({error})")),
-        }
-    }
-
-    assert!(
-        mismatches.is_empty(),
-        "lexer output differed for:\n{}",
-        mismatches.join("\n")
-    );
+    insta::assert_snapshot!(file_name, actual);
 }
 
 fn lex_example(root: &Path, relative_path: &Path, source_path: &Path) -> Result<String, String> {
