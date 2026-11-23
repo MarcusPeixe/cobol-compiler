@@ -1,0 +1,13 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: ENVTEST
+  EnvironmentDivision
+    ConfigurationSection
+    InputOutputSection
+
+DIAGNOSTICS:

@@ -1,0 +1,15 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: IFTEST
+  ProcedureDivision
+    Paragraph: MAIN-PROC
+      [0] IF
+            condition: 1 = 1
+            then: 1 statements
+
+DIAGNOSTICS:

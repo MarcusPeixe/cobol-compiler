@@ -1,0 +1,16 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: MYPROG
+    author: John Doe
+    installation: Some Place
+    date_written: 2024-11-23
+    date_compiled: 2024-11-23
+    security: Secret
+    remarks: This is a test program
+
+DIAGNOSTICS:

@@ -1,0 +1,17 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PARATEST
+  ProcedureDivision
+    Paragraph: MAIN-PROC
+      [0] DISPLAY
+            "Main"
+    Paragraph: HELPER-PROC
+      [0] DISPLAY
+            "Helper"
+
+DIAGNOSTICS:

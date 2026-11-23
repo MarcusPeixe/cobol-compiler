@@ -1,0 +1,14 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: YOUR-PROGRAM-NAME
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem (level 77): WRK-VALOR1
+        PIC: 9(10)
+
+DIAGNOSTICS:

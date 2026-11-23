@@ -1,0 +1,14 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: DISPTEST
+  ProcedureDivision
+    Paragraph: MAIN-PROC
+      [0] DISPLAY
+            "Hello, World!"
+
+DIAGNOSTICS:

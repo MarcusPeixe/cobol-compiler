@@ -1,0 +1,15 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: MOVETEST
+  ProcedureDivision
+    Paragraph: MAIN-PROC
+      [0] MOVE
+            from: 42
+            to: MY-VAR
+
+DIAGNOSTICS:

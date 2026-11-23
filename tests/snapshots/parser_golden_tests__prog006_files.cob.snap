@@ -1,0 +1,13 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PROG006_FILES
+  EnvironmentDivision
+    InputOutputSection
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG006_FILES' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:076:020 identifier 'PROG006_FILES' contains '_'

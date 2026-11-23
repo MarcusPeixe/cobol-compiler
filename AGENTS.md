@@ -14,6 +14,7 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first. `typst` is not installed, so the report cannot be compiled locally.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`. CI runs fmt check, clippy with `-D warnings` and `cargo test --locked`.
+- **Documentation and memory:** When documenting decisions, conventions, or preferences in this file (AGENTS.md), also store them in GitHub Copilot Memory (repository-scoped) for retrieval across sessions. AGENTS.md is the single source of truth; memory is a convenience layer for discovery.
 - **Version control:** This repository uses [Jujutsu](https://github.com/martinvonz/jj) (`jj`), not Git. Use `jj` commands for all VCS operations: `jj new`, `jj commit`, `jj branch`, `jj log`, `jj diff`, `jj rebase`, etc. When in doubt about syntax, check `jj help` or the [Jujutsu documentation](https://martinvonz.github.io/jj/). Never use `git` commands directly. The `.jj` directory contains the Jujutsu workspace configuration; the `.git` directory remains for compatibility only.
 - **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed **directly in the chat** and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
 - Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output.
@@ -53,7 +54,12 @@ Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> 
 - **Errors:** `thiserror` for typed errors in library code, `anyhow` only in `main.rs`, `miette` for rendering. Every compiler message is a `diagnostics::Diagnostic` with a stable code like `cobol::lexer::illegal_character`.
 - **Error recovery:** phases collect all diagnostics and keep going rather than stopping at the first one.
 - **Spans:** `Span` is a byte range in an original file (`FileId` into `SourceMap`). Text from copybooks keeps spans pointing into the copybook. `LogicalText` carries a per-byte origin map so spans survive column stripping and `COPY` expansion.
-- **Snapshot testing:** Integration tests use `insta` for snapshot assertions. When output changes intentionally, use `cargo insta test` to review and accept new snapshots.
+- **Integration tests & golden testing:** "Integration tests" always refers to golden testing using the `insta` crate. All new compiler phases should include golden tests. See existing test files in `tests/` for patterns.
+- **Test program placement:** Never write compiler test programs inline in Rust source code. Always create separate `.cob` files in `cobol-examples/` with stage-specific prefixes: `lexer_test_`, `parser_test_`, `semantic_test_`, or `codegen_test_`. This makes tests maintainable and allows programs to be reused as examples.
+- **Output formatting for integration tests:** When implementing a new compiler phase, design the output format with integration testing in mind. Maximize information (all nodes, fields, all details) to aid inspection and debugging. The output is compiler-internal, not user-facing, so prioritize completeness over pretty printing.
+- **Snapshot testing:** Golden tests use `insta` for snapshot assertions. When output changes intentionally, use `cargo insta test` to review and accept new snapshots.
+- **AST pretty-printing:** Print every node in the AST tree (all divisions, sections, fields, statements), including empty ones. Never count statements; always list them individually. This ensures snapshots catch structural changes.
+- **Test file naming:** Test programs follow the convention `{PHASE}_test_{TEST_NAME}.cob` where `PHASE` is `lexer`, `parser`, `semantic`, or `codegen` and `TEST_NAME` matches the test function name (e.g., `parser_test_minimal_program.cob` for `test_minimal_program()`).
 
 ## Decisions
 
@@ -87,6 +93,7 @@ CLI:
 ## Gotchas
 
 - **Use `jj` only** for all version control operations — this repository uses Jujutsu, not Git. Using `git` commands directly may cause inconsistencies between the working copy and the VCS state.
+- **AST snapshots must be complete:** Every node (division, section, field, statement) must appear in snapshots, even empty ones. Never abbreviate or summarize; use `insta accept` to sync snapshots with actual output.
 - The lexer emits no EOF token, and `+`/`-` are always separate tokens.
 - Lexer warnings do not fail lexing (exit code 0); lexer errors do and also fail the golden test.
 - A literal continuation pads the previous line to column 72; an unterminated string stops at end of line.

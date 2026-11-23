@@ -1,0 +1,17 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: MULTITEST
+  ProcedureDivision
+    Paragraph: MAIN-PROC
+      [0] DISPLAY
+            "Line 1"
+      [1] DISPLAY
+            "Line 2"
+      [2] STOP RUN
+
+DIAGNOSTICS:

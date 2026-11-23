@@ -1,0 +1,5 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DISPTEST.
+       PROCEDURE DIVISION.
+       MAIN-PROC.
+            DISPLAY "Hello, World!".

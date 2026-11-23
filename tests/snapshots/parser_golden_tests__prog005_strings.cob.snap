@@ -1,0 +1,38 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PROG008_STRING
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem (level 77): SAUX
+        PIC: X(15)
+      DataItem (level 77): CONT
+        PIC: 9(2)
+      DataItem (level 77): YESNO
+        PIC: 9
+      DataItem (level 77): IDX
+        PIC: 9(1)
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      [0] MOVE
+            from: "HELLO WORLD 123!!"
+            to: SAUX
+      [1] DISPLAY
+            " "
+      [2] DISPLAY
+            "==== EXEMPLO 1 ===="
+      [3] DISPLAY
+            "SAUX='"
+            SAUX
+            "'"
+      [4] MOVE
+            from: 0
+            to: CONT
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG008_STRING' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:075:020 identifier 'PROG008_STRING' contains '_'

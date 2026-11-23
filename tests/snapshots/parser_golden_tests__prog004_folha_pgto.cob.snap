@@ -1,0 +1,14 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: FOLHA-PGTO
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem (level 1): TAB-TRABALHADOR
+        DataItem (level 2): TRABALHADOR
+
+DIAGNOSTICS:

@@ -1,0 +1,9 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: HELLO
+
+DIAGNOSTICS:

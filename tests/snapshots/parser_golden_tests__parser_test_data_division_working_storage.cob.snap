@@ -1,0 +1,16 @@
+---
+source: tests/parser_golden_tests.rs
+assertion_line: 107
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: DATATEST
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 1): MY-VAR
+        PIC: 9(5)
+      DataItem (level 1): ANOTHER-VAR
+        PIC: X(10)
+
+DIAGNOSTICS:
