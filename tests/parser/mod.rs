@@ -30,3 +30,44 @@ fn does_not_accept_missing_identification_header() {
         "cobol::parser::missing_identification_division"
     );
 }
+
+#[test]
+fn parses_environment_division_configuration() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         ENVIRONMENT DIVISION.\n\
+         CONFIGURATION SECTION.\n\
+         SOURCE-COMPUTER. LINUX.\n\
+         OBJECT-COMPUTER. LINUX.",
+    );
+
+    assert!(diagnostics.is_empty());
+    let environment = program.environment_division.expect("missing environment");
+    let configuration = environment.configuration_section.expect("missing configuration");
+    assert_eq!(
+        configuration.source_computer.unwrap().name.as_deref(),
+        Some("LINUX")
+    );
+}
+
+#[test]
+fn parses_environment_division_file_control() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         ENVIRONMENT DIVISION.\n\
+         INPUT-OUTPUT SECTION.\
+         FILE-CONTROL.\n\
+         SELECT CUSTOMER-FILE ASSIGN TO 'customers.dat'.",
+    );
+
+    assert!(diagnostics.is_empty());
+    let environment = program.environment_division.expect("missing environment");
+    let input_output = environment
+        .input_output_section
+        .expect("missing input-output section");
+    assert_eq!(input_output.file_control[0].file_name, "CUSTOMER-FILE");
+    assert_eq!(
+        input_output.file_control[0].destination.as_deref(),
+        Some("customers.dat")
+    );
+}

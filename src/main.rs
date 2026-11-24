@@ -125,6 +125,33 @@ fn run_parse(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyho
         } else {
             println!("PROGRAM-ID: (unnamed)");
         }
+
+        if let Some(environment) = program.environment_division {
+            println!("ENVIRONMENT DIVISION");
+            if let Some(configuration) = environment.configuration_section {
+                println!("CONFIGURATION SECTION");
+                if let Some(source) = configuration.source_computer {
+                    if let Some(name) = source.name {
+                        println!("SOURCE-COMPUTER: {name}");
+                    }
+                }
+                if let Some(object) = configuration.object_computer {
+                    if let Some(name) = object.name {
+                        println!("OBJECT-COMPUTER: {name}");
+                    }
+                }
+            }
+            if let Some(input_output) = environment.input_output_section {
+                println!("INPUT-OUTPUT SECTION");
+                for entry in input_output.file_control {
+                    if let Some(destination) = entry.destination {
+                        println!("SELECT {} ASSIGN TO {}", entry.file_name, destination);
+                    } else {
+                        println!("SELECT {}", entry.file_name);
+                    }
+                }
+            }
+        }
     }
 
     let failed = diagnostics.iter().any(Diagnostic::is_error)
