@@ -64,11 +64,37 @@ pub struct EnvironmentDivision {
     pub input_output_section: Option<InputOutputSection>,
 }
 
+/// A constant used by a `VALUE` clause.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DataValue {
+    Numeric(String),
+    String(String),
+    Identifier(String),
+}
+
+/// One data description entry, beginning with a level number.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DataItem {
+    pub level: String,
+    pub name: String,
+    pub picture: Option<String>,
+    pub value: Option<DataValue>,
+    pub span: Span,
+}
+
+/// Optional `DATA DIVISION`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DataDivision {
+    pub span: Span,
+    pub items: Vec<DataItem>,
+}
+
 /// Minimal program AST produced by the current parser phase.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
     pub identification_division: IdentificationDivision,
     pub environment_division: Option<EnvironmentDivision>,
+    pub data_division: Option<DataDivision>,
 }
 
 #[derive(Debug, Clone)]
@@ -95,10 +121,12 @@ impl Parser {
     pub fn parse(mut self) -> (Program, Vec<Diagnostic>) {
         let identification_division = self.parse_identification_division();
         let environment_division = self.parse_environment_division();
+        let data_division = self.parse_data_division();
         (
             Program {
                 identification_division,
                 environment_division,
+                data_division,
             },
             self.diagnostics,
         )
@@ -447,6 +475,238 @@ impl Parser {
         })
     }
 
+    fn parse_data_division(&mut self) -> Option<DataDivision> {
+        if !self.check_keyword(Keyword::Data) {
+            return None;
+        }
+
+        let start = self.peek_span().expect("DATA token was checked");
+        self.advance();
+
+        if !self.check_keyword(Keyword::Division) {
+            self.error_current(
+                "cobol::parser::data_expected_division",
+                "expected `DIVISION` after `DATA`",
+            );
+        } else {
+            self.advance();
+        }
+
+        if !self.check_kind(&TokenKind::Period) {
+            self.error_current(
+                "cobol::parser::data_missing_period",
+                "expected `.` after `DATA DIVISION`",
+            );
+        } else {
+            self.advance();
+        }
+
+        let mut items = Vec::new();
+        while let Some(level) = self.peek_level_number() {
+            if let Some(item) = self.parse_data_item(&level) {
+                items.push(item);
+            } else {
+                break;
+            }
+        }
+
+        let end = items
+            .last()
+            .map(|item| item.span.end)
+            .or_else(|| self.previous_span().map(|span| span.end))
+            .unwrap_or(start.end);
+
+        Some(DataDivision {
+            span: Span::new(start.file, start.start, end),
+            items,
+        })
+    }
+
+    fn peek_level_number(&self) -> Option<String> {
+        match self.peek()? {
+            Token {
+                kind: TokenKind::NumericLiteral(level),
+                ..
+            } => {
+                let value = level.parse::<u16>().ok()?;
+                if matches!(value, 1..=49 | 77 | 88) {
+                    Some(level.clone())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    fn parse_data_item(&mut self, level: &str) -> Option<DataItem> {
+        let start = self.peek_span().expect("level number was checked");
+        self.advance();
+
+        let name = match self.peek() {
+            Some(Token {
+                kind: TokenKind::Identifier(name),
+                ..
+            }) => {
+                let name = name.clone();
+                self.advance();
+                name
+            }
+            Some(_) => {
+                self.error_current(
+                    "cobol::parser::missing_data_name",
+                    "expected a data-name after the level number",
+                );
+                return None;
+            }
+            None => {
+                self.diagnostics.push(Diagnostic::error(
+                    "cobol::parser::missing_data_name",
+                    "expected a data-name after the level number",
+                ));
+                return None;
+            }
+        };
+
+        let mut picture = None;
+        if matches!(
+            self.peek(),
+            Some(Token {
+                kind: TokenKind::Picture,
+                ..
+            })
+        ) {
+            self.advance();
+
+            if self.check_identifier("IS") {
+                self.advance();
+            }
+
+            match self.peek() {
+                Some(Token {
+                    kind: TokenKind::PictureString(value),
+                    ..
+                }) => {
+                    picture = Some(value.clone());
+                    self.advance();
+                }
+                Some(_) => {
+                    self.error_current(
+                        "cobol::parser::missing_picture",
+                        "expected a picture string after `PIC` or `PICTURE`",
+                    );
+                }
+                None => {
+                    self.diagnostics.push(Diagnostic::error(
+                        "cobol::parser::missing_picture",
+                        "expected a picture string after `PIC` or `PICTURE`",
+                    ));
+                }
+            }
+        }
+
+        let mut value = None;
+        if self.check_identifier("VALUE") {
+            self.advance();
+            value = self.parse_data_value();
+            if value.is_none() {
+                self.error_current(
+                    "cobol::parser::missing_value",
+                    "expected a constant after `VALUE`",
+                );
+            }
+        }
+
+        if self.check_kind(&TokenKind::Period) {
+            self.advance();
+        }
+
+        let end = self
+            .previous_span()
+            .map(|span| span.end)
+            .unwrap_or(start.end);
+
+        Some(DataItem {
+            level: level.to_string(),
+            name,
+            picture,
+            value,
+            span: Span::new(start.file, start.start, end),
+        })
+    }
+
+    fn parse_data_value(&mut self) -> Option<DataValue> {
+        match self.peek() {
+            Some(Token {
+                kind: TokenKind::NumericLiteral(number),
+                ..
+            }) => {
+                let number = number.clone();
+                self.advance();
+                Some(DataValue::Numeric(number))
+            }
+            Some(Token {
+                kind: TokenKind::StringLiteral(text),
+                ..
+            }) => {
+                let text = text.clone();
+                self.advance();
+                Some(DataValue::String(text))
+            }
+            Some(Token {
+                kind: TokenKind::Identifier(name),
+                ..
+            }) => {
+                let name = name.clone();
+                self.advance();
+                Some(DataValue::Identifier(name))
+            }
+            Some(Token {
+                kind: TokenKind::Minus,
+                ..
+            }) => {
+                self.advance();
+                if let Some(Token {
+                    kind: TokenKind::NumericLiteral(number),
+                    ..
+                }) = self.peek()
+                {
+                    let number = format!("-{number}");
+                    self.advance();
+                    Some(DataValue::Numeric(number))
+                } else {
+                    self.error_current(
+                        "cobol::parser::missing_numeric_value",
+                        "expected a numeric literal after `-`",
+                    );
+                    None
+                }
+            }
+            Some(Token {
+                kind: TokenKind::Plus,
+                ..
+            }) => {
+                self.advance();
+                if let Some(Token {
+                    kind: TokenKind::NumericLiteral(number),
+                    ..
+                }) = self.peek()
+                {
+                    let number = format!("+{number}");
+                    self.advance();
+                    Some(DataValue::Numeric(number))
+                } else {
+                    self.error_current(
+                        "cobol::parser::missing_numeric_value",
+                        "expected a numeric literal after `+`",
+                    );
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
     fn take_optional_name(&mut self, stop_words: &[&str]) -> Option<String> {
         if let Some(Token {
             kind: TokenKind::Identifier(name),
@@ -585,6 +845,12 @@ pub fn parse_environment_division(
 ) -> (Option<EnvironmentDivision>, Vec<Diagnostic>) {
     let mut parser = Parser::new(tokens);
     let division = parser.parse_environment_division();
+    (division, parser.diagnostics)
+}
+
+pub fn parse_data_division(tokens: &[Token]) -> (Option<DataDivision>, Vec<Diagnostic>) {
+    let mut parser = Parser::new(tokens);
+    let division = parser.parse_data_division();
     (division, parser.diagnostics)
 }
 
@@ -839,18 +1105,6 @@ mod tests {
     }
 
     #[test]
-    fn reports_missing_environment_division_keyword() {
-        let (_, diagnostics) = parse(&tokens(
-            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT SECTION.",
-        ))
-;
-
-        assert!(diagnostics.iter().any(|diagnostic| {
-            diagnostic.code == "cobol::parser::missing_environment_division"
-        }));
-    }
-
-    #[test]
     fn reports_missing_configuration_section_keyword() {
         let (_, diagnostics) = parse(&tokens(
             "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. CONFIGURATION DATA SECTION. SOURCE-COMPUTER. LINUX.",
@@ -991,7 +1245,7 @@ mod tests {
     }
 
     #[test]
-    fn input_output_section_accepts_empty_file_control() {
+    fn input_output_accepts_empty_file_control() {
         let (program, diagnostics) = parse(&tokens(
             "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL.",
         ))
@@ -1015,5 +1269,100 @@ mod tests {
 
         assert!(diagnostics.is_empty());
         assert!(program.environment_division.is_none());
+    }
+
+    #[test]
+    fn parses_data_division_with_elementary_items() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. DATA DIVISION. 01 WS-NAME PIC X(20) VALUE 'WORLD'. 01 WS-COUNT PIC S9(3) VALUE -12.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let data = program.data_division.expect("missing DATA DIVISION");
+        assert_eq!(data.items.len(), 2);
+        assert_eq!(data.items[0].level, "01");
+        assert_eq!(data.items[0].name, "WS-NAME");
+        assert_eq!(data.items[0].picture.as_deref(), Some("X(20)"));
+        assert_eq!(data.items[0].value, Some(DataValue::String("WORLD".to_string())));
+        assert_eq!(data.items[1].picture.as_deref(), Some("S9(3)"));
+        assert_eq!(data.items[1].value, Some(DataValue::Numeric("-12".to_string())));
+    }
+
+    #[test]
+    fn parses_picture_is_and_numeric_value() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. DATA DIVISION. 77 WS-PRICE PIC IS 9(5).99 VALUE 123.45.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let item = &program.data_division.unwrap().items[0];
+        assert_eq!(item.level, "77");
+        assert_eq!(item.picture.as_deref(), Some("9(5).99"));
+        assert_eq!(item.value, Some(DataValue::Numeric("123.45".to_string())));
+    }
+
+    #[test]
+    fn parses_level_88_condition_name() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. DATA DIVISION. 88 IS-FINISHED VALUE 'Y'.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let item = &program.data_division.unwrap().items[0];
+        assert_eq!(item.level, "88");
+        assert_eq!(item.name, "IS-FINISHED");
+        assert_eq!(item.picture, None);
+        assert_eq!(item.value, Some(DataValue::String("Y".to_string())));
+    }
+
+    #[test]
+    fn data_division_is_optional() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        assert!(program.data_division.is_none());
+    }
+
+    #[test]
+    fn reports_missing_data_division_period() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. DATA DIVISION 01 TEST-FIELD PIC X.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::data_missing_period"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_picture_string() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. DATA DIVISION. 01 TEST-FIELD PIC VALUE 'A'.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_picture"
+        }));
+    }
+
+    #[test]
+    fn parses_data_division_in_isolation() {
+        let (division, diagnostics) = parse_data_division(&tokens(
+            "DATA DIVISION. 01 CUSTOMER-NAME PIC X(30).",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let division = division.expect("missing DATA DIVISION");
+        assert_eq!(division.items.len(), 1);
+        assert_eq!(division.items[0].name, "CUSTOMER-NAME");
     }
 }

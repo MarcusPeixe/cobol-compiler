@@ -71,3 +71,35 @@ fn parses_environment_division_file_control() {
         Some("customers.dat")
     );
 }
+
+#[test]
+fn parses_data_division_items() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         DATA DIVISION.\n\
+         01 WS-NAME PIC X(20) VALUE 'WORLD'.\n\
+         02 WS-COUNT PIC S9(3) VALUE -12.\n\
+         88 IS-NEGATIVE VALUE -12.",
+    );
+
+    assert!(diagnostics.is_empty());
+    let data = program.data_division.expect("missing DATA DIVISION");
+    assert_eq!(data.items.len(), 3);
+    assert_eq!(data.items[0].name, "WS-NAME");
+    assert_eq!(data.items[1].level, "02");
+    assert_eq!(data.items[2].level, "88");
+}
+
+#[test]
+fn parses_data_division_picture_and_signed_value() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         DATA DIVISION.\n\
+         77 WS-PRICE PIC 9(5).99 VALUE +123.45.",
+    );
+
+    assert!(diagnostics.is_empty());
+    let item = &program.data_division.unwrap().items[0];
+    assert_eq!(item.picture.as_deref(), Some("9(5).99"));
+    assert_eq!(item.value, Some(cobol_compiler::parser::DataValue::Numeric("+123.45".to_string())));
+}

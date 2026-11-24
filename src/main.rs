@@ -126,6 +126,25 @@ fn run_parse(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyho
             println!("PROGRAM-ID: (unnamed)");
         }
 
+        if let Some(data) = program.data_division {
+            println!("DATA DIVISION");
+            for item in data.items {
+                print!("{} {}", item.level, item.name);
+                if let Some(picture) = item.picture {
+                    print!(" PIC {picture}");
+                }
+                if let Some(value) = item.value {
+                    let value = match value {
+                        cobol_compiler::parser::DataValue::Numeric(v)
+                        | cobol_compiler::parser::DataValue::Identifier(v)
+                        | cobol_compiler::parser::DataValue::String(v) => v,
+                    };
+                    print!(" VALUE {value}");
+                }
+                println!(".");
+            }
+        }
+
         if let Some(environment) = program.environment_division {
             println!("ENVIRONMENT DIVISION");
             if let Some(configuration) = environment.configuration_section {
