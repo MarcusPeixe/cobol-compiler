@@ -309,4 +309,55 @@ mod tests {
             Some("SAMPLE")
         );
     }
+
+    #[test]
+    fn reports_missing_division_keyword() {
+        let (_, diagnostics) = parse(&tokens("IDENTIFICATION SECTION. PROGRAM-ID. TEST."));
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].code, "cobol::parser::expected_division");
+    }
+
+    #[test]
+    fn reports_missing_program_name() {
+        let (_, diagnostics) = parse(&tokens("IDENTIFICATION DIVISION. PROGRAM-ID 123."));
+
+        assert!(diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "cobol::parser::missing_program_name"));
+    }
+
+    #[test]
+    fn reports_missing_period_after_program_name() {
+        let (_, diagnostics) = parse(&tokens("IDENTIFICATION DIVISION. PROGRAM-ID. TEST"));
+
+        assert!(diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "cobol::parser::missing_period"));
+    }
+
+    #[test]
+    fn reports_missing_identification_for_empty_token_stream() {
+        let (_, diagnostics) = parse(&[]);
+
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(
+            diagnostics[0].code,
+            "cobol::parser::missing_identification_division"
+        );
+    }
+
+    #[test]
+    fn parse_identification_division_exposes_program_id_span() {
+        let (division, diagnostics) = parse_identification_division(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.",
+        ));
+
+        assert!(diagnostics.is_empty());
+        let program_id = division.program_id.expect("missing PROGRAM-ID AST node");
+        assert_eq!(program_id.name.as_deref(), Some("TEST"));
+        assert!(!division.span.is_empty());
+        assert_eq!(division.span.start, 0);
+        assert!(division.span.end > division.span.start);
+    }
 }
