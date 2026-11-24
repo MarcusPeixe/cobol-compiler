@@ -171,6 +171,17 @@ fn run_parse(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyho
                 }
             }
         }
+
+        println!("PROCEDURE DIVISION");
+        for section in program.procedure_division.sections {
+            println!("SECTION: {}", section.name);
+            for paragraph in section.paragraphs {
+                println!("PARAGRAPH: {} ({} statements)", paragraph.name, paragraph.statements.len());
+            }
+        }
+        for paragraph in program.procedure_division.paragraphs {
+            println!("PARAGRAPH: {} ({} statements)", paragraph.name, paragraph.statements.len());
+        }
     }
 
     let failed = diagnostics.iter().any(Diagnostic::is_error)

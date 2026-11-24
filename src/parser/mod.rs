@@ -89,12 +89,63 @@ pub struct DataDivision {
     pub items: Vec<DataItem>,
 }
 
+/// Operand used by executable statements.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProcedureValue {
+    Numeric(String),
+    String(String),
+    Identifier(String),
+}
+
+/// COBOL executable statement represented in the syntax AST.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProcedureStatement {
+    Display(Vec<ProcedureValue>),
+    Accept(String),
+    Perform(String),
+    Move {
+        source: ProcedureValue,
+        target: String,
+    },
+    StopRun,
+    If {
+        condition: Vec<Token>,
+        then_statements: Vec<ProcedureStatement>,
+        else_statements: Vec<ProcedureStatement>,
+    },
+}
+
+/// Named paragraph in `PROCEDURE DIVISION`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProcedureParagraph {
+    pub name: String,
+    pub statements: Vec<ProcedureStatement>,
+    pub span: Span,
+}
+
+/// Optional section containing named paragraphs.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProcedureSection {
+    pub name: String,
+    pub paragraphs: Vec<ProcedureParagraph>,
+    pub span: Span,
+}
+
+/// Required `PROCEDURE DIVISION` in the project grammar.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProcedureDivision {
+    pub span: Span,
+    pub sections: Vec<ProcedureSection>,
+    pub paragraphs: Vec<ProcedureParagraph>,
+}
+
 /// Minimal program AST produced by the current parser phase.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
     pub identification_division: IdentificationDivision,
     pub environment_division: Option<EnvironmentDivision>,
     pub data_division: Option<DataDivision>,
+    pub procedure_division: ProcedureDivision,
 }
 
 #[derive(Debug, Clone)]
@@ -122,11 +173,13 @@ impl Parser {
         let identification_division = self.parse_identification_division();
         let environment_division = self.parse_environment_division();
         let data_division = self.parse_data_division();
+        let procedure_division = self.parse_procedure_division();
         (
             Program {
                 identification_division,
                 environment_division,
                 data_division,
+                procedure_division,
             },
             self.diagnostics,
         )
@@ -820,6 +873,415 @@ impl Parser {
         }
         self.diagnostics.push(diagnostic);
     }
+
+    fn parse_procedure_division(&mut self) -> ProcedureDivision {
+        let start = self.peek_span().unwrap_or_else(|| Span::new(FileId(0), 0, 0));
+
+        if !self.check_keyword(Keyword::Procedure) {
+            self.error_current(
+                "cobol::parser::missing_procedure_division",
+                "expected `PROCEDURE DIVISION`",
+            );
+            return ProcedureDivision {
+                span: start,
+                sections: Vec::new(),
+                paragraphs: Vec::new(),
+            };
+        }
+
+        self.advance();
+        if !self.check_keyword(Keyword::Division) {
+            self.error_current(
+                "cobol::parser::procedure_expected_division",
+                "expected `DIVISION` after `PROCEDURE`",
+            );
+        } else {
+            self.advance();
+        }
+
+        if !self.check_kind(&TokenKind::Period) {
+            self.error_current(
+                "cobol::parser::procedure_missing_period",
+                "expected `.` after `PROCEDURE DIVISION`",
+            );
+        } else {
+            self.advance();
+        }
+
+        let mut sections = Vec::new();
+        let mut paragraphs = Vec::new();
+
+        while self.index < self.tokens.len() {
+            if self.check_section_header() {
+                if let Some(section) = self.parse_procedure_section() {
+                    sections.push(section);
+                } else {
+                    break;
+                }
+            } else if self.check_paragraph_header() {
+                if let Some(paragraph) = self.parse_procedure_paragraph() {
+                    paragraphs.push(paragraph);
+                } else {
+                    break;
+                }
+            } else if let Some(statement) = self.parse_procedure_statement() {
+                if let Some(paragraph) = paragraphs.last_mut() {
+                    paragraph.statements.push(statement);
+                } else {
+                    let span = self.previous_span().unwrap_or(start);
+                    paragraphs.push(ProcedureParagraph {
+                        name: "DEFAULT".to_string(),
+                        statements: vec![statement],
+                        span,
+                    });
+                }
+            } else {
+                self.advance();
+            }
+        }
+
+        let end = paragraphs
+            .last()
+            .map(|paragraph| paragraph.span.end)
+            .or_else(|| sections.last().map(|section| section.span.end))
+            .or_else(|| self.previous_span().map(|span| span.end))
+            .unwrap_or(start.end);
+
+        ProcedureDivision {
+            span: Span::new(start.file, start.start, end),
+            sections,
+            paragraphs,
+        }
+    }
+
+    fn check_section_header(&self) -> bool {
+        matches!(self.peek(), Some(Token { kind: TokenKind::Identifier(_), .. }))
+            && matches!(
+                self.tokens.get(self.index + 1),
+                Some(Token { kind: TokenKind::Keyword(Keyword::Section), .. })
+            )
+    }
+
+    fn check_paragraph_header(&self) -> bool {
+        matches!(self.peek(), Some(Token { kind: TokenKind::Identifier(_), .. }))
+            && matches!(
+                self.tokens.get(self.index + 1),
+                Some(Token { kind: TokenKind::Period, .. })
+            )
+    }
+
+    fn parse_procedure_section(&mut self) -> Option<ProcedureSection> {
+        let (name, start) = match self.peek() {
+            Some(Token { kind: TokenKind::Identifier(name), span }) => {
+                (name.clone(), *span)
+            }
+            _ => return None,
+        };
+
+        self.advance();
+        if !self.check_keyword(Keyword::Section) {
+            self.error_current(
+                "cobol::parser::procedure_expected_section",
+                "expected `SECTION` after section name",
+            );
+        } else {
+            self.advance();
+        }
+
+        if !self.check_kind(&TokenKind::Period) {
+            self.error_current(
+                "cobol::parser::procedure_section_missing_period",
+                "expected `.` after section header",
+            );
+        } else {
+            self.advance();
+        }
+
+        let mut paragraphs = Vec::new();
+        while self.index < self.tokens.len() && !self.check_section_header() {
+            if self.check_paragraph_header() {
+                if let Some(paragraph) = self.parse_procedure_paragraph() {
+                    paragraphs.push(paragraph);
+                } else {
+                    break;
+                }
+            } else if let Some(statement) = self.parse_procedure_statement() {
+                if let Some(paragraph) = paragraphs.last_mut() {
+                    paragraph.statements.push(statement);
+                } else {
+                    paragraphs.push(ProcedureParagraph {
+                        name: "DEFAULT".to_string(),
+                        statements: vec![statement],
+                        span: start,
+                    });
+                }
+            } else {
+                self.advance();
+            }
+        }
+
+        let end = paragraphs
+            .last()
+            .map(|paragraph| paragraph.span.end)
+            .or_else(|| self.previous_span().map(|span| span.end))
+            .unwrap_or(start.end);
+
+        Some(ProcedureSection {
+            name,
+            paragraphs,
+            span: Span::new(start.file, start.start, end),
+        })
+    }
+
+    fn parse_procedure_paragraph(&mut self) -> Option<ProcedureParagraph> {
+        let (name, start) = match self.peek() {
+            Some(Token { kind: TokenKind::Identifier(name), span }) => {
+                (name.clone(), *span)
+            }
+            _ => return None,
+        };
+
+        self.advance();
+        if self.check_kind(&TokenKind::Period) {
+            self.advance();
+        } else {
+            self.error_current(
+                "cobol::parser::paragraph_missing_period",
+                "expected `.` after paragraph name",
+            );
+        }
+
+        let mut statements = Vec::new();
+        while self.index < self.tokens.len() {
+            if self.check_section_header() || self.check_paragraph_header() {
+                break;
+            }
+            if let Some(statement) = self.parse_procedure_statement() {
+                statements.push(statement);
+            } else {
+                break;
+            }
+        }
+
+        let end = statements
+            .last()
+            .and_then(|_| self.previous_span().map(|span| span.end))
+            .unwrap_or(start.end);
+
+        Some(ProcedureParagraph {
+            name,
+            statements,
+            span: Span::new(start.file, start.start, end),
+        })
+    }
+
+    fn parse_procedure_statement(&mut self) -> Option<ProcedureStatement> {
+        match self.peek()? {
+            Token { kind: TokenKind::Keyword(Keyword::Display), .. } => {
+                self.advance();
+                let mut values = Vec::new();
+                while !self.check_kind(&TokenKind::Period)
+                    && !self.is_else_or_end_if()
+                    && !self.starts_statement()
+                {
+                    if let Some(value) = self.parse_procedure_value() {
+                        values.push(value);
+                    } else {
+                        break;
+                    }
+                }
+                if self.check_kind(&TokenKind::Period) {
+                    self.advance();
+                }
+                Some(ProcedureStatement::Display(values))
+            }
+            Token { kind: TokenKind::Keyword(Keyword::Accept), .. } => {
+                self.advance();
+                let target = self.take_identifier_name()?;
+                if self.check_kind(&TokenKind::Period) {
+                    self.advance();
+                }
+                Some(ProcedureStatement::Accept(target))
+            }
+            Token { kind: TokenKind::Keyword(Keyword::Perform), .. } => {
+                self.advance();
+                let target = self.take_identifier_name()?;
+                if self.check_kind(&TokenKind::Period) {
+                    self.advance();
+                }
+                Some(ProcedureStatement::Perform(target))
+            }
+            Token { kind: TokenKind::Keyword(Keyword::Move), .. } => {
+                self.advance();
+                let source = self.parse_procedure_value()?;
+                if !self.check_identifier("TO") {
+                    self.error_current(
+                        "cobol::parser::move_missing_to",
+                        "expected `TO` after the MOVE source",
+                    );
+                } else {
+                    self.advance();
+                }
+                let target = self.take_identifier_name()?;
+                if self.check_kind(&TokenKind::Period) {
+                    self.advance();
+                }
+                Some(ProcedureStatement::Move { source, target })
+            }
+            Token { kind: TokenKind::Keyword(Keyword::Stop), .. } => {
+                self.advance();
+                if !self.check_keyword(Keyword::Run) {
+                    self.error_current(
+                        "cobol::parser::stop_missing_run",
+                        "expected `RUN` after `STOP`",
+                    );
+                } else {
+                    self.advance();
+                }
+                if self.check_kind(&TokenKind::Period) {
+                    self.advance();
+                }
+                Some(ProcedureStatement::StopRun)
+            }
+            Token { kind: TokenKind::Keyword(Keyword::If), .. } => {
+                Some(self.parse_if_statement())
+            }
+            _ => None,
+        }
+    }
+
+    fn parse_if_statement(&mut self) -> ProcedureStatement {
+        self.advance();
+        let mut condition = Vec::new();
+
+        while self.index < self.tokens.len()
+            && !self.is_else_or_end_if()
+            && !self.check_kind(&TokenKind::Period)
+            && !self.starts_statement()
+        {
+            condition.push(self.peek().expect("index was checked").clone());
+            self.advance();
+        }
+
+        let mut then_statements = Vec::new();
+        while self.index < self.tokens.len()
+            && !self.is_else_or_end_if()
+            && !self.check_kind(&TokenKind::Period)
+        {
+            if let Some(statement) = self.parse_procedure_statement() {
+                then_statements.push(statement);
+            } else {
+                self.advance();
+            }
+        }
+
+        let mut else_statements = Vec::new();
+        if self.is_else() {
+            self.advance();
+            while self.index < self.tokens.len()
+                && !self.is_end_if()
+                && !self.check_kind(&TokenKind::Period)
+            {
+                if let Some(statement) = self.parse_procedure_statement() {
+                    else_statements.push(statement);
+                } else {
+                    self.advance();
+                }
+            }
+        }
+
+        if self.is_end_if() {
+            self.advance();
+        } else {
+            self.error_current(
+                "cobol::parser::missing_end_if",
+                "expected `END-IF` to close the IF statement",
+            );
+        }
+
+        if self.check_kind(&TokenKind::Period) {
+            self.advance();
+        }
+
+        ProcedureStatement::If {
+            condition,
+            then_statements,
+            else_statements,
+        }
+    }
+
+    fn parse_procedure_value(&mut self) -> Option<ProcedureValue> {
+        match self.peek()? {
+            Token { kind: TokenKind::NumericLiteral(value), .. } => {
+                let value = value.clone();
+                self.advance();
+                Some(ProcedureValue::Numeric(value))
+            }
+            Token { kind: TokenKind::StringLiteral(value), .. } => {
+                let value = value.clone();
+                self.advance();
+                Some(ProcedureValue::String(value))
+            }
+            Token { kind: TokenKind::Identifier(value), .. } => {
+                let value = value.clone();
+                self.advance();
+                Some(ProcedureValue::Identifier(value))
+            }
+            _ => None,
+        }
+    }
+
+    fn take_identifier_name(&mut self) -> Option<String> {
+        match self.peek() {
+            Some(Token { kind: TokenKind::Identifier(name), .. }) => {
+                let name = name.clone();
+                self.advance();
+                Some(name)
+            }
+            Some(_) => {
+                self.error_current(
+                    "cobol::parser::expected_identifier",
+                    "expected an identifier",
+                );
+                None
+            }
+            None => None,
+        }
+    }
+
+    fn starts_statement(&self) -> bool {
+        matches!(
+            self.peek(),
+            Some(Token { kind: TokenKind::Keyword(keyword), .. })
+                if matches!(
+                    keyword,
+                    Keyword::Display
+                        | Keyword::Accept
+                        | Keyword::Perform
+                        | Keyword::Move
+                        | Keyword::Stop
+                        | Keyword::If
+                )
+        )
+    }
+
+    fn is_else(&self) -> bool {
+        matches!(
+            self.peek(),
+            Some(Token { kind: TokenKind::Keyword(Keyword::Else), .. })
+        )
+    }
+
+    fn is_end_if(&self) -> bool {
+        matches!(
+            self.peek(),
+            Some(Token { kind: TokenKind::Identifier(name), .. }) if name == "END-IF"
+        )
+    }
+
+    fn is_else_or_end_if(&self) -> bool {
+        self.is_else() || self.is_end_if()
+    }
 }
 
 /// Parses the currently specified COBOL prefix, beginning with
@@ -851,6 +1313,12 @@ pub fn parse_environment_division(
 pub fn parse_data_division(tokens: &[Token]) -> (Option<DataDivision>, Vec<Diagnostic>) {
     let mut parser = Parser::new(tokens);
     let division = parser.parse_data_division();
+    (division, parser.diagnostics)
+}
+
+pub fn parse_procedure_division(tokens: &[Token]) -> (ProcedureDivision, Vec<Diagnostic>) {
+    let mut parser = Parser::new(tokens);
+    let division = parser.parse_procedure_division();
     (division, parser.diagnostics)
 }
 
@@ -1364,5 +1832,99 @@ mod tests {
         let division = division.expect("missing DATA DIVISION");
         assert_eq!(division.items.len(), 1);
         assert_eq!(division.items[0].name, "CUSTOMER-NAME");
+    }
+
+    #[test]
+    fn parses_procedure_division_paragraphs_and_statements() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN-PARAGRAPH. DISPLAY 'HELLO' WS-NAME. MOVE 10 TO WS-COUNT. STOP RUN.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let procedure = &program.procedure_division;
+        assert_eq!(procedure.paragraphs.len(), 1);
+        assert_eq!(procedure.paragraphs[0].name, "MAIN-PARAGRAPH");
+        assert_eq!(procedure.paragraphs[0].statements.len(), 3);
+    }
+
+    #[test]
+    fn parses_perform_accept_and_move() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN-PARAGRAPH. ACCEPT WS-NAME. PERFORM SHOW-COUNT. MOVE 'X' TO WS-FLAG.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let statements = &program.procedure_division.paragraphs[0].statements;
+        assert!(matches!(statements[0], ProcedureStatement::Accept(ref name) if name == "WS-NAME"));
+        assert!(matches!(statements[1], ProcedureStatement::Perform(ref name) if name == "SHOW-COUNT"));
+        assert!(matches!(statements[2], ProcedureStatement::Move { .. }));
+    }
+
+    #[test]
+    fn parses_if_else_and_end_if() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN-PARAGRAPH. IF WS-COUNT >= 10 PERFORM SHOW-COUNT ELSE DISPLAY 'SMALL' END-IF.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let statements = &program.procedure_division.paragraphs[0].statements;
+        let ProcedureStatement::If { condition, then_statements, else_statements } = &statements[0] else {
+            panic!("expected IF statement")
+        };
+        assert!(!condition.is_empty());
+        assert_eq!(then_statements.len(), 1);
+        assert_eq!(else_statements.len(), 1);
+    }
+
+    #[test]
+    fn parses_optional_procedure_section() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN SECTION. MAIN-PARAGRAPH. STOP RUN.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        assert_eq!(program.procedure_division.sections.len(), 1);
+        assert_eq!(program.procedure_division.sections[0].name, "MAIN");
+    }
+
+    #[test]
+    fn reports_missing_procedure_division() {
+        let (procedure, diagnostics) = parse_procedure_division(&tokens(
+            "DATA DIVISION.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_procedure_division"
+        }));
+        assert!(procedure.paragraphs.is_empty());
+    }
+
+    #[test]
+    fn reports_missing_end_if() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN-PARAGRAPH. IF WS-COUNT >= 10 PERFORM SHOW-COUNT.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_end_if"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_move_to() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. PROCEDURE DIVISION. MAIN-PARAGRAPH. MOVE 10 WS-COUNT.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::move_missing_to"
+        }));
     }
 }

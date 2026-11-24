@@ -1,6 +1,6 @@
 # COBOL Compiler
 
-A COBOL compiler written in Rust, built phase by phase. The project includes preprocessing, the **lexer**, and syntactic-analysis structures for **IDENTIFICATION DIVISION**, the optional **ENVIRONMENT DIVISION**, and the optional **DATA DIVISION**. The language it follows is described in [documents/EspecificacaoCOBOL.pdf](documents/EspecificacaoCOBOL.pdf).
+A COBOL compiler written in Rust, built phase by phase. The project includes preprocessing, the **lexer**, and syntactic-analysis structures for **IDENTIFICATION DIVISION**, the optional **ENVIRONMENT DIVISION**, the optional **DATA DIVISION**, and **PROCEDURE DIVISION**. The language it follows is described in [documents/EspecificacaoCOBOL.pdf](documents/EspecificacaoCOBOL.pdf).
 
 ## Setup
 

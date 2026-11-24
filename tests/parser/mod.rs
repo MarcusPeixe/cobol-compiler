@@ -103,3 +103,38 @@ fn parses_data_division_picture_and_signed_value() {
     assert_eq!(item.picture.as_deref(), Some("9(5).99"));
     assert_eq!(item.value, Some(cobol_compiler::parser::DataValue::Numeric("+123.45".to_string())));
 }
+
+#[test]
+fn parses_procedure_division_from_full_program() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         PROCEDURE DIVISION.\n\
+         MAIN-PARAGRAPH.\n\
+         DISPLAY 'HELLO'.\n\
+         MOVE 10 TO WS-COUNT.\n\
+         STOP RUN.",
+    );
+
+    assert!(diagnostics.is_empty());
+    assert_eq!(program.procedure_division.paragraphs.len(), 1);
+    assert_eq!(program.procedure_division.paragraphs[0].name, "MAIN-PARAGRAPH");
+    assert_eq!(program.procedure_division.paragraphs[0].statements.len(), 3);
+}
+
+#[test]
+fn parses_if_statement_from_full_program() {
+    let (program, diagnostics) = parse_source(
+        "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.\n\
+         PROCEDURE DIVISION.\n\
+         MAIN-PARAGRAPH.\n\
+         IF WS-COUNT >= 10\n\
+         PERFORM SHOW-COUNT\n\
+         ELSE\n\
+         DISPLAY 'SMALL'\n\
+         END-IF.",
+    );
+
+    assert!(diagnostics.is_empty());
+    let statement = &program.procedure_division.paragraphs[0].statements[0];
+    assert!(matches!(statement, cobol_compiler::parser::ProcedureStatement::If { .. }));
+}
