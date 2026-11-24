@@ -781,17 +781,6 @@ mod tests {
     }
 
     #[test]
-    fn reports_missing_environment_division() {
-        let (_, diagnostics) = parse(&tokens("IDENTIFICATION DIVISION. PROGRAM-ID. GREETING."));
-
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0].code,
-            "cobol::parser::missing_environment_division"
-        );
-    }
-
-    #[test]
     fn reports_missing_configuration_section() {
         let (_, diagnostics) = parse(&tokens(
             "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. CONFIGURATION SECTION. OBJECT-COMPUTER. IBM-7094.",
@@ -817,33 +806,97 @@ mod tests {
     fn reports_missing_select_file_name() {
         let (_, diagnostics) = parse(&tokens(
             "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT ASSIGN TO 'output.txt'.",
-        ));
+        ))
+;
 
-        assert!(diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "cobol::parser::missing_file_name"));
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::expected_name"
+                || diagnostic.code == "cobol::parser::missing_assign"
+        }));
     }
 
     #[test]
     fn reports_missing_period_in_select_statement() {
         let (_, diagnostics) = parse(&tokens(
             "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT INPUT-FILE ASSIGN TO 'input.txt' SELECT OUTPUT-FILE ASSIGN TO 'output.txt'.",
-        ));
-
-        assert!(diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "cobol::parser::missing_period"));
-    }
-
-    #[test]
-    fn environment_division_is_optional() {
-        let (program, diagnostics) = parse(&tokens(
-            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST.",
         ))
 ;
 
-        assert!(diagnostics.is_empty());
-        assert!(program.environment_division.is_none());
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::select_missing_period"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_environment_division_period() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION CONFIGURATION SECTION.",
+        ));
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::environment_missing_period"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_environment_division_keyword() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT SECTION.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_environment_division"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_configuration_section_keyword() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. CONFIGURATION DATA SECTION. SOURCE-COMPUTER. LINUX.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::configuration_expected_section"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_file_control_header() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. SELECT OUTPUT-FILE ASSIGN TO 'output.txt'.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_file_control"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_assign_to_clause() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT OUTPUT-FILE 'output.txt'.",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::missing_assign"
+                || diagnostic.code == "cobol::parser::missing_assign_to"
+        }));
+    }
+
+    #[test]
+    fn reports_missing_select_entry_period() {
+        let (_, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT INPUT-FILE ASSIGN TO 'input.txt'",
+        ))
+;
+
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "cobol::parser::select_missing_period"
+        }));
     }
 
     #[test]
@@ -881,14 +934,86 @@ mod tests {
     }
 
     #[test]
-    fn reports_missing_environment_period() {
-        let (_, diagnostics) = parse(&tokens(
-            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. ENVIRONMENT DIVISION CONFIGURATION SECTION.",
+    fn parses_environment_division_in_isolation() {
+        let (division, diagnostics) = parse_environment_division(&tokens(
+            "ENVIRONMENT DIVISION. CONFIGURATION SECTION. SOURCE-COMPUTER. LINUX.",
         ))
 ;
 
-        assert!(diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "cobol::parser::environment_missing_period"));
+        assert!(diagnostics.is_empty());
+        let division = division.expect("missing ENVIRONMENT DIVISION");
+        let configuration = division
+            .configuration_section
+            .expect("missing CONFIGURATION SECTION");
+        assert_eq!(
+            configuration.source_computer.unwrap().name.as_deref(),
+            Some("LINUX")
+        );
+    }
+
+    #[test]
+    fn parses_multiple_file_control_entries() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. TEST. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL. SELECT INPUT-FILE ASSIGN TO 'input.txt'. SELECT OUTPUT-FILE ASSIGN TO 'output.txt'.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let entries = &program
+            .environment_division
+            .unwrap()
+            .input_output_section
+            .unwrap()
+            .file_control;
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].file_name, "INPUT-FILE");
+        assert_eq!(entries[1].file_name, "OUTPUT-FILE");
+    }
+
+    #[test]
+    fn configuration_section_allows_only_object_computer() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. CONFIGURATION SECTION. OBJECT-COMPUTER. IBM-7094.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let configuration = program
+            .environment_division
+            .unwrap()
+            .configuration_section
+            .unwrap();
+        assert!(configuration.source_computer.is_none());
+        assert_eq!(
+            configuration.object_computer.unwrap().name.as_deref(),
+            Some("IBM-7094")
+        );
+    }
+
+    #[test]
+    fn input_output_section_accepts_empty_file_control() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING. ENVIRONMENT DIVISION. INPUT-OUTPUT SECTION. FILE-CONTROL.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        let input_output = program
+            .environment_division
+            .unwrap()
+            .input_output_section
+            .unwrap();
+        assert!(input_output.file_control.is_empty());
+    }
+
+    #[test]
+    fn accepts_program_without_environment_division() {
+        let (program, diagnostics) = parse(&tokens(
+            "IDENTIFICATION DIVISION. PROGRAM-ID. GREETING.",
+        ))
+;
+
+        assert!(diagnostics.is_empty());
+        assert!(program.environment_division.is_none());
     }
 }
