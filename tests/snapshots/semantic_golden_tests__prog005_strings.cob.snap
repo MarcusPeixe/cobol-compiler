@@ -1,0 +1,37 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PROG008_STRING
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem: SAUX (level 77, PIC X(15))
+      DataItem: CONT (level 77, PIC 9(2))
+      DataItem: YESNO (level 77, PIC 9)
+      DataItem: IDX (level 77, PIC 9(1))
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Move
+      Display
+        String:  
+      Display
+        String: ==== EXEMPLO 1 ====
+      Display
+        String: SAUX='
+        Expression: SAUX
+        String: '
+      Move
+
+SYMBOL TABLE:
+  CONT: Numeric (level 77)
+  IDX: Numeric (level 77)
+  MAIN-PROCEDURE: Alphanumeric (level 0)
+  SAUX: Alphanumeric (level 77)
+  YESNO: Numeric (level 77)
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG008_STRING' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:075:020 identifier 'PROG008_STRING' contains '_'

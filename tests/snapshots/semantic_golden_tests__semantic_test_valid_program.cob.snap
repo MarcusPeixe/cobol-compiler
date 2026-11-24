@@ -1,0 +1,28 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: VALID-TEST
+  DataDivision
+    WorkingStorageSection
+      DataItem: MESSAGE (level 1, PIC X(20))
+      DataItem: NAME (level 1, PIC A(10))
+      DataItem: COUNTER (level 1, PIC 9(5))
+  ProcedureDivision
+    Paragraph: MAIN
+      Move
+      Move
+      Move
+      Display
+        Expression: MESSAGE
+      StopRun
+
+SYMBOL TABLE:
+  COUNTER: Numeric (level 1)
+  MAIN: Alphanumeric (level 0)
+  MESSAGE: Alphanumeric (level 1)
+  NAME: Alphabetic (level 1)
+
+DIAGNOSTICS:

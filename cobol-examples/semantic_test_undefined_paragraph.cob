@@ -1,0 +1,7 @@
+       IDENTIFICATION DIVISION.
+           PROGRAM-ID. UNDEFINED-TEST.
+
+       PROCEDURE DIVISION.
+           MAIN.
+               PERFORM UNDEFINED-PARAGRAPH.
+               STOP RUN.

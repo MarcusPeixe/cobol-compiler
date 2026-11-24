@@ -1,0 +1,16 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: YOUR-PROGRAM-NAME
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem: WRK-VALOR1 (level 77, PIC 9(10))
+
+SYMBOL TABLE:
+  WRK-VALOR1: Numeric (level 77)
+
+DIAGNOSTICS:

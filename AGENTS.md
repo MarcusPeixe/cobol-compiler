@@ -14,10 +14,11 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 
 - Cargo is only available inside the Nix dev shell. Run commands as `nix develop --command cargo <cmd>`, or enter `nix develop` first. `typst` is not installed, so the report cannot be compiled locally.
 - Before finishing a change: `cargo fmt`, `cargo clippy --all-targets` (keep it warning-free) and `cargo test`. CI runs fmt check, clippy with `-D warnings` and `cargo test --locked`.
+- **Snapshot testing (insta):** Golden tests use the `insta` crate for snapshot assertions. When test output changes, use: `cargo insta test` to view pending snapshots, `cargo insta review` to interactively accept/reject changes one-by-one, `cargo insta accept` to accept all, or `cargo insta reject` to reject all. Run `cargo test` after accepting snapshots to verify tests pass.
 - **Documentation and memory:** When documenting decisions, conventions, or preferences in this file (AGENTS.md), also store them in GitHub Copilot Memory (repository-scoped) for retrieval across sessions. AGENTS.md is the single source of truth; memory is a convenience layer for discovery.
 - **Version control:** This repository uses [Jujutsu](https://github.com/martinvonz/jj) (`jj`), not Git. Use `jj` commands for all VCS operations: `jj new`, `jj commit`, `jj branch`, `jj log`, `jj diff`, `jj rebase`, etc. When in doubt about syntax, check `jj help` or the [Jujutsu documentation](https://martinvonz.github.io/jj/). Never use `git` commands directly. The `.jj` directory contains the Jujutsu workspace configuration; the `.git` directory remains for compatibility only.
-- **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed **directly in the chat** and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
-- Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output.
+- **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed **directly in the chat** (not in `/tmp/` or other temp files) and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
+- Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output; create summaries in temporary files like `/tmp/`.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
 - Integration tests live in `tests/`; lexer regression goldens are under `tests/lexer-goldens/` and are exercised automatically by `cargo test`. Golden output contains the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
 - Library crate (`src/lib.rs`) plus a thin binary (`src/main.rs`). New phases get their own module and their own CLI subcommand (`cobol-compiler lex <file>`, and so on).
@@ -89,6 +90,18 @@ Lexer and source handling:
 CLI:
 
 - `cobol-compiler lex <file> [-I dir]... [--debug-lines]`. Output is plain text, one token per line: `file:line:col<TAB>TOKEN`. There is no `--format` option. Diagnostics go to stderr, and the exit code is non-zero if any error occurred.
+- `cobol-compiler parse <file> [-I dir]... [--debug-lines]`. Output is a pretty-printed AST. Diagnostics go to stderr.
+- `cobol-compiler analyze <file> [-I dir]... [--debug-lines]`. Output is a pretty-printed AST followed by symbol table and diagnostics. Exit code is non-zero if semantic errors occur.
+
+Semantic analysis:
+
+- 8 semantic checks: identifier uniqueness, move compatibility, undefined references (PERFORM/GO TO), file association, picture validation, scope rules, type inference, numeric operations.
+- Scopes: Global (DATA DIVISION variables and PROCEDURE DIVISION paragraph names), procedure-local (not yet implemented; for future phases).
+- Data types: Numeric (PIC 9, S9, V, P), Alphabetic (PIC A), Alphanumeric (PIC X, N, or unknown).
+- Error recovery: Collect all diagnostics and continue checking (like lexer and parser).
+- Output: Annotated AST (original AST + symbol table). Per-node type annotations deferred to future phases.
+- Module: `src/semantic/` with submodules: `analysis.rs` (main analyzer), `symbol_table.rs` (symbol management), `type_system.rs` (type inference and compatibility), `errors.rs` (diagnostic codes), `tests.rs` (unit tests).
+- Golden tests: 13 semantic golden tests via `insta` snapshots (file: `tests/semantic_golden_tests.rs`); 6 focused programs use the `semantic_test_*.cob` prefix, and 7 additional tests exercise `prog001_divisoes.cob` through `prog007_loja.cob` in `cobol-examples/`.
 
 ## Gotchas
 
@@ -99,4 +112,4 @@ CLI:
 - A literal continuation pads the previous line to column 72; an unterminated string stops at end of line.
 - Comment-entry text ends at the first `.` followed by whitespace, so `Enio B. Basso` would end early.
 - Changing lexer output requires reviewing and updating `tests/lexer-goldens/` (there is no automatic regenerate mode yet).
-- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`.
+- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`, `cobol::semantic::{identifier_duplicate, move_incompatible, undefined_identifier, undefined_paragraph, file_not_declared, invalid_picture, type_mismatch, numeric_operand_required}`.

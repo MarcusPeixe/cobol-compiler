@@ -1,0 +1,23 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PROG0001
+  EnvironmentDivision
+    ConfigurationSection
+    InputOutputSection
+  DataDivision
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Display
+        String: Hello world
+      Display
+        String: Enio Basso - 2
+      StopRun
+
+SYMBOL TABLE:
+  MAIN-PROCEDURE: Alphanumeric (level 0)
+
+DIAGNOSTICS:

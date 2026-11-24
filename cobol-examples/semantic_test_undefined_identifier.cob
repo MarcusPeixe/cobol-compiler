@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+           PROGRAM-ID. UNDEFINED-VAR-TEST.
+
+       DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 NAME PIC A(10).
+
+       PROCEDURE DIVISION.
+           MAIN.
+               DISPLAY UNDEFINED-VARIABLE.
+               STOP RUN.

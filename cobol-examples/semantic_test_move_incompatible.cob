@@ -1,0 +1,12 @@
+       IDENTIFICATION DIVISION.
+           PROGRAM-ID. MOVE-COMPAT-TEST.
+
+       DATA DIVISION.
+           WORKING-STORAGE SECTION.
+           01 ALPHABETIC-VAR PIC A(10).
+           01 NUMERIC-VAR PIC 9(5).
+
+       PROCEDURE DIVISION.
+           MAIN.
+               MOVE ALPHABETIC-VAR TO NUMERIC-VAR.
+               STOP RUN.

@@ -1,0 +1,18 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: FOLHA-PGTO
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem: TAB-TRABALHADOR (level 1)
+        DataItem: TRABALHADOR (level 2)
+
+SYMBOL TABLE:
+  TAB-TRABALHADOR: Alphanumeric (level 1)
+  TRABALHADOR: Alphanumeric (level 2)
+
+DIAGNOSTICS:

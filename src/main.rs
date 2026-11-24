@@ -8,6 +8,7 @@ use cobol_compiler::diagnostics::Diagnostic;
 use cobol_compiler::lexer::lex;
 use cobol_compiler::parser::parse;
 use cobol_compiler::preprocess::{FsLoader, preprocess};
+use cobol_compiler::semantic::analyze;
 use cobol_compiler::source::{ReaderOptions, SourceMap};
 
 #[derive(Parser)]
@@ -39,6 +40,16 @@ enum Command {
         #[arg(long)]
         debug_lines: bool,
     },
+    /// Perform semantic analysis on a source file.
+    Analyze {
+        file: PathBuf,
+        /// Directory to search for COPY books (repeatable). The source file's own directory is always searched first.
+        #[arg(short = 'I', long = "include", value_name = "DIR")]
+        include: Vec<PathBuf>,
+        /// Compile lines with 'D' in column 7 instead of skipping them.
+        #[arg(long)]
+        debug_lines: bool,
+    },
 }
 
 fn main() -> anyhow::Result<ExitCode> {
@@ -53,6 +64,11 @@ fn main() -> anyhow::Result<ExitCode> {
             include,
             debug_lines,
         } => run_parse(&file, include, debug_lines),
+        Command::Analyze {
+            file,
+            include,
+            debug_lines,
+        } => run_analyze(&file, include, debug_lines),
     }
 }
 
@@ -342,4 +358,60 @@ fn print_data_items(items: &[cobol_compiler::parser::DataItem], indent: usize) {
             print_data_items(&item.children, indent + 2);
         }
     }
+}
+
+fn run_analyze(
+    path: &Path,
+    mut include: Vec<PathBuf>,
+    debug_lines: bool,
+) -> anyhow::Result<ExitCode> {
+    let text =
+        std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+    let mut map = SourceMap::default();
+    let root = map.add_file(path.display().to_string(), text);
+
+    let dir = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    include.insert(0, dir.to_path_buf());
+    let loader = FsLoader {
+        search_dirs: include,
+    };
+
+    let (logical, mut diagnostics) =
+        preprocess(&mut map, root, ReaderOptions { debug_lines }, &loader);
+    let (tokens, lex_diagnostics) = lex(&logical);
+    diagnostics.extend(lex_diagnostics);
+
+    let (program, parse_diagnostics) = parse(tokens);
+    diagnostics.extend(parse_diagnostics);
+
+    let (annotated, semantic_diagnostics) = analyze(&program);
+    diagnostics.extend(semantic_diagnostics);
+
+    // Print annotated AST
+    print_ast(&annotated.program, 0);
+
+    // Print symbol table summary
+    println!("\nSYMBOL TABLE:");
+    for sym in annotated.symbol_table.all_symbols() {
+        println!("  {}: {:?} (level {})", sym.name, sym.data_type, sym.level);
+    }
+
+    let failed = diagnostics.iter().any(Diagnostic::is_error);
+    println!("\nDIAGNOSTICS:");
+    if diagnostics.is_empty() {
+        println!("  (none)");
+    } else {
+        for diagnostic in &diagnostics {
+            eprintln!("{:?}", diagnostic.clone().into_report(&map));
+        }
+    }
+
+    Ok(if failed {
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    })
 }

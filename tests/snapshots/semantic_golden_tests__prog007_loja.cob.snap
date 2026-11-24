@@ -1,0 +1,15 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PROG007_LOJA
+  EnvironmentDivision
+    InputOutputSection
+
+SYMBOL TABLE:
+
+DIAGNOSTICS:
+WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG007_LOJA' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:228:020 identifier 'PROG007_LOJA' contains '_'

@@ -1,0 +1,17 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: UNDEFINED-TEST
+  ProcedureDivision
+    Paragraph: MAIN
+      Perform
+      StopRun
+
+SYMBOL TABLE:
+  MAIN: Alphanumeric (level 0)
+
+DIAGNOSTICS:
+ERROR cobol::semantic::undefined_paragraph test.cob:006:016 Paragraph 'UNDEFINED-PARAGRAPH' is not defined

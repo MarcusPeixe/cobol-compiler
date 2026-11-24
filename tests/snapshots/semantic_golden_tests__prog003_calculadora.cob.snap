@@ -1,0 +1,16 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: CALCULADORA
+  DataDivision
+    FileSection
+    WorkingStorageSection
+      DataItem: WKS-NUM-1 (level 77, PIC S9(05)V99)
+
+SYMBOL TABLE:
+  WKS-NUM-1: Numeric (level 77)
+
+DIAGNOSTICS:

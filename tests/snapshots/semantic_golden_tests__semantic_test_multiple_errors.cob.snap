@@ -1,0 +1,30 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: MULTIPLE-ERRORS-TEST
+  DataDivision
+    WorkingStorageSection
+      DataItem: NAME (level 1, PIC A(10))
+      DataItem: NAME (level 1, PIC X(20))
+      DataItem: COUNT (level 1, PIC 9(5))
+  ProcedureDivision
+    Paragraph: MAIN
+      Perform
+      Move
+      Display
+        Expression: UNDEFINED-VAR
+      StopRun
+
+SYMBOL TABLE:
+  COUNT: Numeric (level 1)
+  MAIN: Alphanumeric (level 0)
+  NAME: Alphabetic (level 1)
+
+DIAGNOSTICS:
+ERROR cobol::semantic::identifier_duplicate test.cob:007:015 Identifier 'NAME' is declared more than once
+ERROR cobol::semantic::undefined_paragraph test.cob:012:016 Paragraph 'UNDEFINED-PARAGRAPH' is not defined
+ERROR cobol::semantic::move_incompatible test.cob:013:016 Cannot MOVE alphabetic to numeric
+ERROR cobol::semantic::undefined_identifier test.cob:014:024 Identifier 'UNDEFINED-VAR' is not defined
