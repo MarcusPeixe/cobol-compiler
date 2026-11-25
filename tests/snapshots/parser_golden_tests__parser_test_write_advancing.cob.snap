@@ -1,0 +1,32 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: ADVANCE
+  EnvironmentDivision
+    InputOutputSection
+      FileControl: OUT-FILE
+        assign: "OUT.DAT"
+        organization: SEQUENTIAL
+  DataDivision
+    FileSection
+      FileDescription: OUT-FILE
+        DataItem (level 1): OUT-RECORD
+          PIC: X(10)
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] OPEN
+            OUTPUT: OUT-FILE
+      [1] WRITE
+            record: OUT-RECORD
+            after advancing: 2
+      [2] WRITE
+            record: OUT-RECORD
+            before advancing: PAGE
+      [3] CLOSE
+            files: OUT-FILE
+      [4] STOP RUN
+
+DIAGNOSTICS:

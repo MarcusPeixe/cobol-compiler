@@ -7,6 +7,325 @@ Program
     program_id: PROG007_LOJA
   EnvironmentDivision
     InputOutputSection
+      FileControl: FD-PRODUTOS
+        assign: WS-PROD-FILENAME
+        organization: INDEXED
+        access mode: DYNAMIC
+        record key: RP-PID
+        alternate key: RP-NOME
+        file status: WS-FILE-STATUS-PROD
+      FileControl: FD-PRODUTOS-KEY
+        assign: "PROG10-001.KEY"
+        file status: WS-FILE-STATUS-PROD-KEY
+  DataDivision
+    FileSection
+      FileDescription: FD-PRODUTOS
+        BLOCK CONTAINS: 874
+        RECORD CONTAINS: 64
+        DataItem (level 1): REG-PRODUTO
+          DataItem (level 2): RP-PID
+            PIC: 9(10)
+          DataItem (level 2): RP-NOME
+            PIC: X(10)
+          DataItem (level 2): RP-VALOR
+            PIC: 9(10)V9(02)
+          DataItem (level 2): RP-QTD
+            PIC: 9(10)V9(02)
+          DataItem (level 2): RP-DESCRICAO
+            PIC: X(20)
+      FileDescription: FD-PRODUTOS-KEY
+        DataItem (level 1): REGISTRO-CHAVE
+          PIC: 9(10)
+    WorkingStorageSection
+      DataItem (level 1): WS-PROD-FILENAME
+        DataItem (level 2): NAME
+          PIC: X(7)
+          VALUE: "PROG10-"
+        DataItem (level 2): NUM
+          PIC: 9(3)
+          VALUE: 1
+        DataItem (level 2): EXT
+          PIC: X(4)
+          VALUE: ".DAT"
+      DataItem (level 77): WS-FILE-STATUS-PROD
+        PIC: 9(02)
+      DataItem (level 77): WS-FILE-STATUS-PROD-KEY
+        PIC: 9(02)
+      DataItem (level 1): WS-PRODUTO
+        DataItem (level 2): WS-PID
+          PIC: 9(10)
+        DataItem (level 2): WS-NOME
+          PIC: X(10)
+        DataItem (level 2): WS-VALOR
+          PIC: 9(10)V9(02)
+        DataItem (level 2): WS-QTD
+          PIC: 9(10)V9(02)
+        DataItem (level 2): WS-DESCRICAO
+          PIC: X(20)
+      DataItem (level 77): WS-OPCAO
+        PIC: 9(01)
+      DataItem (level 77): WS-ULTIMO-PID
+        PIC: 9(10)
+      DataItem (level 77): WS-EXIT
+        PIC: 9(01)
+        VALUE: ZERO
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      [0] DISPLAY
+            "PERFORM 00000-OPEN-FILE-PRODUTOS-KEY"
+      [1] PERFORM
+            00000-OPEN-FILE-PRODUTOS-KEY
+      [2] IF
+            condition: WS-EXIT = 0
+            then:
+              [0] DISPLAY
+                    "PERFORM 00000-OPEN-FILE-PRODUTOS"
+              [1] PERFORM
+                    00000-OPEN-FILE-PRODUTOS
+      [3] PERFORM
+            00001-MENU-OPCOES until WS-EXIT = 1
+      [4] WRITE
+            record: REGISTRO-CHAVE
+            from: WS-ULTIMO-PID
+      [5] CLOSE
+            files: FD-PRODUTOS-KEY
+      [6] CLOSE
+            files: FD-PRODUTOS
+      [7] DISPLAY
+            "BYE"
+      [8] STOP RUN
+    Paragraph: 00000-OPEN-FILE-PRODUTOS-KEY
+      [0] MOVE
+            from: 0
+            to: WS-FILE-STATUS-PROD-KEY
+      [1] OPEN
+            INPUT: FD-PRODUTOS-KEY
+      [2] IF
+            condition: WS-FILE-STATUS-PROD-KEY = 0
+            then:
+              [0] DISPLAY
+                    "-- PROG10-001.KEY FOUND"
+              [1] READ
+                    file: FD-PRODUTOS-KEY
+                    into: WS-ULTIMO-PID
+            else:
+              [0] IF
+                    condition: WS-FILE-STATUS-PROD-KEY = 35
+                    then:
+                      [0] DISPLAY
+                            "-- PROG10-001.KEY NOT FOUND - CREATING NEW"
+                      [1] OPEN
+                            OUTPUT: FD-PRODUTOS-KEY
+                      [2] IF
+                            condition: WS-FILE-STATUS-PROD-KEY = 0
+                            then:
+                              [0] MOVE
+                                    from: 0
+                                    to: WS-ULTIMO-PID
+                            else:
+                              [0] DISPLAY
+                                    "-- ERRO AO CRIAR ARQUIVO DE CHAVES -->"
+                                    WS-FILE-STATUS-PROD-KEY
+                              [1] MOVE
+                                    from: 1
+                                    to: WS-EXIT
+                    else:
+                      [0] DISPLAY
+                            "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
+                            WS-FILE-STATUS-PROD-KEY
+                      [1] MOVE
+                            from: 1
+                            to: WS-EXIT
+    Paragraph: 00000-OPEN-FILE-PRODUTOS
+      [0] MOVE
+            from: 0
+            to: WS-FILE-STATUS-PROD
+      [1] OPEN
+            I-O: FD-PRODUTOS
+      [2] IF
+            condition: WS-FILE-STATUS-PROD = 35
+            then:
+              [0] DISPLAY
+                    "-- PROG10-001.DAT NOT FOUND - CREATING NEW"
+              [1] OPEN
+                    OUTPUT: FD-PRODUTOS
+              [2] IF
+                    condition: WS-FILE-STATUS-PROD = 0
+                    then:
+                      [0] MOVE
+                            from: 0
+                            to: WS-ULTIMO-PID
+                    else:
+                      [0] DISPLAY
+                            "-- ERRO AO CRIAR ARQUIVO DE DADOS -->"
+                            WS-FILE-STATUS-PROD
+                      [1] MOVE
+                            from: 1
+                            to: WS-EXIT
+            else:
+              [0] IF
+                    condition: WS-FILE-STATUS-PROD = 0
+                    then:
+                      [0] DISPLAY
+                            "-- PROG10-001.DAT FOUND"
+                      [1] IF
+                            condition: WS-ULTIMO-PID = 0
+                            then:
+                              [0] MOVE
+                                    from: 0
+                                    to: WS-ULTIMO-PID
+                            else:
+                              [0] MOVE
+                                    from: WS-ULTIMO-PID
+                                    to: RP-PID
+                              [1] START
+                                    file: FD-PRODUTOS
+                                    key: = RP-PID
+                                    invalid key:
+                                      [0] DISPLAY
+                                            "ERRO AO REGISTRO"
+                    else:
+                      [0] DISPLAY
+                            "-- ERRO AO ABRIR ARQUIVO DE PRODUTOS"
+                            WS-FILE-STATUS-PROD
+                      [1] MOVE
+                            from: 1
+                            to: WS-EXIT
+    Paragraph: 00001-MENU-OPCOES
+      [0] DISPLAY
+            " "
+      [1] DISPLAY
+            "====00001-MENU-OPCOES===="
+      [2] DISPLAY
+            "OPCOES:"
+      [3] DISPLAY
+            "1) ADICIONA PRODUTO"
+      [4] DISPLAY
+            "2) REMOVE PRODUTO - NOT IMPLEMENTED"
+      [5] DISPLAY
+            "3) ATUALIZA PRODUTO - NOT IMPLEMENTED"
+      [6] DISPLAY
+            "4) CONSULTA PRODUTO"
+      [7] DISPLAY
+            " "
+      [8] DISPLAY
+            "5) SAIR DO PROGRAMA"
+      [9] ACCEPT
+            WS-OPCAO
+      [10] EVALUATE
+            subject: WS-OPCAO
+            when: 1
+              [0] PERFORM
+                    00002-CREATE-PRODUTO
+            when: 2
+              [0] DISPLAY
+                    "DELETE"
+            when: 3
+              [0] DISPLAY
+                    "UPDATE"
+            when: 4
+              [0] PERFORM
+                    00002-SELECT-PRODUTO
+            when: 5
+              [0] MOVE
+                    from: 1
+                    to: WS-EXIT
+            when: OTHER
+              [0] DISPLAY
+                    "OPCAO INVALIDA."
+    Paragraph: 00002-CREATE-PRODUTO
+      [0] DISPLAY
+            "CRIA UM NOVO PRODUTO"
+      [1] DISPLAY
+            "NOME: "
+            WITH NO ADVANCING
+      [2] ACCEPT
+            WS-NOME
+      [3] DISPLAY
+            "VALOR: "
+            WITH NO ADVANCING
+      [4] ACCEPT
+            WS-VALOR
+      [5] DISPLAY
+            "QUANTIDADE: "
+            WITH NO ADVANCING
+      [6] ACCEPT
+            WS-QTD
+      [7] DISPLAY
+            "DESCRICAO: "
+            WITH NO ADVANCING
+      [8] ACCEPT
+            WS-DESCRICAO
+      [9] ADD
+            operands: 1
+            to: WS-ULTIMO-PID
+      [10] MOVE
+            from: WS-ULTIMO-PID
+            to: WS-PID
+      [11] DISPLAY
+            "--------------"
+      [12] DISPLAY
+            WS-PRODUTO
+      [13] DISPLAY
+            "--------------"
+      [14] WRITE
+            record: REG-PRODUTO
+            from: WS-PRODUTO
+            invalid key:
+              [0] DISPLAY
+                    "CODIGO DE PRODUTO JAH EXISTE"
+                    WS-ULTIMO-PID
+              [1] MOVE
+                    from: 1
+                    to: WS-EXIT
+            not invalid key:
+              [0] DISPLAY
+                    "PRODUTO ARMAZENADO"
+    Paragraph: 00002-SELECT-PRODUTO
+      [0] DISPLAY
+            "CONSULTA PRODUTO"
+      [1] DISPLAY
+            "WS-ULTIMO-PID --> "
+            WS-ULTIMO-PID
+      [2] DISPLAY
+            "PID: "
+      [3] ACCEPT
+            WS-PID
+      [4] MOVE
+            from: WS-PID
+            to: RP-PID
+      [5] READ
+            file: FD-PRODUTOS
+            key: RP-PID
+            invalid key:
+              [0] DISPLAY
+                    "ERRO AO LOCALIZAR REGISTRO"
+            not invalid key:
+              [0] MOVE
+                    from: REG-PRODUTO
+                    to: WS-PRODUTO
+              [1] DISPLAY
+                    " "
+              [2] DISPLAY
+                    "NOME: "
+                    WITH NO ADVANCING
+              [3] DISPLAY
+                    WS-NOME
+              [4] DISPLAY
+                    "VALOR: "
+                    WITH NO ADVANCING
+              [5] DISPLAY
+                    WS-VALOR
+              [6] DISPLAY
+                    "QUANTIDADE: "
+                    WITH NO ADVANCING
+              [7] DISPLAY
+                    WS-QTD
+              [8] DISPLAY
+                    "DESCRICAO: "
+                    WITH NO ADVANCING
+              [9] DISPLAY
+                    WS-DESCRICAO
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG007_LOJA' contains '_'

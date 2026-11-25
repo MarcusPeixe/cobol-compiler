@@ -1,0 +1,23 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: RECOVER
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-A
+        PIC: 9
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] MOVE
+            from: 1
+            to: WS-A
+      [1] DISPLAY
+            WS-A
+      [2] STOP RUN
+
+DIAGNOSTICS:
+ERROR cobol::parser::unsupported_syntax test.cob:008:012 unsupported or unparsed procedure statement: IDENTIFIER CALL
+ERROR cobol::parser::unsupported_syntax test.cob:010:012 unsupported or unparsed procedure statement: IDENTIFIER UNSTRING

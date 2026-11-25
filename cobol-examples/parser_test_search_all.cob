@@ -1,0 +1,16 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SEARCHALL.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-TABLE.
+          05 WS-ENTRY OCCURS 5 TIMES INDEXED BY WS-IDX.
+             10 WS-KEY PIC 9.
+       77 WS-WANTED PIC 9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           SEARCH ALL WS-ENTRY
+               AT END DISPLAY "NOT FOUND"
+               WHEN WS-KEY (WS-IDX) = WS-WANTED
+                   DISPLAY "FOUND"
+           END-SEARCH.
+           STOP RUN.

@@ -92,6 +92,7 @@ impl Scanner<'_> {
                 b';' => self.symbol(TokenKind::Semicolon, 1),
                 b'(' => self.symbol(TokenKind::LParen, 1),
                 b')' => self.symbol(TokenKind::RParen, 1),
+                b':' => self.symbol(TokenKind::Colon, 1),
                 b'+' => self.symbol(TokenKind::Plus, 1),
                 b'-' => self.symbol(TokenKind::Minus, 1),
                 b'/' => self.symbol(TokenKind::Slash, 1),

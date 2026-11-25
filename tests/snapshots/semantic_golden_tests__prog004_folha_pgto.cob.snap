@@ -10,9 +10,96 @@ Program
     WorkingStorageSection
       DataItem: TAB-TRABALHADOR (level 1)
         DataItem: TRABALHADOR (level 2)
+          OCCURS: 3
+          INDEXED BY: TID
+          DataItem: NOME (level 3, PIC X(5))
+          DataItem: SALARIO (level 3, PIC 9(5)V99)
+          DataItem: DPTO (level 3, PIC X(2))
+            OCCURS: 2
+            VALUE: SPACES
+      DataItem: IDX (level 77, PIC 9(1))
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Move
+      Display
+        String:  
+      Display
+        String: ====TAB-TRABALHADOR====
+      Display
+        String: INITIAL VALUE
+      Display
+        Expression: TAB-TRABALHADOR
+      Move
+      Display
+        String:  
+      Display
+        String: ====00001-DISPLAY-TRABALHADOR====
+      Perform
+      Display
+        String:  
+      Display
+        String: ====00002-DISPLAY-BY-SEARCH====
+      Perform
+      Display
+        String:  
+      Display
+        String: ====00003-REMOVE-TRABALHADOR====
+      Perform
+      StopRun
+    Paragraph: 00001-DISPLAY-TRABALHADOR
+      Display
+        String:  
+      Display
+        String: IDX=
+        Expression: IDX
+      Display
+        String: TRABALHADOR(IDX)=
+        Expression: TRABALHADOR(IDX)
+      Display
+        String: NOME(IDX)=
+        Expression: NOME(IDX)
+      Display
+        String: SALARIO(IDX)=
+        Expression: SALARIO(IDX)
+      Display
+        String: DPTO(IDX,1)=
+        Expression: DPTO(IDX, 1)
+      Display
+        String: DPTO(IDX,2)=
+        Expression: DPTO(IDX, 2)
+      Add
+        Operands: 1
+        To: IDX
+    Paragraph: 00002-DISPLAY-BY-SEARCH
+      Set
+      Search
+        Display
+          String: TRABALHADOR NOT FOUND
+        Display
+          String: 'WHEN NOME(TID) = MARIA'
+        Display
+          String: TID=
+          Expression: TID
+        Display
+          String: TRABALHADOR(TID)=
+          Expression: TRABALHADOR(TID)
+    Paragraph: 00003-REMOVE-TRABALHADOR
+      Set
+      Move
+      Display
+        Expression: TAB-TRABALHADOR
 
 SYMBOL TABLE:
+  00001-DISPLAY-TRABALHADOR: Alphanumeric (level 0)
+  00002-DISPLAY-BY-SEARCH: Alphanumeric (level 0)
+  00003-REMOVE-TRABALHADOR: Alphanumeric (level 0)
+  DPTO: Alphanumeric (level 3)
+  IDX: Numeric (level 77)
+  MAIN-PROCEDURE: Alphanumeric (level 0)
+  NOME: Alphanumeric (level 3)
+  SALARIO: Numeric (level 3)
   TAB-TRABALHADOR: Alphanumeric (level 1)
+  TID: Numeric (level 0)
   TRABALHADOR: Alphanumeric (level 2)
 
 DIAGNOSTICS:

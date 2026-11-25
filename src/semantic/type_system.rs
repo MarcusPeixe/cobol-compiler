@@ -9,7 +9,7 @@ pub fn parse_picture(picture: &str) -> DataType {
     let normalized = picture.to_ascii_uppercase();
     if normalized
         .chars()
-        .any(|ch| matches!(ch, '9' | 'S' | 'V' | 'P'))
+        .any(|ch| matches!(ch, '9' | 'S' | 'V' | 'P' | 'Z'))
     {
         DataType::Numeric
     } else if normalized.contains('A') && !normalized.contains('X') && !normalized.contains('N') {
@@ -29,7 +29,10 @@ pub fn is_valid_picture(picture: &str) -> bool {
 
     while let Some(ch) = chars.next() {
         match ch.to_ascii_uppercase() {
-            'A' | 'X' | '9' | 'S' | 'V' | 'P' => has_picture_symbol = true,
+            'A' | 'X' | '9' | 'S' | 'V' | 'P' | 'Z' | '*' | 'B' | '$' | '+' | '-' => {
+                has_picture_symbol = true
+            }
+            '0' | '/' | ',' | '.' => {}
             '(' => {
                 let mut digits = String::new();
                 while let Some(next) = chars.peek().copied() {
@@ -48,7 +51,6 @@ pub fn is_valid_picture(picture: &str) -> bool {
                     return false;
                 }
             }
-            ')' | '0'..='9' => return false,
             _ => return false,
         }
     }
@@ -85,6 +87,8 @@ mod tests {
         assert!(is_valid_picture("S9(3)V99"));
         assert!(!is_valid_picture("X(0)"));
         assert!(!is_valid_picture("9(2"));
+        assert!(is_valid_picture("-ZZZZZZZZZ9.99"));
+        assert_eq!(parse_picture("-ZZ9.99"), DataType::Numeric);
     }
 
     #[test]

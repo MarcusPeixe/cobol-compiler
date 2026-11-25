@@ -1,0 +1,25 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: REFMOD
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-TEXT
+        PIC: X(10)
+      DataItem (level 77): WS-POS
+        PIC: 99
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] MOVE
+            from: "HELLO"
+            to: WS-TEXT(1:3)
+      [1] DISPLAY
+            WS-TEXT(WS-POS:2)
+      [2] DISPLAY
+            WS-TEXT(2:)
+      [3] STOP RUN
+
+DIAGNOSTICS:

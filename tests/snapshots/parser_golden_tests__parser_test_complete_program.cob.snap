@@ -13,6 +13,7 @@ Program
     WorkingStorageSection
       DataItem (level 1): COUNTER
         PIC: 9(5)
+        VALUE: 0
   ProcedureDivision
     Paragraph: MAIN-PROCEDURE
       [0] DISPLAY

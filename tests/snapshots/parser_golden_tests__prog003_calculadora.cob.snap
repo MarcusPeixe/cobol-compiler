@@ -10,5 +10,115 @@ Program
     WorkingStorageSection
       DataItem (level 77): WKS-NUM-1
         PIC: S9(05)V99
+        VALUE: 0
+      DataItem (level 77): WKS-NUM-2
+        PIC: S9(05)V9(02)
+        VALUE: 0
+      DataItem (level 77): WKS-RESULTADO
+        PIC: S9(10)V99
+        VALUE: ZEROS
+      DataItem (level 77): WKS-RESTO
+        PIC: 9(2)
+        VALUE: ZEROS
+      DataItem (level 77): WKS-OPCAO
+        PIC: A(01)
+      DataItem (level 77): WKS-SAIR
+        PIC: 9(1)
+        VALUE: ZEROS
+      DataItem (level 77): WKS-RESULT-FORMAT
+        PIC: -ZZZZZZZZZ9.99
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      [0] PERFORM
+            00000-CALCULADORA until WKS-SAIR = 2
+      [1] STOP RUN
+    Paragraph: 00000-CALCULADORA
+      [0] DISPLAY
+            "============ CALCULADORA ============= "
+      [1] DISPLAY
+            "1-. USAR CALCULADORA, 2-. SAIR"
+      [2] ACCEPT
+            WKS-SAIR
+      [3] IF
+            condition: WKS-SAIR = 1
+            then:
+              [0] PERFORM
+                    00001-PEDIR-DADOS
+              [1] PERFORM
+                    00002-EXECUTAR-OPERACOES
+    Paragraph: 00001-PEDIR-DADOS
+      [0] DISPLAY
+            "OPERACAO: "
+      [1] DISPLAY
+            "(S)oma, s(U)btracao, (M)ultiplicacao e (D)ivisao"
+      [2] DISPLAY
+            "(P)otencia"
+      [3] DISPLAY
+            "==>"
+      [4] ACCEPT
+            WKS-OPCAO
+      [5] DISPLAY
+            "VALOR 1:"
+      [6] ACCEPT
+            WKS-NUM-1
+      [7] DISPLAY
+            "VALOR 2:"
+      [8] ACCEPT
+            WKS-NUM-2
+    Paragraph: 00002-EXECUTAR-OPERACOES
+      [0] MOVE
+            from: FUNCTION UPPER-CASE(WKS-OPCAO)
+            to: WKS-OPCAO
+      [1] IF
+            condition: WKS-OPCAO = "S" OR WKS-OPCAO = "s"
+            then:
+              [0] ADD
+                    operands: WKS-NUM-1
+                    to: WKS-NUM-2
+                    giving: WKS-RESULTADO
+            else:
+              [0] IF
+                    condition: WKS-OPCAO = "U"
+                    then:
+                      [0] SUBTRACT
+                            operands: WKS-NUM-1
+                            from: WKS-NUM-2
+                            giving: WKS-RESULTADO
+                    else:
+                      [0] IF
+                            condition: WKS-OPCAO = "M"
+                            then:
+                              [0] MULTIPLY
+                                    factor: WKS-NUM-1
+                                    by: WKS-NUM-2
+                                    giving: WKS-RESULTADO
+                            else:
+                              [0] IF
+                                    condition: WKS-OPCAO = "D"
+                                    then:
+                                      [0] DIVIDE
+                                            dividend: WKS-NUM-1
+                                            divisor: WKS-NUM-2
+                                            giving: WKS-RESULTADO
+                                            remainder: WKS-RESTO
+                                    else:
+                                      [0] IF
+                                            condition: WKS-OPCAO = "P"
+                                            then:
+                                              [0] COMPUTE
+                                                    target: WKS-RESULTADO
+                                                    expression: WKS-NUM-1 ** WKS-NUM-2
+                                            else:
+                                              [0] DISPLAY
+                                                    "OPCAO INVALIDA"
+      [2] IF
+            condition: WKS-OPCAO = "S" OR WKS-OPCAO = "U" OR WKS-OPCAO = "M" OR WKS-OPCAO = "D" OR WKS-OPCAO = "P"
+            then:
+              [0] MOVE
+                    from: WKS-RESULTADO
+                    to: WKS-RESULT-FORMAT
+              [1] DISPLAY
+                    "Resultado: "
+                    WKS-RESULT-FORMAT
 
 DIAGNOSTICS:

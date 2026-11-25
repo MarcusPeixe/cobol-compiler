@@ -7,8 +7,233 @@ Program
     program_id: PROG007_LOJA
   EnvironmentDivision
     InputOutputSection
+  DataDivision
+    FileSection
+      FileDescription: FD-PRODUTOS
+        DataItem: REG-PRODUTO (level 1)
+          DataItem: RP-PID (level 2, PIC 9(10))
+          DataItem: RP-NOME (level 2, PIC X(10))
+          DataItem: RP-VALOR (level 2, PIC 9(10)V9(02))
+          DataItem: RP-QTD (level 2, PIC 9(10)V9(02))
+          DataItem: RP-DESCRICAO (level 2, PIC X(20))
+      FileDescription: FD-PRODUTOS-KEY
+        DataItem: REGISTRO-CHAVE (level 1, PIC 9(10))
+    WorkingStorageSection
+      DataItem: WS-PROD-FILENAME (level 1)
+        DataItem: NAME (level 2, PIC X(7))
+          VALUE: "PROG10-"
+        DataItem: NUM (level 2, PIC 9(3))
+          VALUE: 1
+        DataItem: EXT (level 2, PIC X(4))
+          VALUE: ".DAT"
+      DataItem: WS-FILE-STATUS-PROD (level 77, PIC 9(02))
+      DataItem: WS-FILE-STATUS-PROD-KEY (level 77, PIC 9(02))
+      DataItem: WS-PRODUTO (level 1)
+        DataItem: WS-PID (level 2, PIC 9(10))
+        DataItem: WS-NOME (level 2, PIC X(10))
+        DataItem: WS-VALOR (level 2, PIC 9(10)V9(02))
+        DataItem: WS-QTD (level 2, PIC 9(10)V9(02))
+        DataItem: WS-DESCRICAO (level 2, PIC X(20))
+      DataItem: WS-OPCAO (level 77, PIC 9(01))
+      DataItem: WS-ULTIMO-PID (level 77, PIC 9(10))
+      DataItem: WS-EXIT (level 77, PIC 9(01))
+        VALUE: ZERO
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Display
+        String: PERFORM 00000-OPEN-FILE-PRODUTOS-KEY
+      Perform
+      If
+        Display
+          String: PERFORM 00000-OPEN-FILE-PRODUTOS
+        Perform
+      Perform
+      Write
+      Close
+      Close
+      Display
+        String: BYE
+      StopRun
+    Paragraph: 00000-OPEN-FILE-PRODUTOS-KEY
+      Move
+      Open
+      If
+        Display
+          String: -- PROG10-001.KEY FOUND
+        Read: FD-PRODUTOS-KEY
+      Else
+        If
+          Display
+            String: -- PROG10-001.KEY NOT FOUND - CREATING NEW
+          Open
+          If
+            Move
+          Else
+            Display
+              String: -- ERRO AO CRIAR ARQUIVO DE CHAVES -->
+              Expression: WS-FILE-STATUS-PROD-KEY
+            Move
+        Else
+          Display
+            String: -- ERRO AO ABRIR ARQUIVO DE CHAVES -->
+            Expression: WS-FILE-STATUS-PROD-KEY
+          Move
+    Paragraph: 00000-OPEN-FILE-PRODUTOS
+      Move
+      Open
+      If
+        Display
+          String: -- PROG10-001.DAT NOT FOUND - CREATING NEW
+        Open
+        If
+          Move
+        Else
+          Display
+            String: -- ERRO AO CRIAR ARQUIVO DE DADOS -->
+            Expression: WS-FILE-STATUS-PROD
+          Move
+      Else
+        If
+          Display
+            String: -- PROG10-001.DAT FOUND
+          If
+            Move
+          Else
+            Move
+            Start: FD-PRODUTOS
+              Display
+                String: ERRO AO REGISTRO
+        Else
+          Display
+            String: -- ERRO AO ABRIR ARQUIVO DE PRODUTOS
+            Expression: WS-FILE-STATUS-PROD
+          Move
+    Paragraph: 00001-MENU-OPCOES
+      Display
+        String:  
+      Display
+        String: ====00001-MENU-OPCOES====
+      Display
+        String: OPCOES:
+      Display
+        String: 1) ADICIONA PRODUTO
+      Display
+        String: 2) REMOVE PRODUTO - NOT IMPLEMENTED
+      Display
+        String: 3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+      Display
+        String: 4) CONSULTA PRODUTO
+      Display
+        String:  
+      Display
+        String: 5) SAIR DO PROGRAMA
+      Accept
+      Evaluate
+        Perform
+        Display
+          String: DELETE
+        Display
+          String: UPDATE
+        Perform
+        Move
+        Display
+          String: OPCAO INVALIDA.
+    Paragraph: 00002-CREATE-PRODUTO
+      Display
+        String: CRIA UM NOVO PRODUTO
+      Display
+        String: NOME: 
+      Accept
+      Display
+        String: VALOR: 
+      Accept
+      Display
+        String: QUANTIDADE: 
+      Accept
+      Display
+        String: DESCRICAO: 
+      Accept
+      Add
+        Operands: 1
+        To: WS-ULTIMO-PID
+      Move
+      Display
+        String: --------------
+      Display
+        Expression: WS-PRODUTO
+      Display
+        String: --------------
+      Write
+        Display
+          String: CODIGO DE PRODUTO JAH EXISTE
+          Expression: WS-ULTIMO-PID
+        Move
+        Display
+          String: PRODUTO ARMAZENADO
+    Paragraph: 00002-SELECT-PRODUTO
+      Display
+        String: CONSULTA PRODUTO
+      Display
+        String: WS-ULTIMO-PID --> 
+        Expression: WS-ULTIMO-PID
+      Display
+        String: PID: 
+      Accept
+      Move
+      Read: FD-PRODUTOS
+        Display
+          String: ERRO AO LOCALIZAR REGISTRO
+        Move
+        Display
+          String:  
+        Display
+          String: NOME: 
+        Display
+          Expression: WS-NOME
+        Display
+          String: VALOR: 
+        Display
+          Expression: WS-VALOR
+        Display
+          String: QUANTIDADE: 
+        Display
+          Expression: WS-QTD
+        Display
+          String: DESCRICAO: 
+        Display
+          Expression: WS-DESCRICAO
 
 SYMBOL TABLE:
+  00000-OPEN-FILE-PRODUTOS: Alphanumeric (level 0)
+  00000-OPEN-FILE-PRODUTOS-KEY: Alphanumeric (level 0)
+  00001-MENU-OPCOES: Alphanumeric (level 0)
+  00002-CREATE-PRODUTO: Alphanumeric (level 0)
+  00002-SELECT-PRODUTO: Alphanumeric (level 0)
+  EXT: Alphanumeric (level 2)
+  FD-PRODUTOS: Alphanumeric (level 0)
+  FD-PRODUTOS-KEY: Alphanumeric (level 0)
+  MAIN-PROCEDURE: Alphanumeric (level 0)
+  NAME: Alphanumeric (level 2)
+  NUM: Numeric (level 2)
+  REG-PRODUTO: Alphanumeric (level 1)
+  REGISTRO-CHAVE: Numeric (level 1)
+  RP-DESCRICAO: Alphanumeric (level 2)
+  RP-NOME: Alphanumeric (level 2)
+  RP-PID: Numeric (level 2)
+  RP-QTD: Numeric (level 2)
+  RP-VALOR: Numeric (level 2)
+  WS-DESCRICAO: Alphanumeric (level 2)
+  WS-EXIT: Numeric (level 77)
+  WS-FILE-STATUS-PROD: Numeric (level 77)
+  WS-FILE-STATUS-PROD-KEY: Numeric (level 77)
+  WS-NOME: Alphanumeric (level 2)
+  WS-OPCAO: Numeric (level 77)
+  WS-PID: Numeric (level 2)
+  WS-PROD-FILENAME: Alphanumeric (level 1)
+  WS-PRODUTO: Alphanumeric (level 1)
+  WS-QTD: Numeric (level 2)
+  WS-ULTIMO-PID: Numeric (level 77)
+  WS-VALOR: Numeric (level 2)
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG007_LOJA' contains '_'

@@ -9,8 +9,97 @@ Program
     FileSection
     WorkingStorageSection
       DataItem: WKS-NUM-1 (level 77, PIC S9(05)V99)
+        VALUE: 0
+      DataItem: WKS-NUM-2 (level 77, PIC S9(05)V9(02))
+        VALUE: 0
+      DataItem: WKS-RESULTADO (level 77, PIC S9(10)V99)
+        VALUE: ZEROS
+      DataItem: WKS-RESTO (level 77, PIC 9(2))
+        VALUE: ZEROS
+      DataItem: WKS-OPCAO (level 77, PIC A(01))
+      DataItem: WKS-SAIR (level 77, PIC 9(1))
+        VALUE: ZEROS
+      DataItem: WKS-RESULT-FORMAT (level 77, PIC -ZZZZZZZZZ9.99)
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Perform
+      StopRun
+    Paragraph: 00000-CALCULADORA
+      Display
+        String: ============ CALCULADORA ============= 
+      Display
+        String: 1-. USAR CALCULADORA, 2-. SAIR
+      Accept
+      If
+        Perform
+        Perform
+    Paragraph: 00001-PEDIR-DADOS
+      Display
+        String: OPERACAO: 
+      Display
+        String: (S)oma, s(U)btracao, (M)ultiplicacao e (D)ivisao
+      Display
+        String: (P)otencia
+      Display
+        String: ==>
+      Accept
+      Display
+        String: VALOR 1:
+      Accept
+      Display
+        String: VALOR 2:
+      Accept
+    Paragraph: 00002-EXECUTAR-OPERACOES
+      Move
+      If
+        Add
+          Operands: WKS-NUM-1
+          To: WKS-NUM-2
+          Giving: WKS-RESULTADO
+      Else
+        If
+          Subtract
+            Operands: WKS-NUM-1
+            From: WKS-NUM-2
+            Giving: WKS-RESULTADO
+        Else
+          If
+            Multiply
+              Factor: WKS-NUM-1
+              By: WKS-NUM-2
+              Giving: WKS-RESULTADO
+          Else
+            If
+              Divide
+                Dividend: WKS-NUM-1
+                Divisor: WKS-NUM-2
+                Giving: WKS-RESULTADO
+                Remainder: WKS-RESTO
+            Else
+              If
+                Compute
+                  Target: WKS-RESULTADO
+                  Expression: WKS-NUM-1 Power WKS-NUM-2
+              Else
+                Display
+                  String: OPCAO INVALIDA
+      If
+        Move
+        Display
+          String: Resultado: 
+          Expression: WKS-RESULT-FORMAT
 
 SYMBOL TABLE:
+  00000-CALCULADORA: Alphanumeric (level 0)
+  00001-PEDIR-DADOS: Alphanumeric (level 0)
+  00002-EXECUTAR-OPERACOES: Alphanumeric (level 0)
+  MAIN-PROCEDURE: Alphanumeric (level 0)
   WKS-NUM-1: Numeric (level 77)
+  WKS-NUM-2: Numeric (level 77)
+  WKS-OPCAO: Alphabetic (level 77)
+  WKS-RESTO: Numeric (level 77)
+  WKS-RESULT-FORMAT: Numeric (level 77)
+  WKS-RESULTADO: Numeric (level 77)
+  WKS-SAIR: Numeric (level 77)
 
 DIAGNOSTICS:

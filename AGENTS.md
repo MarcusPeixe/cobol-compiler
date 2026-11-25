@@ -56,9 +56,13 @@ Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> 
 - **Error recovery:** phases collect all diagnostics and keep going rather than stopping at the first one.
 - **Spans:** `Span` is a byte range in an original file (`FileId` into `SourceMap`). Text from copybooks keeps spans pointing into the copybook. `LogicalText` carries a per-byte origin map so spans survive column stripping and `COPY` expansion.
 - **Integration tests & golden testing:** "Integration tests" always refers to golden testing using the `insta` crate. All new compiler phases should include golden tests. See existing test files in `tests/` for patterns.
+- **File edits:** make source changes with the `edit`/`create` tools, not scripts (Python, `sed`) run through bash. The tools are faster and safer and avoid a permission prompt per command; use bash only to run builds and tests.
+- **Fixing example failures:** if a `cobol-examples/prog00X` program produces an error diagnostic, treat it as a missing feature. Implement valid COBOL even when it goes beyond the spec (in the parser, AST, semantic analyzer and `src/parser/printer.rs`) instead of accepting the error in a snapshot. Allow-errors goldens (`test_parser_golden_with_errors`) are only for fixtures that deliberately test recovery.
+- Changing `src/parser/printer.rs` or the AST changes every parser golden: review each `.snap.new` diff before `cargo insta accept`.
 - **Test program placement:** Never write compiler test programs inline in Rust source code. Always create separate `.cob` files in `cobol-examples/` with stage-specific prefixes: `lexer_test_`, `parser_test_`, `semantic_test_`, or `codegen_test_`. This makes tests maintainable and allows programs to be reused as examples.
 - **Output formatting for integration tests:** When implementing a new compiler phase, design the output format with integration testing in mind. Maximize information (all nodes, fields, all details) to aid inspection and debugging. The output is compiler-internal, not user-facing, so prioritize completeness over pretty printing.
 - **Snapshot testing:** Golden tests use `insta` for snapshot assertions. When output changes intentionally, use `cargo insta test` to review and accept new snapshots.
+- **Parser error snapshots:** Parser goldens normally fail when parser errors occur. Allow errors only in fixtures intentionally exercising unsupported syntax, and snapshot their diagnostics as well as the recovered AST.
 - **AST pretty-printing:** Print every node in the AST tree (all divisions, sections, fields, statements), including empty ones. Never count statements; always list them individually. This ensures snapshots catch structural changes.
 - **Test file naming:** Test programs follow the convention `{PHASE}_test_{TEST_NAME}.cob` where `PHASE` is `lexer`, `parser`, `semantic`, or `codegen` and `TEST_NAME` matches the test function name (e.g., `parser_test_minimal_program.cob` for `test_minimal_program()`).
 
@@ -67,7 +71,7 @@ Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> 
 Lexer and source handling:
 
 - Fixed format only (no free format). Columns 1-6 and 73+ are ignored, column 7 is the indicator.
-- Comment lines (`*`, `/`) are dropped. `D` lines are skipped unless `--debug-lines` is given. Continuation lines (`-`) are joined only for string literals, and the previous line is padded to column 72.
+- Comment lines (`*`, `/`) are dropped. `D` lines are skipped unless `--debug-lines` is given. Continuation lines (`-`) are joined for string literals (the previous line is padded to column 72) and for words split across lines (no quote after the `-`: the text glues directly onto the previous line, e.g. `T` + `-AB-X` becomes `TAB-X`).
 - Case-insensitive: keywords and identifiers are uppercased in tokens. The original text stays available through the span.
 - Only the 14 keywords from spec section 2.2 are reserved. Everything else (`PROGRAM-ID`, `VALUE`, `TO`, `AND`, `END-IF`...) is an identifier. The parser decides what they mean. `PIC` and `PICTURE` are special-cased.
 - Identifiers: 1-30 characters of A-Z, 0-9 and `-`, not ending with a hyphen. Longer or hyphen-terminated words are errors.
@@ -76,7 +80,7 @@ Lexer and source handling:
 - Numeric literals are unsigned. `+` and `-` are always separate tokens, and the parser folds signs into literals.
 - A `.` followed by a non-digit is a period token, so `1.` lexes as `1` then `.`. A `.` inside digits (`45.67`) is a decimal point.
 - After `PIC`/`PICTURE` (and an optional `IS`, emitted as an identifier) the lexer emits one `PictureString` token, such as `S9(3)V99`. A trailing `.` is not part of it.
-- Symbols: `. , ; ( ) + - * / ** = < > <= >=`.
+- Symbols: `. , ; : ( ) + - * / ** = < > <= >=` (`:` is used by reference modification).
 - Tokens carry no Area A / Area B information. The parser can derive columns from spans and `SourceMap::line_col` if it needs them. Area warnings, if wanted, belong in a later pass, not the lexer.
 - There is no end-of-file token.
 
@@ -86,6 +90,18 @@ Lexer and source handling:
 - Supports `COPY name.`, `COPY 'name'.`, `COPY name OF|IN lib.` (the library is ignored) and nested copybooks. Cycles are reported as errors.
 - `COPY ... REPLACING`, `REPLACE` and compiler directives are not supported (`REPLACING` reports an error).
 - Copybooks are searched in the source file's directory, then `-I` directories, trying the name as written, lowercase and uppercase, with extensions `""`, `.cpy`, `.cbl`, `.cob`, `.copy`. Names containing path separators or `..` are rejected.
+
+Parser:
+
+- Working-storage entries accept `VALUE` and `VALUES` followed by numeric/string literals or common figurative constants (`ZERO(S)`, `ZEROES`, `SPACE(S)`, `HIGH-VALUE(S)`, `LOW-VALUE(S)`, `QUOTE(S)`, `NULL(S)`).
+- Arithmetic statements support `ADD ... TO|GIVING`, `SUBTRACT ... FROM [GIVING ...]`, `MULTIPLY ... BY [GIVING ...]`, and `DIVIDE ... BY ... [GIVING ...] [REMAINDER ...]`, including `ON SIZE ERROR` statement bodies.
+- Procedure statements support `PERFORM ... UNTIL`, `COMPUTE target = expression`, intrinsic `FUNCTION name(arguments)` expressions, and abbreviated relational conditions such as `item = "A" OR "B"`.
+- Qualified data references using `OF` or `IN` are retained in the identifier expression.
+- **Error recovery:** Unsupported or malformed syntax produces a source-spanned `cobol::parser::unsupported_syntax` or `cobol::parser::parse_error` diagnostic. Recovery synchronizes at later divisions, `WORKING-STORAGE`, statement starts, sentence periods, and control-flow boundaries so later declarations and statements can still be parsed. Skipped syntax is diagnosed, not represented as successfully parsed AST nodes. All `prog001`–`prog007` examples parse without errors; the recovery path is exercised by `parser_test_unsupported_recovery.cob` (uses `CALL ... USING` and `UNSTRING`, which are unsupported; update the fixture if either gets implemented).
+- Beyond the spec, valid COBOL used by the examples is implemented: `FILE-CONTROL`/`SELECT` (ASSIGN, ORGANIZATION, ACCESS MODE, RECORD/ALTERNATE KEY, FILE STATUS), FD with `BLOCK`/`RECORD CONTAINS` and record layouts, `OCCURS n [TIMES]`, `INDEXED BY`, subscripts `NAME(i[, j])`, figurative constants as expressions, `DISPLAY ... WITH NO ADVANCING`, and the statements `SET`, `SEARCH` (AT END/WHEN), `INSPECT` (TALLYING/REPLACING/CONVERTING with BEFORE/AFTER), `EVALUATE` (subject value or `TRUE`/`FALSE`, stacked `WHEN`s, `THRU` ranges, `ANY`, `WHEN OTHER`; `EvaluateChoice` in the AST), `SEARCH ALL`, `INITIALIZE`, reference modification `NAME(start:[length])` (`Expression::RefMod`), `WRITE ... BEFORE|AFTER ADVANCING n LINES|PAGE`, `OPEN`, `CLOSE`, `READ`, `WRITE`, `START` with AT END / INVALID KEY handlers. `PERFORM` supports the plain form, `THRU`/`THROUGH`, `n TIMES`, `UNTIL`, `VARYING ... FROM ... BY ... UNTIL` (paragraph or inline) and inline bodies with `END-PERFORM`; `WITH TEST BEFORE|AFTER` is accepted and ignored. Not supported: `EVALUATE ... ALSO`, `PERFORM ... AFTER` (nested varying), `PERFORM THRU` combined with TIMES/UNTIL/VARYING, `A(i)(a:b)`.
+- **Target backend (phase 4):** generate MIPS assembly for the MARS simulator (not C). `mars-mips` is in `flake.nix`; inside `nix develop` the binary is `Mars`.
+- The AST dump lives in `src/parser/printer.rs` (`format_program`), shared by the CLI and the parser golden tests.
+- Edited pictures (`Z`, `*`, `$`, `+`, `-`, `B`, `0`, `/`, `,`, `.`) are accepted by the semantic picture check; `Z` makes the item numeric.
 
 CLI:
 
@@ -112,4 +128,4 @@ Semantic analysis:
 - A literal continuation pads the previous line to column 72; an unterminated string stops at end of line.
 - Comment-entry text ends at the first `.` followed by whitespace, so `Enio B. Basso` would end early.
 - Changing lexer output requires reviewing and updating `tests/lexer-goldens/` (there is no automatic regenerate mode yet).
-- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`, `cobol::semantic::{identifier_duplicate, move_incompatible, undefined_identifier, undefined_paragraph, file_not_declared, invalid_picture, type_mismatch, numeric_operand_required}`.
+- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`, `cobol::parser::{parse_error, unsupported_syntax}`, `cobol::semantic::{identifier_duplicate, move_incompatible, undefined_identifier, undefined_paragraph, file_not_declared, invalid_picture, type_mismatch, numeric_operand_required}`.

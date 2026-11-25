@@ -50,6 +50,8 @@ fn data_item(name: &str, picture: &str) -> DataItem {
         name: name.to_string(),
         picture: Some(picture.to_string()),
         value: None,
+        occurs: None,
+        indexed_by: Vec::new(),
         children: Vec::new(),
     }
 }
@@ -104,6 +106,7 @@ fn reports_undefined_paragraphs_and_identifiers() {
             }),
             Statement::Display(DisplayStatement {
                 span: span(),
+                no_advancing: false,
                 items: vec![DisplayItem::Expression(Expression::Identifier(
                     "MISSING-VARIABLE".to_string(),
                     span(),
@@ -224,6 +227,7 @@ fn validates_conditions_and_nested_statements() {
             },
             then_statements: vec![Statement::Display(DisplayStatement {
                 span: span(),
+                no_advancing: false,
                 items: vec![DisplayItem::Expression(Expression::Identifier(
                     "MISSING".to_string(),
                     span(),

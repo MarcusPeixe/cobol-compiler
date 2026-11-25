@@ -1,0 +1,65 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: PERFORMS
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-I
+        PIC: 99
+      DataItem (level 77): WS-N
+        PIC: 99
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] PERFORM
+            PARA-A
+      [1] PERFORM
+            3 times PARA-A
+      [2] PERFORM
+            PARA-A until WS-I > 5
+      [3] PERFORM
+            PARA-A thru PARA-B
+      [4] PERFORM
+            PARA-A thru PARA-B
+      [5] PERFORM
+            paragraph: PARA-A
+            varying: WS-I from 1 by 1
+            until: WS-I > 3
+      [6] PERFORM
+            inline
+            times: 2
+            body:
+              [0] DISPLAY
+                    "X"
+      [7] PERFORM
+            inline
+            until: WS-N > 3
+            body:
+              [0] ADD
+                    operands: 1
+                    to: WS-N
+      [8] PERFORM
+            inline
+            varying: WS-I from 1 by 2
+            until: WS-I > 9
+            body:
+              [0] DISPLAY
+                    WS-I
+      [9] PERFORM
+            inline
+            until: WS-N > 5
+            body:
+              [0] ADD
+                    operands: 1
+                    to: WS-N
+      [10] STOP RUN
+    Paragraph: PARA-A
+      [0] DISPLAY
+            "A"
+    Paragraph: PARA-B
+      [0] DISPLAY
+            "B"
+
+DIAGNOSTICS:

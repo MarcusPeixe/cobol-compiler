@@ -22,6 +22,7 @@
             clippy
             rustfmt
             typst
+            mars-mips
           ];
         };
       });

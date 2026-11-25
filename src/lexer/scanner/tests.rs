@@ -205,8 +205,15 @@ fn unterminated_string_at_end_of_input() {
 #[test]
 fn punctuation() {
     assert_eq!(
-        kinds(". , ; ( )"),
-        [T::Period, T::Comma, T::Semicolon, T::LParen, T::RParen]
+        kinds(". , ; ( ) :"),
+        [
+            T::Period,
+            T::Comma,
+            T::Semicolon,
+            T::LParen,
+            T::RParen,
+            T::Colon
+        ]
     );
 }
 

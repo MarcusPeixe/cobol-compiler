@@ -42,6 +42,46 @@ fn test_prog007_loja() {
 }
 
 #[test]
+fn test_io_clauses() {
+    test_parser_golden("parser_test_io_clauses.cob");
+}
+
+#[test]
+fn test_unsupported_syntax_recovery() {
+    test_parser_golden_with_errors("parser_test_unsupported_recovery.cob");
+}
+
+#[test]
+fn test_perform_forms() {
+    test_parser_golden("parser_test_perform_forms.cob");
+}
+
+#[test]
+fn test_evaluate_forms() {
+    test_parser_golden("parser_test_evaluate_forms.cob");
+}
+
+#[test]
+fn test_search_all() {
+    test_parser_golden("parser_test_search_all.cob");
+}
+
+#[test]
+fn test_reference_modification() {
+    test_parser_golden("parser_test_reference_modification.cob");
+}
+
+#[test]
+fn test_write_advancing() {
+    test_parser_golden("parser_test_write_advancing.cob");
+}
+
+#[test]
+fn test_initialize() {
+    test_parser_golden("parser_test_initialize.cob");
+}
+
+#[test]
 fn test_minimal_program() {
     test_parser_golden("parser_test_minimal_program.cob");
 }
@@ -97,17 +137,26 @@ fn test_complete_program() {
 }
 
 fn test_parser_golden(file_name: &str) {
+    test_parser_golden_with_error_snapshot(file_name, false);
+}
+
+fn test_parser_golden_with_errors(file_name: &str) {
+    test_parser_golden_with_error_snapshot(file_name, true);
+}
+
+fn test_parser_golden_with_error_snapshot(file_name: &str, allow_errors: bool) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let relative_path = Path::new("cobol-examples").join(file_name);
     let source_path = root.join(&relative_path);
 
     let source = std::fs::read_to_string(&source_path).expect("cannot read source");
-    let actual = parse_cobol_string(&source).expect("parsing should succeed");
+    let actual = parse_cobol_string(&source, allow_errors)
+        .expect("parsing should not have unexpected errors");
 
     insta::assert_snapshot!(file_name, actual);
 }
 
-fn parse_cobol_string(source: &str) -> Result<String, String> {
+fn parse_cobol_string(source: &str, allow_errors: bool) -> Result<String, String> {
     let mut source_map = SourceMap::default();
     let file_id = source_map.add_file("test.cob".to_string(), source.to_string());
     let loader = FsLoader {
@@ -124,7 +173,7 @@ fn parse_cobol_string(source: &str) -> Result<String, String> {
     all_diags.extend(parse_diags);
 
     let errors: Vec<&Diagnostic> = all_diags.iter().filter(|d| d.is_error()).collect();
-    if !errors.is_empty() {
+    if !allow_errors && !errors.is_empty() {
         return Err(format!(
             "parsing failed: {}",
             errors
@@ -136,290 +185,17 @@ fn parse_cobol_string(source: &str) -> Result<String, String> {
     }
 
     // Format the AST for snapshot comparison
-    let mut output = format_ast(&program);
+    let mut output = cobol_compiler::parser::format_program(&program);
     output.push_str("\nDIAGNOSTICS:\n");
     for diagnostic in all_diags
         .iter()
-        .filter(|diagnostic| diagnostic.severity == Severity::Warning)
+        .filter(|diagnostic| allow_errors || diagnostic.severity == Severity::Warning)
     {
         output.push_str(&format_diagnostic(diagnostic, &source_map));
         output.push('\n');
     }
 
     Ok(output)
-}
-
-fn format_ast(program: &cobol_compiler::parser::Program) -> String {
-    let mut output = String::new();
-    output.push_str("Program\n");
-    output.push_str("  IdentificationDivision\n");
-    output.push_str(&format!(
-        "    program_id: {}\n",
-        program.identification_division.program_id
-    ));
-
-    if let Some(author) = &program.identification_division.author {
-        output.push_str(&format!("    author: {}\n", author));
-    }
-    if let Some(installation) = &program.identification_division.installation {
-        output.push_str(&format!("    installation: {}\n", installation));
-    }
-    if let Some(date_written) = &program.identification_division.date_written {
-        output.push_str(&format!("    date_written: {}\n", date_written));
-    }
-    if let Some(date_compiled) = &program.identification_division.date_compiled {
-        output.push_str(&format!("    date_compiled: {}\n", date_compiled));
-    }
-    if let Some(security) = &program.identification_division.security {
-        output.push_str(&format!("    security: {}\n", security));
-    }
-    if let Some(remarks) = &program.identification_division.remarks {
-        output.push_str(&format!("    remarks: {}\n", remarks));
-    }
-
-    if let Some(env_div) = &program.environment_division {
-        output.push_str("  EnvironmentDivision\n");
-        if env_div.configuration_section.is_some() {
-            output.push_str("    ConfigurationSection\n");
-        }
-        if env_div.input_output_section.is_some() {
-            output.push_str("    InputOutputSection\n");
-        }
-    }
-
-    if let Some(data_div) = &program.data_division {
-        output.push_str("  DataDivision\n");
-        if let Some(file_sec) = &data_div.file_section {
-            output.push_str("    FileSection\n");
-            for file_desc in &file_sec.file_descriptions {
-                output.push_str(&format!("      FileDescription: {}\n", file_desc.file_name));
-            }
-        }
-        if let Some(work_sec) = &data_div.working_storage_section {
-            output.push_str("    WorkingStorageSection\n");
-            format_data_items(&mut output, &work_sec.data_items, 6);
-        }
-    }
-
-    if let Some(proc_div) = &program.procedure_division {
-        output.push_str("  ProcedureDivision\n");
-        for para in &proc_div.paragraphs {
-            output.push_str(&format!("    Paragraph: {}\n", para.name));
-            for (i, stmt) in para.statements.iter().enumerate() {
-                format_statement(&mut output, stmt, 6, i);
-            }
-        }
-    }
-
-    output
-}
-
-fn format_data_items(
-    output: &mut String,
-    items: &[cobol_compiler::parser::DataItem],
-    indent: usize,
-) {
-    for item in items {
-        let ind = " ".repeat(indent);
-        output.push_str(&format!(
-            "{}DataItem (level {}): {}\n",
-            ind, item.level, item.name
-        ));
-        if let Some(pic) = &item.picture {
-            output.push_str(&format!("{}  PIC: {}\n", ind, pic));
-        }
-        if !item.children.is_empty() {
-            format_data_items(output, &item.children, indent + 2);
-        }
-    }
-}
-
-fn format_statement(
-    output: &mut String,
-    stmt: &cobol_compiler::parser::Statement,
-    indent: usize,
-    index: usize,
-) {
-    use cobol_compiler::parser::Statement;
-    let ind = " ".repeat(indent);
-
-    match stmt {
-        Statement::Display(display_stmt) => {
-            output.push_str(&format!("{}[{}] DISPLAY\n", ind, index));
-            for item in &display_stmt.items {
-                match item {
-                    cobol_compiler::parser::DisplayItem::String(s, _) => {
-                        output.push_str(&format!("{}      \"{}\"\n", ind, s));
-                    }
-                    cobol_compiler::parser::DisplayItem::Expression(expr) => {
-                        output.push_str(&format!("{}      {}\n", ind, format_expression(expr)));
-                    }
-                }
-            }
-        }
-        Statement::Move(move_stmt) => {
-            output.push_str(&format!("{}[{}] MOVE\n", ind, index));
-            output.push_str(&format!(
-                "{}      from: {}\n",
-                ind,
-                format_expression(&move_stmt.source)
-            ));
-            output.push_str(&format!("{}      to: ", ind));
-            for (i, target) in move_stmt.targets.iter().enumerate() {
-                if i > 0 {
-                    output.push_str(", ");
-                }
-                output.push_str(&format_expression(target));
-            }
-            output.push('\n');
-        }
-        Statement::Accept(accept_stmt) => {
-            output.push_str(&format!("{}[{}] ACCEPT\n", ind, index));
-            output.push_str(&format!(
-                "{}      {}\n",
-                ind,
-                format_expression(&accept_stmt.target)
-            ));
-        }
-        Statement::Perform(perform_stmt) => {
-            output.push_str(&format!("{}[{}] PERFORM\n", ind, index));
-            use cobol_compiler::parser::PerformStatement;
-            match perform_stmt {
-                PerformStatement::ProcedureName(name, _) => {
-                    output.push_str(&format!("{}      {}\n", ind, name));
-                }
-                PerformStatement::Times {
-                    times, paragraph, ..
-                } => {
-                    output.push_str(&format!(
-                        "{}      {} times {}\n",
-                        ind,
-                        format_expression(times),
-                        paragraph
-                    ));
-                }
-                PerformStatement::Until {
-                    paragraph,
-                    condition,
-                    ..
-                } => {
-                    output.push_str(&format!(
-                        "{}      {} until {}\n",
-                        ind,
-                        paragraph,
-                        format_condition(condition)
-                    ));
-                }
-            }
-        }
-        Statement::If(if_stmt) => {
-            output.push_str(&format!("{}[{}] IF\n", ind, index));
-            output.push_str(&format!(
-                "{}      condition: {}\n",
-                ind,
-                format_condition(&if_stmt.condition)
-            ));
-            output.push_str(&format!(
-                "{}      then: {} statements\n",
-                ind,
-                if_stmt.then_statements.len()
-            ));
-            if let Some(else_stmts) = &if_stmt.else_statements {
-                output.push_str(&format!(
-                    "{}      else: {} statements\n",
-                    ind,
-                    else_stmts.len()
-                ));
-            }
-        }
-        Statement::StopRun(_) => {
-            output.push_str(&format!("{}[{}] STOP RUN\n", ind, index));
-        }
-        Statement::GoTo(goto_stmt) => {
-            output.push_str(&format!("{}[{}] GO TO\n", ind, index));
-            output.push_str(&format!("{}      {}\n", ind, goto_stmt.target));
-        }
-        Statement::Paragraph(_, _) => {
-            // Paragraphs are handled separately in the procedure division loop
-        }
-    }
-}
-
-fn format_expression(expr: &cobol_compiler::parser::Expression) -> String {
-    use cobol_compiler::parser::Expression;
-
-    match expr {
-        Expression::StringLiteral(s, _) => format!("\"{}\"", s),
-        Expression::NumericLiteral(n, _) => n.clone(),
-        Expression::Identifier(id, _) => id.clone(),
-        Expression::BinaryOp {
-            left, op, right, ..
-        } => {
-            format!(
-                "{} {} {}",
-                format_expression(left),
-                format_binary_operator(op),
-                format_expression(right)
-            )
-        }
-        Expression::UnaryOp { op, operand, .. } => {
-            format!(
-                "{}{}",
-                format_unary_operator(op),
-                format_expression(operand)
-            )
-        }
-    }
-}
-
-fn format_binary_operator(op: &cobol_compiler::parser::BinaryOperator) -> &'static str {
-    use cobol_compiler::parser::BinaryOperator;
-    match op {
-        BinaryOperator::Add => "+",
-        BinaryOperator::Subtract => "-",
-        BinaryOperator::Multiply => "*",
-        BinaryOperator::Divide => "/",
-        BinaryOperator::Power => "**",
-        BinaryOperator::Equal => "=",
-        BinaryOperator::NotEqual => "!=",
-        BinaryOperator::LessThan => "<",
-        BinaryOperator::GreaterThan => ">",
-        BinaryOperator::LessThanOrEqual => "<=",
-        BinaryOperator::GreaterThanOrEqual => ">=",
-    }
-}
-
-fn format_unary_operator(op: &cobol_compiler::parser::UnaryOperator) -> &'static str {
-    use cobol_compiler::parser::UnaryOperator;
-    match op {
-        UnaryOperator::Plus => "+",
-        UnaryOperator::Minus => "-",
-    }
-}
-
-fn format_condition(cond: &cobol_compiler::parser::Condition) -> String {
-    use cobol_compiler::parser::Condition;
-    match cond {
-        Condition::Relation {
-            left, op, right, ..
-        } => {
-            format!(
-                "{} {} {}",
-                format_expression(left),
-                format_binary_operator(op),
-                format_expression(right)
-            )
-        }
-        Condition::And { left, right, .. } => {
-            format!("{} AND {}", format_condition(left), format_condition(right))
-        }
-        Condition::Or { left, right, .. } => {
-            format!("{} OR {}", format_condition(left), format_condition(right))
-        }
-        Condition::Not { condition, .. } => {
-            format!("NOT {}", format_condition(condition))
-        }
-    }
 }
 
 fn format_diagnostic(diagnostic: &Diagnostic, source_map: &SourceMap) -> String {

@@ -63,8 +63,7 @@ cobol-examples/prog004_folha_pgto.cob:026:022  '.'
 cobol-examples/prog004_folha_pgto.cob:027:013  KEYWORD MOVE
 cobol-examples/prog004_folha_pgto.cob:027:018  STRING "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
 cobol-examples/prog004_folha_pgto.cob:027:069  IDENTIFIER TO
-cobol-examples/prog004_folha_pgto.cob:027:072  IDENTIFIER T
-cobol-examples/prog004_folha_pgto.cob:028:008  IDENTIFIER AB-TRABALHADOR
+cobol-examples/prog004_folha_pgto.cob:027:072  IDENTIFIER TAB-TRABALHADOR
 cobol-examples/prog004_folha_pgto.cob:028:022  '.'
 cobol-examples/prog004_folha_pgto.cob:029:013  KEYWORD DISPLAY
 cobol-examples/prog004_folha_pgto.cob:029:021  STRING " "

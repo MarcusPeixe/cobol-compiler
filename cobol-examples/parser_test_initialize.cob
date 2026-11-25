@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. INITS.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-A PIC 9.
+       77 WS-B PIC X.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           INITIALIZE WS-A.
+           INITIALIZE WS-A WS-B.
+           STOP RUN.

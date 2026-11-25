@@ -1,0 +1,31 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: SEARCHALL
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 1): WS-TABLE
+        DataItem (level 5): WS-ENTRY
+          OCCURS: 5
+          INDEXED BY: WS-IDX
+          DataItem (level 10): WS-KEY
+            PIC: 9
+      DataItem (level 77): WS-WANTED
+        PIC: 9
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] SEARCH
+            all: true
+            table: WS-ENTRY
+            at end:
+              [0] DISPLAY
+                    "NOT FOUND"
+            when: WS-KEY(WS-IDX) = WS-WANTED
+              [0] DISPLAY
+                    "FOUND"
+      [1] STOP RUN
+
+DIAGNOSTICS:

@@ -1,0 +1,43 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: EVALS
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-N
+        PIC: 99
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] EVALUATE
+            subject: WS-N
+            when: 1, 2
+              [0] DISPLAY
+                    "ONE OR TWO"
+            when: 3 thru 5
+              [0] DISPLAY
+                    "RANGE"
+            when: OTHER
+              [0] DISPLAY
+                    "OTHER"
+      [1] EVALUATE
+            subject: TRUE
+            when: WS-N < 10
+              [0] DISPLAY
+                    "SMALL"
+            when: WS-N >= 10 AND WS-N < 50
+              [0] DISPLAY
+                    "MEDIUM"
+            when: OTHER
+              [0] DISPLAY
+                    "LARGE"
+      [2] EVALUATE
+            subject: WS-N
+            when: ANY
+              [0] DISPLAY
+                    "ANY"
+      [3] STOP RUN
+
+DIAGNOSTICS:

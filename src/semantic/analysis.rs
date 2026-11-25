@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use crate::diagnostics::Diagnostic;
 use crate::parser::{
-    BinaryOperator, Condition, DataItem, Expression, FileDescription, PerformStatement, Program,
-    Statement,
+    BinaryOperator, Condition, DataItem, EvaluateChoice, Expression, FileDescription,
+    InspectRegion, IoHandlers, PerformStatement, Program, Statement,
 };
 use crate::source::Span;
 
@@ -95,6 +95,16 @@ impl<'a> SemanticAnalyzer<'a> {
             level: item.level,
             scope: Scope::Global,
         });
+        for index_name in &item.indexed_by {
+            self.declare(Symbol {
+                name: index_name.to_ascii_uppercase(),
+                span: item.span,
+                data_type: DataType::Numeric,
+                kind: SymbolKind::DataItem,
+                level: 0,
+                scope: Scope::Global,
+            });
+        }
         for child in &item.children {
             self.declare_data_item(child);
         }
@@ -111,6 +121,9 @@ impl<'a> SemanticAnalyzer<'a> {
             level: 0,
             scope: Scope::Global,
         });
+        for record in &file.records {
+            self.declare_data_item(record);
+        }
     }
 
     fn declare(&mut self, symbol: Symbol) {
@@ -124,7 +137,9 @@ impl<'a> SemanticAnalyzer<'a> {
         if let Some(data_division) = &self.program.data_division {
             if let Some(file_section) = &data_division.file_section {
                 for file in &file_section.file_descriptions {
-                    self.validate_file_association(file);
+                    for record in &file.records {
+                        self.validate_data_item(record);
+                    }
                 }
             }
             if let Some(working_storage) = &data_division.working_storage_section {
@@ -133,6 +148,7 @@ impl<'a> SemanticAnalyzer<'a> {
                 }
             }
         }
+        self.validate_file_controls();
 
         if let Some(procedure_division) = &self.program.procedure_division {
             for paragraph in &procedure_division.paragraphs {
@@ -143,13 +159,62 @@ impl<'a> SemanticAnalyzer<'a> {
         }
     }
 
-    fn validate_file_association(&mut self, file: &FileDescription) {
-        // The current AST has no OPEN/READ/WRITE/CLOSE statements to associate
-        // with declarations. Check declaration consistency here; use sites can
-        // be validated when those statement nodes are added.
-        if !self.files.contains(&file.file_name.to_ascii_uppercase()) {
+    fn validate_file_controls(&mut self) {
+        let Some(section) = self
+            .program
+            .environment_division
+            .as_ref()
+            .and_then(|environment| environment.input_output_section.as_ref())
+        else {
+            return;
+        };
+        for control in &section.file_controls {
+            if !self.files.contains(&control.file_name.to_ascii_uppercase()) {
+                self.diagnostics
+                    .push(errors::file_not_declared(&control.file_name, control.span));
+            }
+            for expression in control
+                .assign_to
+                .iter()
+                .chain(&control.record_key)
+                .chain(&control.alternate_keys)
+                .chain(&control.file_status)
+            {
+                self.expression_type(expression);
+            }
+        }
+    }
+
+    fn check_file(&mut self, file: &(String, Span)) {
+        if !self.files.contains(&file.0.to_ascii_uppercase()) {
             self.diagnostics
-                .push(errors::file_not_declared(&file.file_name, file.span));
+                .push(errors::file_not_declared(&file.0, file.1));
+        }
+    }
+
+    fn validate_block(&mut self, statements: &[Statement]) {
+        for statement in statements {
+            self.validate_statement(statement);
+        }
+    }
+
+    fn validate_handlers(&mut self, handlers: &IoHandlers) {
+        for block in [
+            &handlers.at_end,
+            &handlers.not_at_end,
+            &handlers.invalid_key,
+            &handlers.not_invalid_key,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            self.validate_block(block);
+        }
+    }
+
+    fn validate_region(&mut self, region: &InspectRegion) {
+        for limit in region.before.iter().chain(&region.after) {
+            self.expression_type(limit);
         }
     }
 
@@ -182,6 +247,10 @@ impl<'a> SemanticAnalyzer<'a> {
                     }
                 }
             }
+            Statement::Compute(compute_statement) => {
+                self.check_numeric_expression(&compute_statement.target);
+                self.check_numeric_expression(&compute_statement.expression);
+            }
             Statement::Display(display_statement) => {
                 for item in &display_statement.items {
                     if let crate::parser::DisplayItem::Expression(expression) = item {
@@ -210,6 +279,29 @@ impl<'a> SemanticAnalyzer<'a> {
                     self.validate_condition(condition);
                     self.check_paragraph(paragraph, *span);
                 }
+                PerformStatement::Thru { first, last, span } => {
+                    self.check_paragraph(first, *span);
+                    self.check_paragraph(last, *span);
+                }
+                PerformStatement::Varying(varying) => {
+                    if let Some(paragraph) = &varying.paragraph {
+                        self.check_paragraph(paragraph, varying.span);
+                    }
+                    self.check_numeric_expression(&varying.variable);
+                    self.check_numeric_expression(&varying.from);
+                    self.check_numeric_expression(&varying.by);
+                    self.validate_condition(&varying.condition);
+                    self.validate_block(&varying.body);
+                }
+                PerformStatement::Inline(inline) => {
+                    if let Some(times) = &inline.times {
+                        self.check_numeric_expression(times);
+                    }
+                    if let Some(condition) = &inline.condition {
+                        self.validate_condition(condition);
+                    }
+                    self.validate_block(&inline.body);
+                }
             },
             Statement::If(if_statement) => {
                 self.validate_condition(&if_statement.condition);
@@ -222,8 +314,163 @@ impl<'a> SemanticAnalyzer<'a> {
                     }
                 }
             }
+            Statement::Add(statement) => {
+                for expression in statement
+                    .operands
+                    .iter()
+                    .chain(&statement.targets)
+                    .chain(&statement.giving_targets)
+                {
+                    self.check_numeric_expression(expression);
+                }
+                for nested in &statement.on_size_error {
+                    self.validate_statement(nested);
+                }
+            }
+            Statement::Subtract(statement) => {
+                for expression in statement
+                    .operands
+                    .iter()
+                    .chain(&statement.from)
+                    .chain(&statement.giving)
+                {
+                    self.check_numeric_expression(expression);
+                }
+                for nested in &statement.on_size_error {
+                    self.validate_statement(nested);
+                }
+            }
+            Statement::Multiply(statement) => {
+                self.check_numeric_expression(&statement.factor);
+                for expression in statement.by.iter().chain(&statement.giving) {
+                    self.check_numeric_expression(expression);
+                }
+                for nested in &statement.on_size_error {
+                    self.validate_statement(nested);
+                }
+            }
+            Statement::Divide(statement) => {
+                self.check_numeric_expression(&statement.dividend);
+                self.check_numeric_expression(&statement.divisor);
+                for expression in &statement.giving {
+                    self.check_numeric_expression(expression);
+                }
+                if let Some(remainder) = &statement.remainder {
+                    self.check_numeric_expression(remainder);
+                }
+                for nested in &statement.on_size_error {
+                    self.validate_statement(nested);
+                }
+            }
             Statement::GoTo(go_to) => self.check_paragraph(&go_to.target, go_to.span),
             Statement::StopRun(_) | Statement::Paragraph(_, _) => {}
+            Statement::Set(statement) => {
+                for target in &statement.targets {
+                    self.check_numeric_expression(target);
+                }
+                self.check_numeric_expression(&statement.value);
+            }
+            Statement::Search(statement) => {
+                self.expression_type(&statement.table);
+                if let Some(varying) = &statement.varying {
+                    self.expression_type(varying);
+                }
+                if let Some(at_end) = &statement.at_end {
+                    self.validate_block(at_end);
+                }
+                for when in &statement.whens {
+                    self.validate_condition(&when.condition);
+                    self.validate_block(&when.statements);
+                }
+            }
+            Statement::Inspect(statement) => {
+                self.expression_type(&statement.target);
+                for tally in &statement.tallying {
+                    self.check_numeric_expression(&tally.counter);
+                    if let Some(pattern) = &tally.pattern {
+                        self.expression_type(pattern);
+                    }
+                    self.validate_region(&tally.region);
+                }
+                for replace in &statement.replacing {
+                    if let Some(pattern) = &replace.pattern {
+                        self.expression_type(pattern);
+                    }
+                    self.expression_type(&replace.by);
+                    self.validate_region(&replace.region);
+                }
+                if let Some(convert) = &statement.converting {
+                    self.expression_type(&convert.from);
+                    self.expression_type(&convert.to);
+                    self.validate_region(&convert.region);
+                }
+            }
+            Statement::Evaluate(statement) => {
+                self.expression_type(&statement.subject);
+                for when in &statement.whens {
+                    for choice in &when.choices {
+                        match choice {
+                            EvaluateChoice::Value(expression) => {
+                                self.expression_type(expression);
+                            }
+                            EvaluateChoice::Range(first, last) => {
+                                self.expression_type(first);
+                                self.expression_type(last);
+                            }
+                            EvaluateChoice::Condition(condition) => {
+                                self.validate_condition(condition);
+                            }
+                            EvaluateChoice::Any => {}
+                        }
+                    }
+                    self.validate_block(&when.statements);
+                }
+            }
+            Statement::Open(statement) => {
+                for group in &statement.groups {
+                    for file in &group.files {
+                        self.check_file(file);
+                    }
+                }
+            }
+            Statement::Close(statement) => {
+                for file in &statement.files {
+                    self.check_file(file);
+                }
+            }
+            Statement::Read(statement) => {
+                self.check_file(&statement.file);
+                for expression in statement.into.iter().chain(&statement.key) {
+                    self.expression_type(expression);
+                }
+                self.validate_handlers(&statement.handlers);
+            }
+            Statement::Write(statement) => {
+                self.expression_type(&statement.record);
+                if let Some(from) = &statement.from {
+                    self.expression_type(from);
+                }
+                if let Some(lines) = statement
+                    .advancing
+                    .as_ref()
+                    .and_then(|advancing| advancing.lines.as_ref())
+                {
+                    self.check_numeric_expression(lines);
+                }
+                self.validate_handlers(&statement.handlers);
+            }
+            Statement::Initialize(statement) => {
+                for target in &statement.targets {
+                    self.expression_type(target);
+                }
+            }
+            Statement::Start(statement) => {
+                self.check_file(&statement.file);
+                if let Some((_, key)) = &statement.key {
+                    self.expression_type(key);
+                }
+                self.validate_handlers(&statement.handlers);
+            }
         }
     }
 
@@ -237,7 +484,8 @@ impl<'a> SemanticAnalyzer<'a> {
     fn expression_type(&mut self, expression: &Expression) -> Option<DataType> {
         match expression {
             Expression::Identifier(name, span) => {
-                match self.symbol_table.lookup(name, Scope::Global) {
+                let base_name = name.split_whitespace().next().unwrap_or(name);
+                match self.symbol_table.lookup(base_name, Scope::Global) {
                     Some(symbol) if symbol.kind == SymbolKind::DataItem => Some(symbol.data_type),
                     _ => {
                         self.diagnostics
@@ -246,8 +494,66 @@ impl<'a> SemanticAnalyzer<'a> {
                     }
                 }
             }
+            Expression::Subscript {
+                name,
+                indices,
+                span,
+            } => {
+                for index in indices {
+                    self.check_numeric_expression(index);
+                }
+                let base_name = name.split_whitespace().next().unwrap_or(name);
+                match self.symbol_table.lookup(base_name, Scope::Global) {
+                    Some(symbol) if symbol.kind == SymbolKind::DataItem => Some(symbol.data_type),
+                    _ => {
+                        self.diagnostics
+                            .push(errors::undefined_identifier(name, *span));
+                        None
+                    }
+                }
+            }
+            Expression::RefMod {
+                name,
+                start,
+                length,
+                span,
+            } => {
+                self.check_numeric_expression(start);
+                if let Some(length) = length {
+                    self.check_numeric_expression(length);
+                }
+                let base_name = name.split_whitespace().next().unwrap_or(name);
+                match self.symbol_table.lookup(base_name, Scope::Global) {
+                    Some(symbol) if symbol.kind == SymbolKind::DataItem => {
+                        Some(DataType::Alphanumeric)
+                    }
+                    _ => {
+                        self.diagnostics
+                            .push(errors::undefined_identifier(name, *span));
+                        None
+                    }
+                }
+            }
+            Expression::FigurativeConstant(_, _) => None,
             Expression::NumericLiteral(_, _) => Some(DataType::Numeric),
             Expression::StringLiteral(_, _) => Some(DataType::Alphanumeric),
+            Expression::FunctionCall {
+                name, arguments, ..
+            } => {
+                let argument_types = arguments
+                    .iter()
+                    .map(|argument| self.expression_type(argument))
+                    .collect::<Vec<_>>();
+                if name == "UPPER-CASE" {
+                    argument_types
+                        .first()
+                        .copied()
+                        .flatten()
+                        .or(Some(DataType::Alphanumeric))
+                } else {
+                    Some(DataType::Alphanumeric)
+                }
+            }
             Expression::UnaryOp { operand, span, .. } => {
                 self.check_numeric_expression_at(operand, *span);
                 Some(DataType::Numeric)
@@ -337,7 +643,12 @@ fn expression_span(expression: &Expression) -> Span {
     match expression {
         Expression::Identifier(_, span)
         | Expression::NumericLiteral(_, span)
-        | Expression::StringLiteral(_, span) => *span,
-        Expression::BinaryOp { span, .. } | Expression::UnaryOp { span, .. } => *span,
+        | Expression::StringLiteral(_, span)
+        | Expression::FigurativeConstant(_, span) => *span,
+        Expression::Subscript { span, .. }
+        | Expression::RefMod { span, .. }
+        | Expression::FunctionCall { span, .. }
+        | Expression::BinaryOp { span, .. }
+        | Expression::UnaryOp { span, .. } => *span,
     }
 }

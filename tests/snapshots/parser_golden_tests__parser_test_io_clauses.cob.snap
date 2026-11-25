@@ -1,0 +1,53 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: IOTEST
+  EnvironmentDivision
+    InputOutputSection
+      FileControl: IN-FILE
+        assign: "IN.DAT"
+        organization: SEQUENTIAL
+        file status: WS-STATUS
+  DataDivision
+    FileSection
+      FileDescription: IN-FILE
+        RECORD CONTAINS: 10
+        DataItem (level 1): IN-RECORD
+          PIC: X(10)
+    WorkingStorageSection
+      DataItem (level 77): WS-STATUS
+        PIC: 99
+      DataItem (level 77): WS-LINE
+        PIC: X(10)
+      DataItem (level 77): WS-POS
+        PIC: 9
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] OPEN
+            INPUT: IN-FILE
+      [1] SET
+            targets: WS-POS
+            up by: 1
+      [2] READ
+            file: IN-FILE
+            into: WS-LINE
+            at end:
+              [0] DISPLAY
+                    "EOF"
+            not at end:
+              [0] DISPLAY
+                    WS-LINE
+      [3] START
+            file: IN-FILE
+            key: >= WS-LINE
+            invalid key:
+              [0] DISPLAY
+                    "NONE"
+      [4] CLOSE
+            files: IN-FILE
+      [5] STOP RUN
+
+DIAGNOSTICS:

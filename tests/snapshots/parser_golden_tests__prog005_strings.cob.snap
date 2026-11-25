@@ -32,6 +32,95 @@ Program
       [4] MOVE
             from: 0
             to: CONT
+      [5] INSPECT
+            target: SAUX
+            tallying: CONT for CHARACTERS
+      [6] DISPLAY
+            "CONT="
+            CONT
+            " - FOR CHARACTERS"
+      [7] MOVE
+            from: 0
+            to: CONT
+      [8] INSPECT
+            target: SAUX
+            tallying: CONT for ALL "L"
+      [9] DISPLAY
+            "CONT="
+            CONT
+            " - FOR ALL 'L'"
+      [10] MOVE
+            from: 0
+            to: CONT
+      [11] INSPECT
+            target: SAUX
+            tallying: CONT for CHARACTERS before " "
+      [12] DISPLAY
+            "CONT="
+            CONT
+            " - BEFORE INITIAL ' '"
+      [13] MOVE
+            from: 0
+            to: CONT
+      [14] INSPECT
+            target: SAUX
+            tallying: CONT for CHARACTERS after " "
+      [15] DISPLAY
+            "CONT="
+            CONT
+            " - AFTER INITIAL ' '"
+      [16] MOVE
+            from: 0
+            to: YESNO
+      [17] INSPECT
+            target: SAUX
+            tallying: YESNO for LEADING "H"
+      [18] DISPLAY
+            "YESNO="
+            YESNO
+            " - FOR LEADING 'H' 0=N / 1=Y"
+      [19] INSPECT
+            target: SAUX
+            replacing: FIRST "E" by "A"
+      [20] DISPLAY
+            "SAUX='"
+            SAUX
+            "' - REPLACING FIRST 'E' BY 'A'"
+      [21] INSPECT
+            target: SAUX
+            replacing: ALL "LLO" by "PPY"
+      [22] DISPLAY
+            "SAUX='"
+            SAUX
+            "' - REPLACING ALL 'LLO' BY 'PPY'"
+      [23] MOVE
+            from: " HOLA-DAY"
+            to: SAUX
+      [24] INSPECT
+            target: SAUX
+            replacing: ALL "HOLA" by "GOOD" before "-" after " "
+      [25] DISPLAY
+            "SAUX='"
+            SAUX
+            "' - HOLA-DAY TO GOOD-DAY'"
+      [26] MOVE
+            from: "HELLO WORLD"
+            to: SAUX
+      [27] INSPECT
+            target: SAUX
+            converting: "ABCDEFGHIJKLMNOPQRSTUVWXZ" to "abcdefghijklmnopqrstuvwxz"
+      [28] DISPLAY
+            "SAUX='"
+            SAUX
+            "' - CONVERTING'"
+      [29] INSPECT
+            target: SAUX
+            replacing: CHARACTERS by "F"
+      [30] DISPLAY
+            "SAUX='"
+            SAUX
+            "' - REPLACING "
+      [31] STOP RUN
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG008_STRING' contains '_'

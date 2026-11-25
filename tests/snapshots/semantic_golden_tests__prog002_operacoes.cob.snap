@@ -9,8 +9,161 @@ Program
     FileSection
     WorkingStorageSection
       DataItem: WRK-VALOR1 (level 77, PIC 9(10))
+        VALUE: 10
+      DataItem: WRK-VALOR2 (level 77, PIC 9(10))
+        VALUE: ZEROS
+      DataItem: WRK-A (level 77, PIC 9(2))
+        VALUE: 1
+      DataItem: WRK-B (level 77, PIC 9(2))
+        VALUE: 1
+      DataItem: WRK-C (level 77, PIC 9(2))
+        VALUE: ZEROS
+      DataItem: WRK-TOTAIS (level 1)
+        DataItem: WRK-TOTAL (level 5, PIC 9(10))
+          VALUE: 19
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      Display
+        String: ===== start =======
+      Move
+      Display
+        String: MOVE 20 TO WRK-VALOR2 -->
+        Expression: WRK-VALOR2
+      Move
+      Display
+        String: MOVE WRK-VALOR1 TO WRK-VALOR2 -->
+        Expression: WRK-VALOR2
+      Move
+      Display
+        String: MOVE 70 TO WRK-VALOR1 WRK-VALOR2 -->
+        Expression: WRK-VALOR2
+      Move
+      Display
+        String: MOVE WRK-TOTAL OF WRK-TOTAIS TO WRK-VALOR2. -->
+        Expression: WRK-VALOR2
+      Display
+        String: --------
+      Display
+        String: A = 1, B = 1, C = 1
+      Display
+        String:  
+      Add
+        Operands: 1, 1
+        To: WRK-A
+      Display
+        String: ADD B C TO A (A = B + C + A) -->
+        Expression: WRK-A
+      Move
+      Add
+        Operands: 1
+        To: WRK-A, WRK-B
+      Display
+        String:  
+      Display
+        String: ADD 1 TO A B (A = A + 1; B = B + 1) -->
+      Display
+        String: A= 
+        Expression: WRK-A
+        String:  , B= 
+        Expression: WRK-B
+      Display
+        String:  
+      Add
+        Operands: 1, 1
+        Giving: WRK-A
+      Display
+        String: ADD B C GIVING A (A = B + C) -->
+        Expression: WRK-A
+      Display
+        String: ============ SUBTRACT ============= 
+      Move
+      Move
+      Display
+        String: A= 99, B= 0
+      Subtract
+        Operands: 30, 23
+        From: WRK-A
+        Giving: WRK-B
+      Display
+        String: SUBTRACT 30 23 FROM A GIVING B.-->
+      Display
+        String: A= 
+        Expression: WRK-A
+        String:  , B= 
+        Expression: WRK-B
+      Display
+        String: ============ MULTIPLY ============= 
+      Move
+      Move
+      Display
+        String: A= 40, B= 0
+      Multiply
+        Factor: 2
+        By: WRK-A
+      Display
+        String: MULTIPLY A BY 2 -->
+      Display
+        String: A= 
+        Expression: WRK-A
+        String:  , B= 
+        Expression: WRK-B
+      Display
+        String: ============ MULTIPLY ============= 
+      Move
+      Move
+      Display
+        String: A= 40, B= 0
+      Multiply
+        Factor: 2
+        By: WRK-A
+        Giving: WRK-B
+      Display
+        String: MULTIPLY A BY 2 GIVING B.-->
+      Display
+        String: A= 
+        Expression: WRK-A
+        String:  , B= 
+        Expression: WRK-B
+      Display
+        String: ============ DIVIDE =============
+      Move
+      Move
+      Move
+      Display
+        String: A= 80, B= 0
+      Divide
+        Dividend: WRK-A
+        Divisor: 2
+        Giving: WRK-B
+        Remainder: WRK-C
+      Display
+        String: DIVIDE A BY 2 GIVING B REMAINDER C .-->
+      Display
+        String: A= 
+        Expression: WRK-A
+        String:  , B= 
+        Expression: WRK-B
+        String:  , C= 
+        Expression: WRK-C
+      Display
+        String:  
+      Move
+      Add
+        Operands: 1
+        To: WRK-A
+        Display
+          String: ON SIZE ERROR -->
+          Expression: WRK-A
+      StopRun
 
 SYMBOL TABLE:
+  MAIN-PROCEDURE: Alphanumeric (level 0)
+  WRK-A: Numeric (level 77)
+  WRK-B: Numeric (level 77)
+  WRK-C: Numeric (level 77)
+  WRK-TOTAIS: Alphanumeric (level 1)
+  WRK-TOTAL: Numeric (level 5)
   WRK-VALOR1: Numeric (level 77)
+  WRK-VALOR2: Numeric (level 77)
 
 DIAGNOSTICS:

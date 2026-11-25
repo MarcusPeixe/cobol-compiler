@@ -1,0 +1,12 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. RECOVER.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-A PIC 9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           CALL "SUB" USING WS-A.
+           MOVE 1 TO WS-A.
+           UNSTRING WS-A DELIMITED BY SPACE INTO WS-A.
+           DISPLAY WS-A.
+           STOP RUN.

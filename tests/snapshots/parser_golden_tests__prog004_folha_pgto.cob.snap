@@ -10,5 +10,103 @@ Program
     WorkingStorageSection
       DataItem (level 1): TAB-TRABALHADOR
         DataItem (level 2): TRABALHADOR
+          OCCURS: 3
+          INDEXED BY: TID
+          DataItem (level 3): NOME
+            PIC: X(5)
+          DataItem (level 3): SALARIO
+            PIC: 9(5)V99
+          DataItem (level 3): DPTO
+            PIC: X(2)
+            VALUE: SPACES
+            OCCURS: 2
+      DataItem (level 77): IDX
+        PIC: 9(1)
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      [0] MOVE
+            from: "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
+            to: TAB-TRABALHADOR
+      [1] DISPLAY
+            " "
+      [2] DISPLAY
+            "====TAB-TRABALHADOR===="
+      [3] DISPLAY
+            "INITIAL VALUE"
+      [4] DISPLAY
+            TAB-TRABALHADOR
+      [5] MOVE
+            from: 1
+            to: IDX
+      [6] DISPLAY
+            " "
+      [7] DISPLAY
+            "====00001-DISPLAY-TRABALHADOR===="
+      [8] PERFORM
+            00001-DISPLAY-TRABALHADOR until IDX > 3
+      [9] DISPLAY
+            " "
+      [10] DISPLAY
+            "====00002-DISPLAY-BY-SEARCH===="
+      [11] PERFORM
+            00002-DISPLAY-BY-SEARCH
+      [12] DISPLAY
+            " "
+      [13] DISPLAY
+            "====00003-REMOVE-TRABALHADOR===="
+      [14] PERFORM
+            00003-REMOVE-TRABALHADOR
+      [15] STOP RUN
+    Paragraph: 00001-DISPLAY-TRABALHADOR
+      [0] DISPLAY
+            " "
+      [1] DISPLAY
+            "IDX="
+            IDX
+      [2] DISPLAY
+            "TRABALHADOR(IDX)="
+            TRABALHADOR(IDX)
+      [3] DISPLAY
+            "NOME(IDX)="
+            NOME(IDX)
+      [4] DISPLAY
+            "SALARIO(IDX)="
+            SALARIO(IDX)
+      [5] DISPLAY
+            "DPTO(IDX,1)="
+            DPTO(IDX, 1)
+      [6] DISPLAY
+            "DPTO(IDX,2)="
+            DPTO(IDX, 2)
+      [7] ADD
+            operands: 1
+            to: IDX
+    Paragraph: 00002-DISPLAY-BY-SEARCH
+      [0] SET
+            targets: TID
+            to: 1
+      [1] SEARCH
+            table: TRABALHADOR
+            at end:
+              [0] DISPLAY
+                    "TRABALHADOR NOT FOUND"
+            when: NOME(TID) = "MARIA"
+              [0] DISPLAY
+                    "'WHEN NOME(TID) = MARIA'"
+              [1] DISPLAY
+                    "TID="
+                    TID
+              [2] DISPLAY
+                    "TRABALHADOR(TID)="
+                    TRABALHADOR(TID)
+    Paragraph: 00003-REMOVE-TRABALHADOR
+      [0] SET
+            targets: TID
+            to: 2
+      [1] MOVE
+            from: LOW-VALUES
+            to: TRABALHADOR(TID)
+      [2] DISPLAY
+            TAB-TRABALHADOR
 
 DIAGNOSTICS:

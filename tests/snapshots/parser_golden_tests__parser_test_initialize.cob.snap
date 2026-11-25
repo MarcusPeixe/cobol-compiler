@@ -1,0 +1,22 @@
+---
+source: tests/parser_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: INITS
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-A
+        PIC: 9
+      DataItem (level 77): WS-B
+        PIC: X
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] INITIALIZE
+            targets: WS-A
+      [1] INITIALIZE
+            targets: WS-A, WS-B
+      [2] STOP RUN
+
+DIAGNOSTICS:

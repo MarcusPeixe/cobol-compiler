@@ -1,0 +1,12 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. REFMOD.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-TEXT PIC X(10).
+       77 WS-POS PIC 99.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE "HELLO" TO WS-TEXT (1:3).
+           DISPLAY WS-TEXT (WS-POS:2).
+           DISPLAY WS-TEXT (2:).
+           STOP RUN.

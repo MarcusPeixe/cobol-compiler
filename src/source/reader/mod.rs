@@ -95,7 +95,16 @@ pub fn read_fixed_format(
                     );
                     open_quote = None;
                 }
-                (None, _) => open_quote = None,
+                (None, found) => {
+                    // A continued word: the text glues directly onto the previous line.
+                    out.text.pop();
+                    out.origins.pop();
+                    while out.text.ends_with(' ') {
+                        out.text.pop();
+                        out.origins.pop();
+                    }
+                    content = &area[found.unwrap_or(area.len())..];
+                }
             }
         } else {
             open_quote = None;

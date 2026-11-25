@@ -7,6 +7,94 @@ Program
     program_id: PROG006_FILES
   EnvironmentDivision
     InputOutputSection
+      FileControl: MY-FILE
+        assign: "DADOS.TXT"
+  DataDivision
+    FileSection
+      FileDescription: MY-FILE
+        DataItem (level 1): RC-TRABALHADOR
+          DataItem (level 2): RC-TID
+            PIC: 9(5)
+          DataItem (level 2): RC-NOME
+            PIC: X(10)
+          DataItem (level 2): RC-SALARIO
+            PIC: 9(10)V99
+          DataItem (level 2): RC-DPTO-1
+            PIC: X(2)
+          DataItem (level 2): RC-DPTO-2
+            PIC: X(2)
+    WorkingStorageSection
+      DataItem (level 1): TAB-TRABALHADOR
+        DataItem (level 2): TRABALHADOR
+          OCCURS: 3
+          INDEXED BY: TID
+          DataItem (level 3): NOME
+            PIC: X(5)
+          DataItem (level 3): SALARIO
+            PIC: 9(5)V99
+          DataItem (level 3): DPTO
+            PIC: X(2)
+            VALUE: SPACES
+            OCCURS: 2
+      DataItem (level 77): SAUX
+        PIC: X(15)
+      DataItem (level 77): CONT
+        PIC: 9(2)
+      DataItem (level 77): YESNO
+        PIC: 9
+      DataItem (level 77): IDX
+        PIC: 9(1)
+  ProcedureDivision
+    Paragraph: MAIN-PROCEDURE
+      [0] MOVE
+            from: "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
+            to: TAB-TRABALHADOR
+      [1] DISPLAY
+            " "
+      [2] DISPLAY
+            "====00001-DISPLAY-TRABALHADOR===="
+      [3] OPEN
+            OUTPUT: MY-FILE
+      [4] MOVE
+            from: 1
+            to: IDX
+      [5] PERFORM
+            00001-WRITE-TO-FILE until IDX > 3
+      [6] CLOSE
+            files: MY-FILE
+      [7] STOP RUN
+    Paragraph: 00001-WRITE-TO-FILE
+      [0] DISPLAY
+            " "
+      [1] MOVE
+            from: LOW-VALUES
+            to: RC-TRABALHADOR
+      [2] DISPLAY
+            "IDX="
+            IDX
+      [3] DISPLAY
+            "TRABALHADOR(IDX)="
+            TRABALHADOR(IDX)
+      [4] MOVE
+            from: IDX
+            to: RC-TID
+      [5] MOVE
+            from: NOME(IDX)
+            to: RC-NOME
+      [6] MOVE
+            from: SALARIO(IDX)
+            to: RC-SALARIO
+      [7] MOVE
+            from: DPTO(IDX, 1)
+            to: RC-DPTO-1
+      [8] MOVE
+            from: DPTO(IDX, 2)
+            to: RC-DPTO-2
+      [9] WRITE
+            record: RC-TRABALHADOR
+      [10] ADD
+            operands: 1
+            to: IDX
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG006_FILES' contains '_'

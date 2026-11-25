@@ -123,8 +123,7 @@ cobol-examples/prog006_files.cob:046:022  '.'
 cobol-examples/prog006_files.cob:048:013  KEYWORD MOVE
 cobol-examples/prog006_files.cob:048:018  STRING "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
 cobol-examples/prog006_files.cob:048:069  IDENTIFIER TO
-cobol-examples/prog006_files.cob:048:072  IDENTIFIER T
-cobol-examples/prog006_files.cob:049:008  IDENTIFIER AB-TRABALHADOR
+cobol-examples/prog006_files.cob:048:072  IDENTIFIER TAB-TRABALHADOR
 cobol-examples/prog006_files.cob:049:022  '.'
 cobol-examples/prog006_files.cob:051:013  KEYWORD DISPLAY
 cobol-examples/prog006_files.cob:051:021  STRING " "

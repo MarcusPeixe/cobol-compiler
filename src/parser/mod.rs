@@ -1,10 +1,12 @@
 mod ast;
 mod builder;
 mod errors;
+mod printer;
 
 pub use ast::*;
 pub use builder::Parser;
 pub use errors::ParseError;
+pub use printer::format_program;
 
 use crate::diagnostics::Diagnostic;
 use crate::lexer::Token;

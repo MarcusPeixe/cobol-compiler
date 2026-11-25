@@ -116,13 +116,10 @@ fn continuation_missing_quote_is_error() {
 }
 
 #[test]
-fn continuation_without_open_literal_is_plain_line() {
-    let (t, d) = read("       MOVE A\n      -    TO B.\n");
+fn continuation_without_open_literal_joins_the_word() {
+    let (t, d) = read("       MOVE X TO T\n      -AB-ONE.\n");
     assert!(d.is_empty());
-    assert_eq!(
-        t.lines().map(str::trim).collect::<Vec<_>>(),
-        ["MOVE A", "TO B."]
-    );
+    assert_eq!(t, "MOVE X TO TAB-ONE.\n");
 }
 
 #[test]
