@@ -8,6 +8,7 @@ use cobol_compiler::diagnostics::Diagnostic;
 use cobol_compiler::lexer::lex;
 use cobol_compiler::parser::parse;
 use cobol_compiler::preprocess::{FsLoader, preprocess};
+use cobol_compiler::semantic::analyze;
 use cobol_compiler::source::{ReaderOptions, SourceMap};
 
 #[derive(Parser)]
@@ -29,8 +30,18 @@ enum Command {
         #[arg(long)]
         debug_lines: bool,
     },
-    /// Parse the IDENTIFICATION DIVISION of a source file.
+    /// Parse a source file and print the abstract syntax tree.
     Parse {
+        file: PathBuf,
+        /// Directory to search for COPY books (repeatable). The source file's own directory is always searched first.
+        #[arg(short = 'I', long = "include", value_name = "DIR")]
+        include: Vec<PathBuf>,
+        /// Compile lines with 'D' in column 7 instead of skipping them.
+        #[arg(long)]
+        debug_lines: bool,
+    },
+    /// Perform semantic analysis on a source file.
+    Analyze {
         file: PathBuf,
         /// Directory to search for COPY books (repeatable). The source file's own directory is always searched first.
         #[arg(short = 'I', long = "include", value_name = "DIR")]
@@ -53,6 +64,11 @@ fn main() -> anyhow::Result<ExitCode> {
             include,
             debug_lines,
         } => run_parse(&file, include, debug_lines),
+        Command::Analyze {
+            file,
+            include,
+            debug_lines,
+        } => run_analyze(&file, include, debug_lines),
     }
 }
 
@@ -96,7 +112,11 @@ fn run_lex(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyhow:
     })
 }
 
-fn run_parse(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyhow::Result<ExitCode> {
+fn run_parse(
+    path: &Path,
+    mut include: Vec<PathBuf>,
+    debug_lines: bool,
+) -> anyhow::Result<ExitCode> {
     let text =
         std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
     let mut map = SourceMap::default();
@@ -116,82 +136,279 @@ fn run_parse(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyho
     let (tokens, lex_diagnostics) = lex(&logical);
     diagnostics.extend(lex_diagnostics);
 
-    let (program, parse_diagnostics) = parse(&tokens);
+    let (program, parse_diagnostics) = parse(tokens);
+    diagnostics.extend(parse_diagnostics);
 
-    if !parse_diagnostics.iter().any(Diagnostic::is_error) {
-        println!("IDENTIFICATION DIVISION");
-        if let Some(name) = program.identification_division.program_name() {
-            println!("PROGRAM-ID: {name}");
-        } else {
-            println!("PROGRAM-ID: (unnamed)");
-        }
+    print_ast(&program, 0);
 
-        if let Some(data) = program.data_division {
-            println!("DATA DIVISION");
-            for item in data.items {
-                print!("{} {}", item.level, item.name);
-                if let Some(picture) = item.picture {
-                    print!(" PIC {picture}");
-                }
-                if let Some(value) = item.value {
-                    let value = match value {
-                        cobol_compiler::parser::DataValue::Numeric(v)
-                        | cobol_compiler::parser::DataValue::Identifier(v)
-                        | cobol_compiler::parser::DataValue::String(v) => v,
-                    };
-                    print!(" VALUE {value}");
-                }
-                println!(".");
-            }
-        }
-
-        if let Some(environment) = program.environment_division {
-            println!("ENVIRONMENT DIVISION");
-            if let Some(configuration) = environment.configuration_section {
-                println!("CONFIGURATION SECTION");
-                if let Some(source) = configuration.source_computer {
-                    if let Some(name) = source.name {
-                        println!("SOURCE-COMPUTER: {name}");
-                    }
-                }
-                if let Some(object) = configuration.object_computer {
-                    if let Some(name) = object.name {
-                        println!("OBJECT-COMPUTER: {name}");
-                    }
-                }
-            }
-            if let Some(input_output) = environment.input_output_section {
-                println!("INPUT-OUTPUT SECTION");
-                for entry in input_output.file_control {
-                    if let Some(destination) = entry.destination {
-                        println!("SELECT {} ASSIGN TO {}", entry.file_name, destination);
-                    } else {
-                        println!("SELECT {}", entry.file_name);
-                    }
-                }
-            }
-        }
-
-        println!("PROCEDURE DIVISION");
-        for section in program.procedure_division.sections {
-            println!("SECTION: {}", section.name);
-            for paragraph in section.paragraphs {
-                println!("PARAGRAPH: {} ({} statements)", paragraph.name, paragraph.statements.len());
-            }
-        }
-        for paragraph in program.procedure_division.paragraphs {
-            println!("PARAGRAPH: {} ({} statements)", paragraph.name, paragraph.statements.len());
-        }
-    }
-
-    let failed = diagnostics.iter().any(Diagnostic::is_error)
-        || parse_diagnostics.iter().any(Diagnostic::is_error);
+    let failed = diagnostics.iter().any(Diagnostic::is_error);
     for diagnostic in diagnostics {
         eprintln!("{:?}", diagnostic.into_report(&map));
     }
-    for diagnostic in parse_diagnostics {
-        eprintln!("{:?}", diagnostic.into_report(&map));
+    Ok(if failed {
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    })
+}
+
+fn print_ast(program: &cobol_compiler::parser::Program, indent: usize) {
+    let ind = " ".repeat(indent);
+    println!("{}Program", ind);
+    println!("{}  IdentificationDivision", ind);
+    println!(
+        "{}    program_id: {}",
+        ind, program.identification_division.program_id
+    );
+    if let Some(author) = &program.identification_division.author {
+        println!("{}    author: {}", ind, author);
     }
+    if let Some(installation) = &program.identification_division.installation {
+        println!("{}    installation: {}", ind, installation);
+    }
+    if let Some(date_written) = &program.identification_division.date_written {
+        println!("{}    date_written: {}", ind, date_written);
+    }
+    if let Some(date_compiled) = &program.identification_division.date_compiled {
+        println!("{}    date_compiled: {}", ind, date_compiled);
+    }
+    if let Some(security) = &program.identification_division.security {
+        println!("{}    security: {}", ind, security);
+    }
+    if let Some(remarks) = &program.identification_division.remarks {
+        println!("{}    remarks: {}", ind, remarks);
+    }
+
+    if let Some(env_div) = &program.environment_division {
+        println!("{}  EnvironmentDivision", ind);
+        if env_div.configuration_section.is_some() {
+            println!("{}    ConfigurationSection", ind);
+        }
+        if env_div.input_output_section.is_some() {
+            println!("{}    InputOutputSection", ind);
+        }
+    }
+
+    if let Some(data_div) = &program.data_division {
+        println!("{}  DataDivision", ind);
+        if let Some(file_sec) = &data_div.file_section {
+            println!("{}    FileSection", ind);
+            for file_desc in &file_sec.file_descriptions {
+                println!("{}      FileDescription: {}", ind, file_desc.file_name);
+            }
+        }
+        if let Some(work_sec) = &data_div.working_storage_section {
+            println!("{}    WorkingStorageSection", ind);
+            print_data_items(&work_sec.data_items, indent + 6);
+        }
+    }
+
+    if let Some(proc_div) = &program.procedure_division {
+        println!("{}  ProcedureDivision", ind);
+        for para in &proc_div.paragraphs {
+            println!("{}    Paragraph: {}", ind, para.name);
+            if para.statements.is_empty() {
+                println!("{}      (no statements)", ind);
+            } else {
+                print_statements(&para.statements, indent + 6);
+            }
+        }
+    }
+}
+
+fn print_statements(statements: &[cobol_compiler::parser::Statement], indent: usize) {
+    for (i, stmt) in statements.iter().enumerate() {
+        print_statement(stmt, indent, i);
+    }
+}
+
+fn print_statement(stmt: &cobol_compiler::parser::Statement, indent: usize, index: usize) {
+    use cobol_compiler::parser::Statement;
+    let ind = " ".repeat(indent);
+
+    match stmt {
+        Statement::Display(display_stmt) => {
+            println!("{}[{}] DISPLAY", ind, index);
+            for item in &display_stmt.items {
+                match item {
+                    cobol_compiler::parser::DisplayItem::String(s, _) => {
+                        println!("{}      \"{}\"", ind, s);
+                    }
+                    cobol_compiler::parser::DisplayItem::Expression(expr) => {
+                        println!("{}      {}", ind, format_expression(expr));
+                    }
+                }
+            }
+        }
+        Statement::Move(move_stmt) => {
+            println!(
+                "{}[{}] MOVE {} TO",
+                ind,
+                index,
+                format_expression(&move_stmt.source)
+            );
+            for target in &move_stmt.targets {
+                println!("{}      {}", ind, format_expression(target));
+            }
+        }
+        Statement::Accept(accept_stmt) => {
+            println!(
+                "{}[{}] ACCEPT {}",
+                ind,
+                index,
+                format_expression(&accept_stmt.target)
+            );
+        }
+        Statement::Perform(perf_stmt) => match perf_stmt {
+            cobol_compiler::parser::PerformStatement::ProcedureName(name, _) => {
+                println!("{}[{}] PERFORM {}", ind, index, name);
+            }
+            cobol_compiler::parser::PerformStatement::Times { .. } => {
+                println!("{}[{}] PERFORM ... TIMES", ind, index);
+            }
+            cobol_compiler::parser::PerformStatement::Until { .. } => {
+                println!("{}[{}] PERFORM ... UNTIL", ind, index);
+            }
+        },
+        Statement::If(if_stmt) => {
+            println!("{}[{}] IF", ind, index);
+            println!("{}      then-statements:", ind);
+            if if_stmt.then_statements.is_empty() {
+                println!("{}        (none)", ind);
+            } else {
+                print_statements(&if_stmt.then_statements, indent + 8);
+            }
+            if let Some(else_stmts) = &if_stmt.else_statements
+                && !else_stmts.is_empty()
+            {
+                println!("{}      else-statements:", ind);
+                print_statements(else_stmts, indent + 8);
+            }
+        }
+        Statement::StopRun(_) => {
+            println!("{}[{}] STOP RUN", ind, index);
+        }
+        Statement::GoTo(goto_stmt) => {
+            println!("{}[{}] GO TO {}", ind, index, goto_stmt.target);
+        }
+        Statement::Paragraph(name, _) => {
+            println!("{}[{}] PARAGRAPH {}", ind, index, name);
+        }
+    }
+}
+
+fn format_expression(expr: &cobol_compiler::parser::Expression) -> String {
+    use cobol_compiler::parser::Expression;
+
+    match expr {
+        Expression::Identifier(name, _) => name.clone(),
+        Expression::NumericLiteral(n, _) => n.clone(),
+        Expression::StringLiteral(s, _) => format!("\"{}\"", s),
+        Expression::BinaryOp {
+            left, op, right, ..
+        } => {
+            format!(
+                "{} {} {}",
+                format_expression(left),
+                format_binary_op(op),
+                format_expression(right)
+            )
+        }
+        Expression::UnaryOp { op, operand, .. } => {
+            format!("{}{}", format_unary_op(op), format_expression(operand))
+        }
+    }
+}
+
+fn format_binary_op(op: &cobol_compiler::parser::BinaryOperator) -> &'static str {
+    use cobol_compiler::parser::BinaryOperator;
+
+    match op {
+        BinaryOperator::Add => "+",
+        BinaryOperator::Subtract => "-",
+        BinaryOperator::Multiply => "*",
+        BinaryOperator::Divide => "/",
+        BinaryOperator::Power => "**",
+        BinaryOperator::Equal => "=",
+        BinaryOperator::NotEqual => "<>",
+        BinaryOperator::LessThan => "<",
+        BinaryOperator::LessThanOrEqual => "<=",
+        BinaryOperator::GreaterThan => ">",
+        BinaryOperator::GreaterThanOrEqual => ">=",
+    }
+}
+
+fn format_unary_op(op: &cobol_compiler::parser::UnaryOperator) -> &'static str {
+    use cobol_compiler::parser::UnaryOperator;
+
+    match op {
+        UnaryOperator::Plus => "+",
+        UnaryOperator::Minus => "-",
+    }
+}
+
+fn print_data_items(items: &[cobol_compiler::parser::DataItem], indent: usize) {
+    let ind = " ".repeat(indent);
+    for item in items {
+        println!("{}DataItem (level {}): {}", ind, item.level, item.name);
+        if let Some(picture) = &item.picture {
+            println!("{}  PIC: {}", ind, picture);
+        }
+        if !item.children.is_empty() {
+            print_data_items(&item.children, indent + 2);
+        }
+    }
+}
+
+fn run_analyze(
+    path: &Path,
+    mut include: Vec<PathBuf>,
+    debug_lines: bool,
+) -> anyhow::Result<ExitCode> {
+    let text =
+        std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+    let mut map = SourceMap::default();
+    let root = map.add_file(path.display().to_string(), text);
+
+    let dir = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    include.insert(0, dir.to_path_buf());
+    let loader = FsLoader {
+        search_dirs: include,
+    };
+
+    let (logical, mut diagnostics) =
+        preprocess(&mut map, root, ReaderOptions { debug_lines }, &loader);
+    let (tokens, lex_diagnostics) = lex(&logical);
+    diagnostics.extend(lex_diagnostics);
+
+    let (program, parse_diagnostics) = parse(tokens);
+    diagnostics.extend(parse_diagnostics);
+
+    let (annotated, semantic_diagnostics) = analyze(&program);
+    diagnostics.extend(semantic_diagnostics);
+
+    // Print annotated AST
+    print_ast(&annotated.program, 0);
+
+    // Print symbol table summary
+    println!("\nSYMBOL TABLE:");
+    for sym in annotated.symbol_table.all_symbols() {
+        println!("  {}: {:?} (level {})", sym.name, sym.data_type, sym.level);
+    }
+
+    let failed = diagnostics.iter().any(Diagnostic::is_error);
+    println!("\nDIAGNOSTICS:");
+    if diagnostics.is_empty() {
+        println!("  (none)");
+    } else {
+        for diagnostic in &diagnostics {
+            eprintln!("{:?}", diagnostic.clone().into_report(&map));
+        }
+    }
+
     Ok(if failed {
         ExitCode::FAILURE
     } else {
