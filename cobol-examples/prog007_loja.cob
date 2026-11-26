@@ -94,8 +94,26 @@
            
            PERFORM 00001-MENU-OPCOES UNTIL WS-EXIT = 1.
 
-           WRITE REGISTRO-CHAVE FROM WS-ULTIMO-PID.
-           CLOSE FD-PRODUTOS-KEY.
+           IF WS-FILE-STATUS-PROD-KEY = 0
+              CLOSE FD-PRODUTOS-KEY
+              IF WS-FILE-STATUS-PROD-KEY = 0
+                 OPEN OUTPUT FD-PRODUTOS-KEY
+                 IF WS-FILE-STATUS-PROD-KEY = 0
+                    WRITE REGISTRO-CHAVE FROM WS-ULTIMO-PID
+                    IF NOT WS-FILE-STATUS-PROD-KEY = 0
+                       DISPLAY "-- ERRO AO GRAVAR CHAVE -->"
+                               WS-FILE-STATUS-PROD-KEY
+                    END-IF
+                    CLOSE FD-PRODUTOS-KEY
+                 ELSE
+                    DISPLAY "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
+                            WS-FILE-STATUS-PROD-KEY
+                 END-IF
+              ELSE
+                 DISPLAY "-- ERRO AO FECHAR ARQUIVO DE CHAVES -->"
+                         WS-FILE-STATUS-PROD-KEY
+              END-IF
+           END-IF.
            CLOSE FD-PRODUTOS.
            DISPLAY "BYE"
            STOP RUN.
@@ -106,7 +124,12 @@
            OPEN INPUT FD-PRODUTOS-KEY.
            IF WS-FILE-STATUS-PROD-KEY = 0
               DISPLAY "-- PROG10-001.KEY FOUND"     
-              READ FD-PRODUTOS-KEY INTO WS-ULTIMO-PID   
+              READ FD-PRODUTOS-KEY INTO WS-ULTIMO-PID
+              IF NOT WS-FILE-STATUS-PROD-KEY = 0
+                 DISPLAY "-- ERRO AO LER ARQUIVO DE CHAVES -->"
+                         WS-FILE-STATUS-PROD-KEY
+                 MOVE 1 TO WS-EXIT
+              END-IF
            ELSE 
            IF WS-FILE-STATUS-PROD-KEY = 35 
               DISPLAY "-- PROG10-001.KEY NOT FOUND - CREATING NEW"
@@ -129,6 +152,12 @@
            IF WS-FILE-STATUS-PROD = 35 
               DISPLAY "-- PROG10-001.DAT NOT FOUND - CREATING NEW"
               OPEN OUTPUT FD-PRODUTOS
+              IF WS-FILE-STATUS-PROD = 0
+                 CLOSE FD-PRODUTOS
+                 IF WS-FILE-STATUS-PROD = 0
+                    OPEN I-O FD-PRODUTOS
+                 END-IF
+              END-IF
               IF WS-FILE-STATUS-PROD = 0
                  MOVE 0 TO WS-ULTIMO-PID
               ELSE

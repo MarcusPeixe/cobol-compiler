@@ -101,8 +101,13 @@ fn format_file_control(output: &mut String, control: &FileControl) {
     }
     for key in &control.alternate_keys {
         output.push_str(&format!(
-            "        alternate key: {}\n",
-            format_expression(key)
+            "        alternate key: {}{}\n",
+            format_expression(&key.expression),
+            if key.duplicates {
+                " WITH DUPLICATES"
+            } else {
+                ""
+            }
         ));
     }
     if let Some(status) = &control.file_status {
@@ -223,12 +228,14 @@ pub(crate) fn format_statement(output: &mut String, stmt: &Statement, indent: us
                 PerformStatement::Until {
                     paragraph,
                     condition,
+                    test_after,
                     ..
                 } => {
                     output.push_str(&format!(
-                        "{}      {} until {}\n",
+                        "{}      {}{} until {}\n",
                         ind,
                         paragraph,
+                        if *test_after { " with test after" } else { "" },
                         format_condition(condition)
                     ));
                 }
@@ -241,6 +248,9 @@ pub(crate) fn format_statement(output: &mut String, stmt: &Statement, indent: us
                             output.push_str(&format!("{}      paragraph: {}\n", ind, paragraph))
                         }
                         None => output.push_str(&format!("{}      inline\n", ind)),
+                    }
+                    if varying.test_after {
+                        output.push_str(&format!("{}      test: AFTER\n", ind));
                     }
                     output.push_str(&format!(
                         "{}      varying: {} from {} by {}\n",
@@ -260,6 +270,9 @@ pub(crate) fn format_statement(output: &mut String, stmt: &Statement, indent: us
                 }
                 PerformStatement::Inline(inline) => {
                     output.push_str(&format!("{}      inline\n", ind));
+                    if inline.test_after {
+                        output.push_str(&format!("{}      test: AFTER\n", ind));
+                    }
                     if let Some(times) = &inline.times {
                         output.push_str(&format!(
                             "{}      times: {}\n",

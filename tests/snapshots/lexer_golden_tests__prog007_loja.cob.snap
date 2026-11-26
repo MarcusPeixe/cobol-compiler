@@ -212,363 +212,427 @@ cobol-examples/prog007_loja.cob:095:044  IDENTIFIER WS-EXIT
 cobol-examples/prog007_loja.cob:095:052  '='
 cobol-examples/prog007_loja.cob:095:054  NUMBER 1
 cobol-examples/prog007_loja.cob:095:055  '.'
-cobol-examples/prog007_loja.cob:097:012  IDENTIFIER WRITE
-cobol-examples/prog007_loja.cob:097:018  IDENTIFIER REGISTRO-CHAVE
-cobol-examples/prog007_loja.cob:097:033  IDENTIFIER FROM
-cobol-examples/prog007_loja.cob:097:038  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:097:051  '.'
-cobol-examples/prog007_loja.cob:098:012  IDENTIFIER CLOSE
-cobol-examples/prog007_loja.cob:098:018  IDENTIFIER FD-PRODUTOS-KEY
-cobol-examples/prog007_loja.cob:098:033  '.'
-cobol-examples/prog007_loja.cob:099:012  IDENTIFIER CLOSE
-cobol-examples/prog007_loja.cob:099:018  IDENTIFIER FD-PRODUTOS
-cobol-examples/prog007_loja.cob:099:029  '.'
-cobol-examples/prog007_loja.cob:100:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:100:020  STRING "BYE"
-cobol-examples/prog007_loja.cob:101:012  KEYWORD STOP
-cobol-examples/prog007_loja.cob:101:017  KEYWORD RUN
-cobol-examples/prog007_loja.cob:101:020  '.'
-cobol-examples/prog007_loja.cob:103:008  IDENTIFIER 00000-OPEN-FILE-PRODUTOS-KEY
-cobol-examples/prog007_loja.cob:103:036  '.'
-cobol-examples/prog007_loja.cob:105:012  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:105:017  NUMBER 0
-cobol-examples/prog007_loja.cob:105:019  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:105:022  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:105:045  '.'
-cobol-examples/prog007_loja.cob:106:012  IDENTIFIER OPEN
-cobol-examples/prog007_loja.cob:106:017  IDENTIFIER INPUT
-cobol-examples/prog007_loja.cob:106:023  IDENTIFIER FD-PRODUTOS-KEY
-cobol-examples/prog007_loja.cob:106:038  '.'
-cobol-examples/prog007_loja.cob:107:012  KEYWORD IF
-cobol-examples/prog007_loja.cob:107:015  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:107:039  '='
-cobol-examples/prog007_loja.cob:107:041  NUMBER 0
-cobol-examples/prog007_loja.cob:108:015  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:108:023  STRING "-- PROG10-001.KEY FOUND"
-cobol-examples/prog007_loja.cob:109:015  IDENTIFIER READ
-cobol-examples/prog007_loja.cob:109:020  IDENTIFIER FD-PRODUTOS-KEY
-cobol-examples/prog007_loja.cob:109:036  IDENTIFIER INTO
-cobol-examples/prog007_loja.cob:109:041  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:110:012  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:111:012  KEYWORD IF
-cobol-examples/prog007_loja.cob:111:015  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:111:039  '='
-cobol-examples/prog007_loja.cob:111:041  NUMBER 35
-cobol-examples/prog007_loja.cob:112:015  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:112:023  STRING "-- PROG10-001.KEY NOT FOUND - CREATING NEW"
-cobol-examples/prog007_loja.cob:113:015  IDENTIFIER OPEN
-cobol-examples/prog007_loja.cob:113:020  IDENTIFIER OUTPUT
-cobol-examples/prog007_loja.cob:113:027  IDENTIFIER FD-PRODUTOS-KEY
-cobol-examples/prog007_loja.cob:114:015  KEYWORD IF
-cobol-examples/prog007_loja.cob:114:018  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:114:042  '='
-cobol-examples/prog007_loja.cob:114:044  NUMBER 0
-cobol-examples/prog007_loja.cob:115:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:115:023  NUMBER 0
-cobol-examples/prog007_loja.cob:115:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:115:028  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:116:015  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:117:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:117:026  STRING "-- ERRO AO CRIAR ARQUIVO DE CHAVES -->"
-cobol-examples/prog007_loja.cob:118:026  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:119:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:119:023  NUMBER 1
-cobol-examples/prog007_loja.cob:119:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:119:028  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:120:012  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:121:015  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:121:023  STRING "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
-cobol-examples/prog007_loja.cob:122:021  IDENTIFIER WS-FILE-STATUS-PROD-KEY
-cobol-examples/prog007_loja.cob:123:015  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:123:020  NUMBER 1
-cobol-examples/prog007_loja.cob:123:022  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:123:025  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:123:032  '.'
-cobol-examples/prog007_loja.cob:125:008  IDENTIFIER 00000-OPEN-FILE-PRODUTOS
-cobol-examples/prog007_loja.cob:125:032  '.'
-cobol-examples/prog007_loja.cob:126:012  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:126:017  NUMBER 0
-cobol-examples/prog007_loja.cob:126:019  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:126:022  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:126:041  '.'
-cobol-examples/prog007_loja.cob:127:012  IDENTIFIER OPEN
-cobol-examples/prog007_loja.cob:127:017  IDENTIFIER I-O
-cobol-examples/prog007_loja.cob:127:021  IDENTIFIER FD-PRODUTOS
-cobol-examples/prog007_loja.cob:127:032  '.'
-cobol-examples/prog007_loja.cob:129:012  KEYWORD IF
-cobol-examples/prog007_loja.cob:129:015  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:129:035  '='
-cobol-examples/prog007_loja.cob:129:037  NUMBER 35
-cobol-examples/prog007_loja.cob:130:015  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:130:023  STRING "-- PROG10-001.DAT NOT FOUND - CREATING NEW"
-cobol-examples/prog007_loja.cob:131:015  IDENTIFIER OPEN
-cobol-examples/prog007_loja.cob:131:020  IDENTIFIER OUTPUT
-cobol-examples/prog007_loja.cob:131:027  IDENTIFIER FD-PRODUTOS
-cobol-examples/prog007_loja.cob:132:015  KEYWORD IF
-cobol-examples/prog007_loja.cob:132:018  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:132:038  '='
-cobol-examples/prog007_loja.cob:132:040  NUMBER 0
-cobol-examples/prog007_loja.cob:133:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:133:023  NUMBER 0
-cobol-examples/prog007_loja.cob:133:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:133:028  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:134:015  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:135:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:135:026  STRING "-- ERRO AO CRIAR ARQUIVO DE DADOS -->"
-cobol-examples/prog007_loja.cob:136:026  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:137:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:137:023  NUMBER 1
-cobol-examples/prog007_loja.cob:137:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:137:028  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:138:012  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:139:012  KEYWORD IF
-cobol-examples/prog007_loja.cob:139:015  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:139:035  '='
-cobol-examples/prog007_loja.cob:139:037  NUMBER 0
-cobol-examples/prog007_loja.cob:140:015  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:140:023  STRING "-- PROG10-001.DAT FOUND"
-cobol-examples/prog007_loja.cob:141:015  KEYWORD IF
-cobol-examples/prog007_loja.cob:141:018  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:141:032  '='
-cobol-examples/prog007_loja.cob:141:034  NUMBER 0
+cobol-examples/prog007_loja.cob:097:012  KEYWORD IF
+cobol-examples/prog007_loja.cob:097:015  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:097:039  '='
+cobol-examples/prog007_loja.cob:097:041  NUMBER 0
+cobol-examples/prog007_loja.cob:098:015  IDENTIFIER CLOSE
+cobol-examples/prog007_loja.cob:098:021  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:099:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:099:018  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:099:042  '='
+cobol-examples/prog007_loja.cob:099:044  NUMBER 0
+cobol-examples/prog007_loja.cob:100:018  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:100:023  IDENTIFIER OUTPUT
+cobol-examples/prog007_loja.cob:100:030  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:101:018  KEYWORD IF
+cobol-examples/prog007_loja.cob:101:021  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:101:045  '='
+cobol-examples/prog007_loja.cob:101:047  NUMBER 0
+cobol-examples/prog007_loja.cob:102:021  IDENTIFIER WRITE
+cobol-examples/prog007_loja.cob:102:027  IDENTIFIER REGISTRO-CHAVE
+cobol-examples/prog007_loja.cob:102:042  IDENTIFIER FROM
+cobol-examples/prog007_loja.cob:102:047  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:103:021  KEYWORD IF
+cobol-examples/prog007_loja.cob:103:024  IDENTIFIER NOT
+cobol-examples/prog007_loja.cob:103:028  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:103:052  '='
+cobol-examples/prog007_loja.cob:103:054  NUMBER 0
+cobol-examples/prog007_loja.cob:104:024  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:104:032  STRING "-- ERRO AO GRAVAR CHAVE -->"
+cobol-examples/prog007_loja.cob:105:032  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:106:021  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:107:021  IDENTIFIER CLOSE
+cobol-examples/prog007_loja.cob:107:027  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:108:018  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:109:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:109:029  STRING "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
+cobol-examples/prog007_loja.cob:110:029  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:111:018  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:112:015  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:113:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:113:026  STRING "-- ERRO AO FECHAR ARQUIVO DE CHAVES -->"
+cobol-examples/prog007_loja.cob:114:026  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:115:015  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:116:012  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:116:018  '.'
+cobol-examples/prog007_loja.cob:117:012  IDENTIFIER CLOSE
+cobol-examples/prog007_loja.cob:117:018  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:117:029  '.'
+cobol-examples/prog007_loja.cob:118:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:118:020  STRING "BYE"
+cobol-examples/prog007_loja.cob:119:012  KEYWORD STOP
+cobol-examples/prog007_loja.cob:119:017  KEYWORD RUN
+cobol-examples/prog007_loja.cob:119:020  '.'
+cobol-examples/prog007_loja.cob:121:008  IDENTIFIER 00000-OPEN-FILE-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:121:036  '.'
+cobol-examples/prog007_loja.cob:123:012  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:123:017  NUMBER 0
+cobol-examples/prog007_loja.cob:123:019  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:123:022  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:123:045  '.'
+cobol-examples/prog007_loja.cob:124:012  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:124:017  IDENTIFIER INPUT
+cobol-examples/prog007_loja.cob:124:023  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:124:038  '.'
+cobol-examples/prog007_loja.cob:125:012  KEYWORD IF
+cobol-examples/prog007_loja.cob:125:015  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:125:039  '='
+cobol-examples/prog007_loja.cob:125:041  NUMBER 0
+cobol-examples/prog007_loja.cob:126:015  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:126:023  STRING "-- PROG10-001.KEY FOUND"
+cobol-examples/prog007_loja.cob:127:015  IDENTIFIER READ
+cobol-examples/prog007_loja.cob:127:020  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:127:036  IDENTIFIER INTO
+cobol-examples/prog007_loja.cob:127:041  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:128:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:128:018  IDENTIFIER NOT
+cobol-examples/prog007_loja.cob:128:022  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:128:046  '='
+cobol-examples/prog007_loja.cob:128:048  NUMBER 0
+cobol-examples/prog007_loja.cob:129:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:129:026  STRING "-- ERRO AO LER ARQUIVO DE CHAVES -->"
+cobol-examples/prog007_loja.cob:130:026  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:131:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:131:023  NUMBER 1
+cobol-examples/prog007_loja.cob:131:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:131:028  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:132:015  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:133:012  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:134:012  KEYWORD IF
+cobol-examples/prog007_loja.cob:134:015  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:134:039  '='
+cobol-examples/prog007_loja.cob:134:041  NUMBER 35
+cobol-examples/prog007_loja.cob:135:015  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:135:023  STRING "-- PROG10-001.KEY NOT FOUND - CREATING NEW"
+cobol-examples/prog007_loja.cob:136:015  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:136:020  IDENTIFIER OUTPUT
+cobol-examples/prog007_loja.cob:136:027  IDENTIFIER FD-PRODUTOS-KEY
+cobol-examples/prog007_loja.cob:137:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:137:018  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:137:042  '='
+cobol-examples/prog007_loja.cob:137:044  NUMBER 0
+cobol-examples/prog007_loja.cob:138:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:138:023  NUMBER 0
+cobol-examples/prog007_loja.cob:138:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:138:028  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:139:015  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:140:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:140:026  STRING "-- ERRO AO CRIAR ARQUIVO DE CHAVES -->"
+cobol-examples/prog007_loja.cob:141:026  IDENTIFIER WS-FILE-STATUS-PROD-KEY
 cobol-examples/prog007_loja.cob:142:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:142:023  NUMBER 0
+cobol-examples/prog007_loja.cob:142:023  NUMBER 1
 cobol-examples/prog007_loja.cob:142:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:142:028  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:143:015  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:144:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:144:023  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:144:037  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:144:040  IDENTIFIER RP-PID
-cobol-examples/prog007_loja.cob:146:018  IDENTIFIER START
-cobol-examples/prog007_loja.cob:146:024  IDENTIFIER FD-PRODUTOS
-cobol-examples/prog007_loja.cob:146:036  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:146:040  IDENTIFIER EQUAL
-cobol-examples/prog007_loja.cob:146:046  IDENTIFIER RP-PID
-cobol-examples/prog007_loja.cob:147:022  IDENTIFIER INVALID
-cobol-examples/prog007_loja.cob:147:030  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:148:025  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:148:033  STRING "ERRO AO REGISTRO"
-cobol-examples/prog007_loja.cob:149:012  KEYWORD ELSE
-cobol-examples/prog007_loja.cob:150:014  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:150:022  STRING "-- ERRO AO ABRIR ARQUIVO DE PRODUTOS"
-cobol-examples/prog007_loja.cob:151:026  IDENTIFIER WS-FILE-STATUS-PROD
-cobol-examples/prog007_loja.cob:152:014  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:152:019  NUMBER 1
-cobol-examples/prog007_loja.cob:152:021  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:152:024  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:152:031  '.'
-cobol-examples/prog007_loja.cob:155:008  IDENTIFIER 00001-MENU-OPCOES
-cobol-examples/prog007_loja.cob:155:025  '.'
-cobol-examples/prog007_loja.cob:156:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:156:020  STRING " "
-cobol-examples/prog007_loja.cob:156:023  '.'
-cobol-examples/prog007_loja.cob:157:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:157:020  STRING "====00001-MENU-OPCOES===="
-cobol-examples/prog007_loja.cob:157:047  '.'
-cobol-examples/prog007_loja.cob:158:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:158:020  STRING "OPCOES:"
-cobol-examples/prog007_loja.cob:158:029  '.'
-cobol-examples/prog007_loja.cob:159:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:159:020  STRING "1) ADICIONA PRODUTO"
-cobol-examples/prog007_loja.cob:159:041  '.'
-cobol-examples/prog007_loja.cob:160:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:160:020  STRING "2) REMOVE PRODUTO - NOT IMPLEMENTED"
-cobol-examples/prog007_loja.cob:160:057  '.'
-cobol-examples/prog007_loja.cob:161:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:161:020  STRING "3) ATUALIZA PRODUTO - NOT IMPLEMENTED"
-cobol-examples/prog007_loja.cob:161:059  '.'
-cobol-examples/prog007_loja.cob:162:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:162:020  STRING "4) CONSULTA PRODUTO"
-cobol-examples/prog007_loja.cob:162:041  '.'
-cobol-examples/prog007_loja.cob:163:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:163:020  STRING " "
-cobol-examples/prog007_loja.cob:163:023  '.'
-cobol-examples/prog007_loja.cob:164:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:164:020  STRING "5) SAIR DO PROGRAMA"
-cobol-examples/prog007_loja.cob:164:041  '.'
-cobol-examples/prog007_loja.cob:165:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:165:020  IDENTIFIER WS-OPCAO
-cobol-examples/prog007_loja.cob:165:028  '.'
-cobol-examples/prog007_loja.cob:167:012  IDENTIFIER EVALUATE
-cobol-examples/prog007_loja.cob:167:021  IDENTIFIER WS-OPCAO
-cobol-examples/prog007_loja.cob:168:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:168:020  NUMBER 1
-cobol-examples/prog007_loja.cob:168:022  KEYWORD PERFORM
-cobol-examples/prog007_loja.cob:168:030  IDENTIFIER 00002-CREATE-PRODUTO
-cobol-examples/prog007_loja.cob:169:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:169:020  NUMBER 2
-cobol-examples/prog007_loja.cob:170:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:170:026  STRING "DELETE"
-cobol-examples/prog007_loja.cob:171:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:171:020  NUMBER 3
-cobol-examples/prog007_loja.cob:172:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:172:026  STRING "UPDATE"
-cobol-examples/prog007_loja.cob:173:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:173:020  NUMBER 4
-cobol-examples/prog007_loja.cob:173:022  KEYWORD PERFORM
-cobol-examples/prog007_loja.cob:173:030  IDENTIFIER 00002-SELECT-PRODUTO
-cobol-examples/prog007_loja.cob:174:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:174:020  NUMBER 5
-cobol-examples/prog007_loja.cob:175:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:175:023  NUMBER 1
-cobol-examples/prog007_loja.cob:175:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:175:028  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:176:015  IDENTIFIER WHEN
-cobol-examples/prog007_loja.cob:176:020  IDENTIFIER OTHER
-cobol-examples/prog007_loja.cob:177:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:177:026  STRING "OPCAO INVALIDA."
-cobol-examples/prog007_loja.cob:178:012  IDENTIFIER END-EVALUATE
-cobol-examples/prog007_loja.cob:178:024  '.'
-cobol-examples/prog007_loja.cob:180:008  IDENTIFIER 00002-CREATE-PRODUTO
-cobol-examples/prog007_loja.cob:180:028  '.'
-cobol-examples/prog007_loja.cob:181:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:181:020  STRING "CRIA UM NOVO PRODUTO"
-cobol-examples/prog007_loja.cob:181:042  '.'
-cobol-examples/prog007_loja.cob:182:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:182:020  STRING "NOME: "
-cobol-examples/prog007_loja.cob:182:029  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:182:034  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:182:037  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:182:046  '.'
-cobol-examples/prog007_loja.cob:183:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:183:019  IDENTIFIER WS-NOME
-cobol-examples/prog007_loja.cob:183:026  '.'
-cobol-examples/prog007_loja.cob:184:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:184:020  STRING "VALOR: "
-cobol-examples/prog007_loja.cob:184:030  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:184:035  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:184:038  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:184:047  '.'
-cobol-examples/prog007_loja.cob:185:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:185:019  IDENTIFIER WS-VALOR
-cobol-examples/prog007_loja.cob:185:027  '.'
+cobol-examples/prog007_loja.cob:142:028  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:143:012  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:144:015  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:144:023  STRING "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
+cobol-examples/prog007_loja.cob:145:021  IDENTIFIER WS-FILE-STATUS-PROD-KEY
+cobol-examples/prog007_loja.cob:146:015  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:146:020  NUMBER 1
+cobol-examples/prog007_loja.cob:146:022  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:146:025  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:146:032  '.'
+cobol-examples/prog007_loja.cob:148:008  IDENTIFIER 00000-OPEN-FILE-PRODUTOS
+cobol-examples/prog007_loja.cob:148:032  '.'
+cobol-examples/prog007_loja.cob:149:012  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:149:017  NUMBER 0
+cobol-examples/prog007_loja.cob:149:019  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:149:022  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:149:041  '.'
+cobol-examples/prog007_loja.cob:150:012  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:150:017  IDENTIFIER I-O
+cobol-examples/prog007_loja.cob:150:021  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:150:032  '.'
+cobol-examples/prog007_loja.cob:152:012  KEYWORD IF
+cobol-examples/prog007_loja.cob:152:015  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:152:035  '='
+cobol-examples/prog007_loja.cob:152:037  NUMBER 35
+cobol-examples/prog007_loja.cob:153:015  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:153:023  STRING "-- PROG10-001.DAT NOT FOUND - CREATING NEW"
+cobol-examples/prog007_loja.cob:154:015  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:154:020  IDENTIFIER OUTPUT
+cobol-examples/prog007_loja.cob:154:027  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:155:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:155:018  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:155:038  '='
+cobol-examples/prog007_loja.cob:155:040  NUMBER 0
+cobol-examples/prog007_loja.cob:156:018  IDENTIFIER CLOSE
+cobol-examples/prog007_loja.cob:156:024  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:157:018  KEYWORD IF
+cobol-examples/prog007_loja.cob:157:021  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:157:041  '='
+cobol-examples/prog007_loja.cob:157:043  NUMBER 0
+cobol-examples/prog007_loja.cob:158:021  IDENTIFIER OPEN
+cobol-examples/prog007_loja.cob:158:026  IDENTIFIER I-O
+cobol-examples/prog007_loja.cob:158:030  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:159:018  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:160:015  IDENTIFIER END-IF
+cobol-examples/prog007_loja.cob:161:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:161:018  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:161:038  '='
+cobol-examples/prog007_loja.cob:161:040  NUMBER 0
+cobol-examples/prog007_loja.cob:162:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:162:023  NUMBER 0
+cobol-examples/prog007_loja.cob:162:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:162:028  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:163:015  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:164:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:164:026  STRING "-- ERRO AO CRIAR ARQUIVO DE DADOS -->"
+cobol-examples/prog007_loja.cob:165:026  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:166:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:166:023  NUMBER 1
+cobol-examples/prog007_loja.cob:166:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:166:028  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:167:012  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:168:012  KEYWORD IF
+cobol-examples/prog007_loja.cob:168:015  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:168:035  '='
+cobol-examples/prog007_loja.cob:168:037  NUMBER 0
+cobol-examples/prog007_loja.cob:169:015  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:169:023  STRING "-- PROG10-001.DAT FOUND"
+cobol-examples/prog007_loja.cob:170:015  KEYWORD IF
+cobol-examples/prog007_loja.cob:170:018  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:170:032  '='
+cobol-examples/prog007_loja.cob:170:034  NUMBER 0
+cobol-examples/prog007_loja.cob:171:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:171:023  NUMBER 0
+cobol-examples/prog007_loja.cob:171:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:171:028  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:172:015  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:173:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:173:023  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:173:037  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:173:040  IDENTIFIER RP-PID
+cobol-examples/prog007_loja.cob:175:018  IDENTIFIER START
+cobol-examples/prog007_loja.cob:175:024  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:175:036  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:175:040  IDENTIFIER EQUAL
+cobol-examples/prog007_loja.cob:175:046  IDENTIFIER RP-PID
+cobol-examples/prog007_loja.cob:176:022  IDENTIFIER INVALID
+cobol-examples/prog007_loja.cob:176:030  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:177:025  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:177:033  STRING "ERRO AO REGISTRO"
+cobol-examples/prog007_loja.cob:178:012  KEYWORD ELSE
+cobol-examples/prog007_loja.cob:179:014  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:179:022  STRING "-- ERRO AO ABRIR ARQUIVO DE PRODUTOS"
+cobol-examples/prog007_loja.cob:180:026  IDENTIFIER WS-FILE-STATUS-PROD
+cobol-examples/prog007_loja.cob:181:014  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:181:019  NUMBER 1
+cobol-examples/prog007_loja.cob:181:021  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:181:024  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:181:031  '.'
+cobol-examples/prog007_loja.cob:184:008  IDENTIFIER 00001-MENU-OPCOES
+cobol-examples/prog007_loja.cob:184:025  '.'
+cobol-examples/prog007_loja.cob:185:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:185:020  STRING " "
+cobol-examples/prog007_loja.cob:185:023  '.'
 cobol-examples/prog007_loja.cob:186:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:186:020  STRING "QUANTIDADE: "
-cobol-examples/prog007_loja.cob:186:035  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:186:040  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:186:043  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:186:052  '.'
-cobol-examples/prog007_loja.cob:187:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:187:019  IDENTIFIER WS-QTD
-cobol-examples/prog007_loja.cob:187:025  '.'
+cobol-examples/prog007_loja.cob:186:020  STRING "====00001-MENU-OPCOES===="
+cobol-examples/prog007_loja.cob:186:047  '.'
+cobol-examples/prog007_loja.cob:187:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:187:020  STRING "OPCOES:"
+cobol-examples/prog007_loja.cob:187:029  '.'
 cobol-examples/prog007_loja.cob:188:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:188:020  STRING "DESCRICAO: "
-cobol-examples/prog007_loja.cob:188:034  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:188:039  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:188:042  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:188:051  '.'
-cobol-examples/prog007_loja.cob:189:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:189:019  IDENTIFIER WS-DESCRICAO
-cobol-examples/prog007_loja.cob:189:031  '.'
-cobol-examples/prog007_loja.cob:191:012  IDENTIFIER ADD
-cobol-examples/prog007_loja.cob:191:016  NUMBER 1
-cobol-examples/prog007_loja.cob:191:018  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:191:021  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:191:034  '.'
-cobol-examples/prog007_loja.cob:192:012  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:192:017  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:192:031  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:192:034  IDENTIFIER WS-PID
-cobol-examples/prog007_loja.cob:192:040  '.'
-cobol-examples/prog007_loja.cob:194:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:194:020  STRING "--------------"
-cobol-examples/prog007_loja.cob:195:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:195:020  IDENTIFIER WS-PRODUTO
-cobol-examples/prog007_loja.cob:195:030  '.'
-cobol-examples/prog007_loja.cob:196:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:196:020  STRING "--------------"
-cobol-examples/prog007_loja.cob:198:012  IDENTIFIER WRITE
-cobol-examples/prog007_loja.cob:198:018  IDENTIFIER REG-PRODUTO
-cobol-examples/prog007_loja.cob:198:030  IDENTIFIER FROM
-cobol-examples/prog007_loja.cob:198:035  IDENTIFIER WS-PRODUTO
-cobol-examples/prog007_loja.cob:199:015  IDENTIFIER INVALID
-cobol-examples/prog007_loja.cob:199:023  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:200:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:200:026  STRING "CODIGO DE PRODUTO JAH EXISTE"
-cobol-examples/prog007_loja.cob:200:057  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:201:018  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:201:023  NUMBER 1
-cobol-examples/prog007_loja.cob:201:025  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:201:028  IDENTIFIER WS-EXIT
-cobol-examples/prog007_loja.cob:202:015  IDENTIFIER NOT
-cobol-examples/prog007_loja.cob:202:019  IDENTIFIER INVALID
-cobol-examples/prog007_loja.cob:202:027  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:203:018  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:203:026  STRING "PRODUTO ARMAZENADO"
-cobol-examples/prog007_loja.cob:203:046  '.'
-cobol-examples/prog007_loja.cob:205:008  IDENTIFIER 00002-SELECT-PRODUTO
-cobol-examples/prog007_loja.cob:205:028  '.'
-cobol-examples/prog007_loja.cob:206:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:206:020  STRING "CONSULTA PRODUTO"
-cobol-examples/prog007_loja.cob:206:038  '.'
-cobol-examples/prog007_loja.cob:207:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:207:020  STRING "WS-ULTIMO-PID --> "
-cobol-examples/prog007_loja.cob:207:041  IDENTIFIER WS-ULTIMO-PID
-cobol-examples/prog007_loja.cob:207:054  '.'
-cobol-examples/prog007_loja.cob:208:012  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:208:020  STRING "PID: "
-cobol-examples/prog007_loja.cob:208:027  '.'
-cobol-examples/prog007_loja.cob:209:012  KEYWORD ACCEPT
-cobol-examples/prog007_loja.cob:209:019  IDENTIFIER WS-PID
-cobol-examples/prog007_loja.cob:209:025  '.'
-cobol-examples/prog007_loja.cob:211:012  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:211:017  IDENTIFIER WS-PID
-cobol-examples/prog007_loja.cob:211:024  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:211:027  IDENTIFIER RP-PID
-cobol-examples/prog007_loja.cob:211:033  '.'
-cobol-examples/prog007_loja.cob:213:012  IDENTIFIER READ
-cobol-examples/prog007_loja.cob:213:017  IDENTIFIER FD-PRODUTOS
-cobol-examples/prog007_loja.cob:213:029  IDENTIFIER RECORD
-cobol-examples/prog007_loja.cob:213:036  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:213:040  IDENTIFIER RP-PID
-cobol-examples/prog007_loja.cob:214:017  IDENTIFIER INVALID
-cobol-examples/prog007_loja.cob:214:025  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:215:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:215:029  STRING "ERRO AO LOCALIZAR REGISTRO"
-cobol-examples/prog007_loja.cob:216:017  IDENTIFIER NOT
-cobol-examples/prog007_loja.cob:216:021  IDENTIFIER INVALID
-cobol-examples/prog007_loja.cob:216:029  IDENTIFIER KEY
-cobol-examples/prog007_loja.cob:217:021  KEYWORD MOVE
-cobol-examples/prog007_loja.cob:217:026  IDENTIFIER REG-PRODUTO
-cobol-examples/prog007_loja.cob:217:038  IDENTIFIER TO
-cobol-examples/prog007_loja.cob:217:041  IDENTIFIER WS-PRODUTO
-cobol-examples/prog007_loja.cob:218:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:218:029  STRING " "
-cobol-examples/prog007_loja.cob:219:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:219:029  STRING "NOME: "
-cobol-examples/prog007_loja.cob:219:038  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:219:043  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:219:046  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:220:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:220:029  IDENTIFIER WS-NOME
-cobol-examples/prog007_loja.cob:221:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:221:029  STRING "VALOR: "
-cobol-examples/prog007_loja.cob:221:039  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:221:044  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:221:047  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:222:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:222:029  IDENTIFIER WS-VALOR
-cobol-examples/prog007_loja.cob:223:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:223:029  STRING "QUANTIDADE: "
-cobol-examples/prog007_loja.cob:223:044  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:223:049  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:223:052  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:224:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:224:029  IDENTIFIER WS-QTD
-cobol-examples/prog007_loja.cob:225:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:225:029  STRING "DESCRICAO: "
-cobol-examples/prog007_loja.cob:225:043  IDENTIFIER WITH
-cobol-examples/prog007_loja.cob:225:048  IDENTIFIER NO
-cobol-examples/prog007_loja.cob:225:051  IDENTIFIER ADVANCING
-cobol-examples/prog007_loja.cob:226:021  KEYWORD DISPLAY
-cobol-examples/prog007_loja.cob:226:029  IDENTIFIER WS-DESCRICAO
-cobol-examples/prog007_loja.cob:226:041  '.'
-cobol-examples/prog007_loja.cob:228:008  IDENTIFIER END
-cobol-examples/prog007_loja.cob:228:012  IDENTIFIER PROGRAM
-cobol-examples/prog007_loja.cob:228:020  IDENTIFIER PROG007_LOJA
-cobol-examples/prog007_loja.cob:228:032  '.'
+cobol-examples/prog007_loja.cob:188:020  STRING "1) ADICIONA PRODUTO"
+cobol-examples/prog007_loja.cob:188:041  '.'
+cobol-examples/prog007_loja.cob:189:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:189:020  STRING "2) REMOVE PRODUTO - NOT IMPLEMENTED"
+cobol-examples/prog007_loja.cob:189:057  '.'
+cobol-examples/prog007_loja.cob:190:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:190:020  STRING "3) ATUALIZA PRODUTO - NOT IMPLEMENTED"
+cobol-examples/prog007_loja.cob:190:059  '.'
+cobol-examples/prog007_loja.cob:191:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:191:020  STRING "4) CONSULTA PRODUTO"
+cobol-examples/prog007_loja.cob:191:041  '.'
+cobol-examples/prog007_loja.cob:192:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:192:020  STRING " "
+cobol-examples/prog007_loja.cob:192:023  '.'
+cobol-examples/prog007_loja.cob:193:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:193:020  STRING "5) SAIR DO PROGRAMA"
+cobol-examples/prog007_loja.cob:193:041  '.'
+cobol-examples/prog007_loja.cob:194:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:194:020  IDENTIFIER WS-OPCAO
+cobol-examples/prog007_loja.cob:194:028  '.'
+cobol-examples/prog007_loja.cob:196:012  IDENTIFIER EVALUATE
+cobol-examples/prog007_loja.cob:196:021  IDENTIFIER WS-OPCAO
+cobol-examples/prog007_loja.cob:197:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:197:020  NUMBER 1
+cobol-examples/prog007_loja.cob:197:022  KEYWORD PERFORM
+cobol-examples/prog007_loja.cob:197:030  IDENTIFIER 00002-CREATE-PRODUTO
+cobol-examples/prog007_loja.cob:198:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:198:020  NUMBER 2
+cobol-examples/prog007_loja.cob:199:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:199:026  STRING "DELETE"
+cobol-examples/prog007_loja.cob:200:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:200:020  NUMBER 3
+cobol-examples/prog007_loja.cob:201:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:201:026  STRING "UPDATE"
+cobol-examples/prog007_loja.cob:202:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:202:020  NUMBER 4
+cobol-examples/prog007_loja.cob:202:022  KEYWORD PERFORM
+cobol-examples/prog007_loja.cob:202:030  IDENTIFIER 00002-SELECT-PRODUTO
+cobol-examples/prog007_loja.cob:203:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:203:020  NUMBER 5
+cobol-examples/prog007_loja.cob:204:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:204:023  NUMBER 1
+cobol-examples/prog007_loja.cob:204:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:204:028  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:205:015  IDENTIFIER WHEN
+cobol-examples/prog007_loja.cob:205:020  IDENTIFIER OTHER
+cobol-examples/prog007_loja.cob:206:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:206:026  STRING "OPCAO INVALIDA."
+cobol-examples/prog007_loja.cob:207:012  IDENTIFIER END-EVALUATE
+cobol-examples/prog007_loja.cob:207:024  '.'
+cobol-examples/prog007_loja.cob:209:008  IDENTIFIER 00002-CREATE-PRODUTO
+cobol-examples/prog007_loja.cob:209:028  '.'
+cobol-examples/prog007_loja.cob:210:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:210:020  STRING "CRIA UM NOVO PRODUTO"
+cobol-examples/prog007_loja.cob:210:042  '.'
+cobol-examples/prog007_loja.cob:211:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:211:020  STRING "NOME: "
+cobol-examples/prog007_loja.cob:211:029  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:211:034  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:211:037  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:211:046  '.'
+cobol-examples/prog007_loja.cob:212:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:212:019  IDENTIFIER WS-NOME
+cobol-examples/prog007_loja.cob:212:026  '.'
+cobol-examples/prog007_loja.cob:213:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:213:020  STRING "VALOR: "
+cobol-examples/prog007_loja.cob:213:030  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:213:035  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:213:038  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:213:047  '.'
+cobol-examples/prog007_loja.cob:214:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:214:019  IDENTIFIER WS-VALOR
+cobol-examples/prog007_loja.cob:214:027  '.'
+cobol-examples/prog007_loja.cob:215:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:215:020  STRING "QUANTIDADE: "
+cobol-examples/prog007_loja.cob:215:035  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:215:040  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:215:043  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:215:052  '.'
+cobol-examples/prog007_loja.cob:216:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:216:019  IDENTIFIER WS-QTD
+cobol-examples/prog007_loja.cob:216:025  '.'
+cobol-examples/prog007_loja.cob:217:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:217:020  STRING "DESCRICAO: "
+cobol-examples/prog007_loja.cob:217:034  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:217:039  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:217:042  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:217:051  '.'
+cobol-examples/prog007_loja.cob:218:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:218:019  IDENTIFIER WS-DESCRICAO
+cobol-examples/prog007_loja.cob:218:031  '.'
+cobol-examples/prog007_loja.cob:220:012  IDENTIFIER ADD
+cobol-examples/prog007_loja.cob:220:016  NUMBER 1
+cobol-examples/prog007_loja.cob:220:018  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:220:021  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:220:034  '.'
+cobol-examples/prog007_loja.cob:221:012  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:221:017  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:221:031  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:221:034  IDENTIFIER WS-PID
+cobol-examples/prog007_loja.cob:221:040  '.'
+cobol-examples/prog007_loja.cob:223:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:223:020  STRING "--------------"
+cobol-examples/prog007_loja.cob:224:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:224:020  IDENTIFIER WS-PRODUTO
+cobol-examples/prog007_loja.cob:224:030  '.'
+cobol-examples/prog007_loja.cob:225:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:225:020  STRING "--------------"
+cobol-examples/prog007_loja.cob:227:012  IDENTIFIER WRITE
+cobol-examples/prog007_loja.cob:227:018  IDENTIFIER REG-PRODUTO
+cobol-examples/prog007_loja.cob:227:030  IDENTIFIER FROM
+cobol-examples/prog007_loja.cob:227:035  IDENTIFIER WS-PRODUTO
+cobol-examples/prog007_loja.cob:228:015  IDENTIFIER INVALID
+cobol-examples/prog007_loja.cob:228:023  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:229:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:229:026  STRING "CODIGO DE PRODUTO JAH EXISTE"
+cobol-examples/prog007_loja.cob:229:057  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:230:018  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:230:023  NUMBER 1
+cobol-examples/prog007_loja.cob:230:025  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:230:028  IDENTIFIER WS-EXIT
+cobol-examples/prog007_loja.cob:231:015  IDENTIFIER NOT
+cobol-examples/prog007_loja.cob:231:019  IDENTIFIER INVALID
+cobol-examples/prog007_loja.cob:231:027  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:232:018  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:232:026  STRING "PRODUTO ARMAZENADO"
+cobol-examples/prog007_loja.cob:232:046  '.'
+cobol-examples/prog007_loja.cob:234:008  IDENTIFIER 00002-SELECT-PRODUTO
+cobol-examples/prog007_loja.cob:234:028  '.'
+cobol-examples/prog007_loja.cob:235:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:235:020  STRING "CONSULTA PRODUTO"
+cobol-examples/prog007_loja.cob:235:038  '.'
+cobol-examples/prog007_loja.cob:236:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:236:020  STRING "WS-ULTIMO-PID --> "
+cobol-examples/prog007_loja.cob:236:041  IDENTIFIER WS-ULTIMO-PID
+cobol-examples/prog007_loja.cob:236:054  '.'
+cobol-examples/prog007_loja.cob:237:012  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:237:020  STRING "PID: "
+cobol-examples/prog007_loja.cob:237:027  '.'
+cobol-examples/prog007_loja.cob:238:012  KEYWORD ACCEPT
+cobol-examples/prog007_loja.cob:238:019  IDENTIFIER WS-PID
+cobol-examples/prog007_loja.cob:238:025  '.'
+cobol-examples/prog007_loja.cob:240:012  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:240:017  IDENTIFIER WS-PID
+cobol-examples/prog007_loja.cob:240:024  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:240:027  IDENTIFIER RP-PID
+cobol-examples/prog007_loja.cob:240:033  '.'
+cobol-examples/prog007_loja.cob:242:012  IDENTIFIER READ
+cobol-examples/prog007_loja.cob:242:017  IDENTIFIER FD-PRODUTOS
+cobol-examples/prog007_loja.cob:242:029  IDENTIFIER RECORD
+cobol-examples/prog007_loja.cob:242:036  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:242:040  IDENTIFIER RP-PID
+cobol-examples/prog007_loja.cob:243:017  IDENTIFIER INVALID
+cobol-examples/prog007_loja.cob:243:025  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:244:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:244:029  STRING "ERRO AO LOCALIZAR REGISTRO"
+cobol-examples/prog007_loja.cob:245:017  IDENTIFIER NOT
+cobol-examples/prog007_loja.cob:245:021  IDENTIFIER INVALID
+cobol-examples/prog007_loja.cob:245:029  IDENTIFIER KEY
+cobol-examples/prog007_loja.cob:246:021  KEYWORD MOVE
+cobol-examples/prog007_loja.cob:246:026  IDENTIFIER REG-PRODUTO
+cobol-examples/prog007_loja.cob:246:038  IDENTIFIER TO
+cobol-examples/prog007_loja.cob:246:041  IDENTIFIER WS-PRODUTO
+cobol-examples/prog007_loja.cob:247:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:247:029  STRING " "
+cobol-examples/prog007_loja.cob:248:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:248:029  STRING "NOME: "
+cobol-examples/prog007_loja.cob:248:038  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:248:043  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:248:046  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:249:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:249:029  IDENTIFIER WS-NOME
+cobol-examples/prog007_loja.cob:250:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:250:029  STRING "VALOR: "
+cobol-examples/prog007_loja.cob:250:039  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:250:044  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:250:047  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:251:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:251:029  IDENTIFIER WS-VALOR
+cobol-examples/prog007_loja.cob:252:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:252:029  STRING "QUANTIDADE: "
+cobol-examples/prog007_loja.cob:252:044  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:252:049  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:252:052  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:253:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:253:029  IDENTIFIER WS-QTD
+cobol-examples/prog007_loja.cob:254:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:254:029  STRING "DESCRICAO: "
+cobol-examples/prog007_loja.cob:254:043  IDENTIFIER WITH
+cobol-examples/prog007_loja.cob:254:048  IDENTIFIER NO
+cobol-examples/prog007_loja.cob:254:051  IDENTIFIER ADVANCING
+cobol-examples/prog007_loja.cob:255:021  KEYWORD DISPLAY
+cobol-examples/prog007_loja.cob:255:029  IDENTIFIER WS-DESCRICAO
+cobol-examples/prog007_loja.cob:255:041  '.'
+cobol-examples/prog007_loja.cob:257:008  IDENTIFIER END
+cobol-examples/prog007_loja.cob:257:012  IDENTIFIER PROGRAM
+cobol-examples/prog007_loja.cob:257:020  IDENTIFIER PROG007_LOJA
+cobol-examples/prog007_loja.cob:257:032  '.'
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog007_loja.cob:012:020 identifier 'PROG007_LOJA' contains '_'
-WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog007_loja.cob:228:020 identifier 'PROG007_LOJA' contains '_'
+WARNING cobol::lexer::underscore_in_identifier cobol-examples/prog007_loja.cob:257:020 identifier 'PROG007_LOJA' contains '_'

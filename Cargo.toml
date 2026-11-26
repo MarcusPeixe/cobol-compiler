@@ -7,6 +7,7 @@ edition = "2024"
 anyhow = "1.0.104"
 clap = { version = "4.6.7", features = ["derive"] }
 miette = { version = "7.6.0", features = ["fancy"] }
+same-file = "1.0.6"
 thiserror = "2.0.21"
 
 [dev-dependencies]

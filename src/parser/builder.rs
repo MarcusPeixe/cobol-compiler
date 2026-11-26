@@ -498,12 +498,15 @@ impl Parser {
                 self.consume_identifier_matching("RECORD");
                 self.consume_identifier_matching("KEY");
                 self.consume_identifier_matching("IS");
-                if let Ok(key) = self.parse_primary_expression() {
-                    entry.alternate_keys.push(key);
+                let expression = self.parse_primary_expression().ok()?;
+                let duplicates = self.consume_identifier_matching("WITH");
+                if duplicates && !self.consume_identifier_matching("DUPLICATES") {
+                    return None;
                 }
-                if self.consume_identifier_matching("WITH") {
-                    self.consume_identifier_matching("DUPLICATES");
-                }
+                entry.alternate_keys.push(AlternateKey {
+                    expression,
+                    duplicates,
+                });
             } else if self.consume_identifier_matching("FILE") {
                 self.consume_identifier_matching("STATUS");
                 self.consume_identifier_matching("IS");
@@ -1320,6 +1323,7 @@ impl Parser {
         &mut self,
         span: Span,
         paragraph: Option<String>,
+        test_after: bool,
     ) -> Result<PerformVarying, ParseError> {
         if !self.consume_identifier_matching("VARYING") {
             return Err(ParseError::InvalidStatement);
@@ -1345,6 +1349,7 @@ impl Parser {
         Ok(PerformVarying {
             span,
             paragraph,
+            test_after,
             variable,
             from,
             by,
@@ -1362,9 +1367,9 @@ impl Parser {
 
     fn parse_perform_statement(&mut self) -> Result<Statement, ParseError> {
         let span = self.expect_keyword(Keyword::Perform)?.span;
-        self.consume_perform_test();
+        let test_after = self.consume_perform_test()?;
         if self.at_perform_option() || self.is_statement_start() || self.at_clause_boundary() {
-            return self.parse_inline_perform(span);
+            return self.parse_inline_perform(span, test_after);
         }
         let (name, _) = self.expect_identifier()?;
         if self.consume_identifier_matching("THRU") || self.consume_identifier_matching("THROUGH") {
@@ -1375,9 +1380,9 @@ impl Parser {
                 span,
             }));
         }
-        self.consume_perform_test();
+        let test_after = self.consume_perform_test()? || test_after;
         if self.is_identifier_at("VARYING") {
-            let varying = self.parse_perform_varying(span, Some(name))?;
+            let varying = self.parse_perform_varying(span, Some(name), test_after)?;
             return Ok(Statement::Perform(PerformStatement::Varying(varying)));
         }
         if self.is_times_option() {
@@ -1394,6 +1399,7 @@ impl Parser {
             Ok(Statement::Perform(PerformStatement::Until {
                 condition: Box::new(condition),
                 paragraph: name,
+                test_after,
                 span,
             }))
         } else {
@@ -1403,17 +1409,26 @@ impl Parser {
         }
     }
 
-    fn consume_perform_test(&mut self) {
+    fn consume_perform_test(&mut self) -> Result<bool, ParseError> {
         if self.is_phrase_at(&["WITH", "TEST"]) {
-            self.pos += 3;
-            self.consume_identifier_matching("BEFORE");
-            self.consume_identifier_matching("AFTER");
+            self.pos += 2;
+            if self.consume_identifier_matching("AFTER") {
+                return Ok(true);
+            }
+            if !self.consume_identifier_matching("BEFORE") {
+                return Err(ParseError::InvalidStatement);
+            }
         }
+        Ok(false)
     }
 
-    fn parse_inline_perform(&mut self, span: Span) -> Result<Statement, ParseError> {
+    fn parse_inline_perform(
+        &mut self,
+        span: Span,
+        test_after: bool,
+    ) -> Result<Statement, ParseError> {
         if self.is_identifier_at("VARYING") {
-            let varying = self.parse_perform_varying(span, None)?;
+            let varying = self.parse_perform_varying(span, None, test_after)?;
             return Ok(Statement::Perform(PerformStatement::Varying(varying)));
         }
         let mut times = None;
@@ -1428,6 +1443,7 @@ impl Parser {
         Ok(Statement::Perform(PerformStatement::Inline(
             PerformInline {
                 span,
+                test_after,
                 times,
                 condition,
                 body,

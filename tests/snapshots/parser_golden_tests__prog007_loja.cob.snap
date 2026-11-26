@@ -84,16 +84,43 @@ Program
                     00000-OPEN-FILE-PRODUTOS
       [3] PERFORM
             00001-MENU-OPCOES until WS-EXIT = 1
-      [4] WRITE
-            record: REGISTRO-CHAVE
-            from: WS-ULTIMO-PID
+      [4] IF
+            condition: WS-FILE-STATUS-PROD-KEY = 0
+            then:
+              [0] CLOSE
+                    files: FD-PRODUTOS-KEY
+              [1] IF
+                    condition: WS-FILE-STATUS-PROD-KEY = 0
+                    then:
+                      [0] OPEN
+                            OUTPUT: FD-PRODUTOS-KEY
+                      [1] IF
+                            condition: WS-FILE-STATUS-PROD-KEY = 0
+                            then:
+                              [0] WRITE
+                                    record: REGISTRO-CHAVE
+                                    from: WS-ULTIMO-PID
+                              [1] IF
+                                    condition: NOT WS-FILE-STATUS-PROD-KEY = 0
+                                    then:
+                                      [0] DISPLAY
+                                            "-- ERRO AO GRAVAR CHAVE -->"
+                                            WS-FILE-STATUS-PROD-KEY
+                              [2] CLOSE
+                                    files: FD-PRODUTOS-KEY
+                            else:
+                              [0] DISPLAY
+                                    "-- ERRO AO ABRIR ARQUIVO DE CHAVES -->"
+                                    WS-FILE-STATUS-PROD-KEY
+                    else:
+                      [0] DISPLAY
+                            "-- ERRO AO FECHAR ARQUIVO DE CHAVES -->"
+                            WS-FILE-STATUS-PROD-KEY
       [5] CLOSE
-            files: FD-PRODUTOS-KEY
-      [6] CLOSE
             files: FD-PRODUTOS
-      [7] DISPLAY
+      [6] DISPLAY
             "BYE"
-      [8] STOP RUN
+      [7] STOP RUN
     Paragraph: 00000-OPEN-FILE-PRODUTOS-KEY
       [0] MOVE
             from: 0
@@ -108,6 +135,15 @@ Program
               [1] READ
                     file: FD-PRODUTOS-KEY
                     into: WS-ULTIMO-PID
+              [2] IF
+                    condition: NOT WS-FILE-STATUS-PROD-KEY = 0
+                    then:
+                      [0] DISPLAY
+                            "-- ERRO AO LER ARQUIVO DE CHAVES -->"
+                            WS-FILE-STATUS-PROD-KEY
+                      [1] MOVE
+                            from: 1
+                            to: WS-EXIT
             else:
               [0] IF
                     condition: WS-FILE-STATUS-PROD-KEY = 35
@@ -150,6 +186,16 @@ Program
               [1] OPEN
                     OUTPUT: FD-PRODUTOS
               [2] IF
+                    condition: WS-FILE-STATUS-PROD = 0
+                    then:
+                      [0] CLOSE
+                            files: FD-PRODUTOS
+                      [1] IF
+                            condition: WS-FILE-STATUS-PROD = 0
+                            then:
+                              [0] OPEN
+                                    I-O: FD-PRODUTOS
+              [3] IF
                     condition: WS-FILE-STATUS-PROD = 0
                     then:
                       [0] MOVE
@@ -329,4 +375,4 @@ Program
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG007_LOJA' contains '_'
-WARNING cobol::lexer::underscore_in_identifier test.cob:228:020 identifier 'PROG007_LOJA' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:257:020 identifier 'PROG007_LOJA' contains '_'

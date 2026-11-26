@@ -47,8 +47,14 @@ pub struct FileControl {
     pub organization: Option<String>,
     pub access_mode: Option<String>,
     pub record_key: Option<Expression>,
-    pub alternate_keys: Vec<Expression>,
+    pub alternate_keys: Vec<AlternateKey>,
     pub file_status: Option<Expression>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AlternateKey {
+    pub expression: Expression,
+    pub duplicates: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -404,6 +410,7 @@ pub enum PerformStatement {
     Until {
         condition: Box<Condition>,
         paragraph: String,
+        test_after: bool,
         span: Span,
     },
     Varying(PerformVarying),
@@ -415,6 +422,7 @@ pub enum PerformStatement {
 pub struct PerformVarying {
     pub span: Span,
     pub paragraph: Option<String>,
+    pub test_after: bool,
     pub variable: Expression,
     pub from: Expression,
     pub by: Expression,
@@ -426,6 +434,7 @@ pub struct PerformVarying {
 #[derive(Debug, Clone, PartialEq)]
 pub struct PerformInline {
     pub span: Span,
+    pub test_after: bool,
     pub times: Option<Expression>,
     pub condition: Option<Condition>,
     pub body: Vec<Statement>,

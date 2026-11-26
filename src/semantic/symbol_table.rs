@@ -80,9 +80,45 @@ impl SymbolTable {
             .map_or(&[], Vec::as_slice)
     }
 
+    pub fn lookup_data_name(&self, name: &str, scope: Scope) -> Vec<&Symbol> {
+        let (base_name, qualifiers) = split_qualified_name(name);
+        self.lookup_all(base_name, scope)
+            .iter()
+            .filter(|symbol| {
+                matches!(symbol.kind, SymbolKind::DataItem | SymbolKind::IndexName)
+                    && qualifiers_match(&symbol.qualifiers, &qualifiers)
+            })
+            .collect()
+    }
+
     pub fn all_symbols(&self) -> impl Iterator<Item = &Symbol> {
         self.symbols.values().flatten()
     }
+}
+
+pub(super) fn split_qualified_name(name: &str) -> (&str, Vec<String>) {
+    let mut parts = name.split_whitespace();
+    let base_name = parts.next().unwrap_or(name);
+    let mut qualifiers = Vec::new();
+    while let Some(connector) = parts.next() {
+        let Some(qualifier) = parts.next() else {
+            break;
+        };
+        if connector.eq_ignore_ascii_case("OF") || connector.eq_ignore_ascii_case("IN") {
+            qualifiers.push(qualifier.to_ascii_uppercase());
+        } else {
+            break;
+        }
+    }
+    (base_name, qualifiers)
+}
+
+pub(super) fn qualifiers_match(declared: &[String], requested: &[String]) -> bool {
+    declared.len() >= requested.len()
+        && declared
+            .iter()
+            .zip(requested)
+            .all(|(declared, requested)| declared.eq_ignore_ascii_case(requested))
 }
 
 pub fn format_symbol_table(symbol_table: &SymbolTable) -> String {
@@ -171,6 +207,9 @@ mod tests {
         assert!(table.declare(second));
         assert_eq!(table.lookup_all("ITEM", Scope::Global).len(), 2);
         assert!(table.lookup("ITEM", Scope::Global).is_none());
+        let matches = table.lookup_data_name("item in group-b", Scope::Global);
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].qualifiers, ["GROUP-B"]);
     }
 
     #[test]

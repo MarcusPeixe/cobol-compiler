@@ -1,0 +1,1495 @@
+---
+source: tests/codegen_golden_tests.rs
+expression: snapshot
+---
+GENERATED C:
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define COB_BIG_CAP 2048
+
+typedef struct {
+    size_t len;
+    unsigned char digit[COB_BIG_CAP];
+} CobBig;
+
+typedef struct {
+    int sign;
+    CobBig numerator;
+    CobBig denominator;
+} CobNum;
+
+typedef struct {
+    unsigned char *data;
+    size_t length;
+    size_t digits;
+    size_t scale;
+    int kind;
+    int is_signed;
+    const char *picture;
+} CobField;
+
+typedef struct {
+    const unsigned char *data;
+    size_t length;
+} CobText;
+
+void cob_fail(const char *message) {
+    fprintf(stderr, "COBOL runtime: %s\n", message);
+    exit(EXIT_FAILURE);
+}
+
+CobBig cob_big_zero(void) {
+    CobBig value = {0};
+    value.len = 1;
+    return value;
+}
+
+CobBig cob_big_one(void) {
+    CobBig value = cob_big_zero();
+    value.digit[0] = 1;
+    return value;
+}
+
+void cob_big_trim(CobBig *value) {
+    while (value->len > 1 && value->digit[value->len - 1] == 0) {
+        --value->len;
+    }
+}
+
+int cob_big_is_zero(const CobBig *value) {
+    return value->len == 1 && value->digit[0] == 0;
+}
+
+int cob_big_compare(const CobBig *left, const CobBig *right) {
+    if (left->len != right->len) {
+        return left->len < right->len ? -1 : 1;
+    }
+    for (size_t i = left->len; i-- > 0;) {
+        if (left->digit[i] != right->digit[i]) {
+            return left->digit[i] < right->digit[i] ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
+int cob_big_add_try(const CobBig *left, const CobBig *right,
+                                  CobBig *result) {
+    CobBig value = cob_big_zero();
+    size_t length = left->len > right->len ? left->len : right->len;
+    unsigned carry = 0;
+    for (size_t i = 0; i < length; ++i) {
+        unsigned sum = carry;
+        if (i < left->len) sum += left->digit[i];
+        if (i < right->len) sum += right->digit[i];
+        value.digit[i] = (unsigned char)(sum % 10);
+        carry = sum / 10;
+    }
+    value.len = length;
+    if (carry != 0) {
+        if (length == COB_BIG_CAP) return 0;
+        value.digit[value.len++] = (unsigned char)carry;
+    }
+    *result = value;
+    return 1;
+}
+
+CobBig cob_big_add(CobBig left, CobBig right) {
+    CobBig result;
+    if (!cob_big_add_try(&left, &right, &result)) {
+        cob_fail("decimal precision exceeded");
+    }
+    return result;
+}
+
+CobBig cob_big_subtract(CobBig left, CobBig right) {
+    CobBig result = left;
+    int borrow = 0;
+    if (cob_big_compare(&left, &right) < 0) {
+        cob_fail("invalid decimal subtraction");
+    }
+    for (size_t i = 0; i < left.len; ++i) {
+        int digit = (int)left.digit[i] - borrow;
+        if (i < right.len) digit -= right.digit[i];
+        if (digit < 0) {
+            digit += 10;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        result.digit[i] = (unsigned char)digit;
+    }
+    cob_big_trim(&result);
+    return result;
+}
+
+int cob_big_multiply_try(const CobBig *left,
+                                       const CobBig *right, CobBig *result) {
+    CobBig value = cob_big_zero();
+    if (cob_big_is_zero(left) || cob_big_is_zero(right)) {
+        *result = value;
+        return 1;
+    }
+    if (left->len + right->len - 1 > COB_BIG_CAP) return 0;
+    value.len = left->len + right->len;
+    if (value.len > COB_BIG_CAP) value.len = COB_BIG_CAP;
+    for (size_t i = 0; i < left->len; ++i) {
+        unsigned carry = 0;
+        for (size_t j = 0; j < right->len; ++j) {
+            size_t position = i + j;
+            if (position >= COB_BIG_CAP) return 0;
+            unsigned product = value.digit[position]
+                + left->digit[i] * right->digit[j] + carry;
+            value.digit[position] = (unsigned char)(product % 10);
+            carry = product / 10;
+        }
+        size_t position = i + right->len;
+        while (carry != 0) {
+            if (position >= COB_BIG_CAP) return 0;
+            unsigned sum = value.digit[position] + carry;
+            value.digit[position++] = (unsigned char)(sum % 10);
+            carry = sum / 10;
+        }
+    }
+    cob_big_trim(&value);
+    *result = value;
+    return 1;
+}
+
+CobBig cob_big_multiply(CobBig left, CobBig right) {
+    CobBig result;
+    if (!cob_big_multiply_try(&left, &right, &result)) {
+        cob_fail("decimal precision exceeded");
+    }
+    return result;
+}
+
+void cob_big_shift(CobBig *value, size_t places) {
+    if (cob_big_is_zero(value) || places == 0) return;
+    if (places > COB_BIG_CAP - value->len) {
+        cob_fail("decimal precision exceeded");
+    }
+    memmove(value->digit + places, value->digit, value->len);
+    memset(value->digit, 0, places);
+    value->len += places;
+}
+
+void cob_big_push(CobBig *value, unsigned digit) {
+    if (cob_big_is_zero(value)) {
+        value->digit[0] = (unsigned char)digit;
+    } else {
+        cob_big_shift(value, 1);
+        value->digit[0] = (unsigned char)digit;
+    }
+}
+
+void cob_big_divmod(const CobBig *dividend,
+                                  const CobBig *divisor,
+                                  CobBig *quotient, CobBig *remainder) {
+    if (cob_big_is_zero(divisor)) cob_fail("division by zero");
+    CobBig q = cob_big_zero();
+    CobBig r = cob_big_zero();
+    q.len = dividend->len;
+    for (size_t i = dividend->len; i-- > 0;) {
+        cob_big_push(&r, dividend->digit[i]);
+        while (cob_big_compare(&r, divisor) >= 0) {
+            r = cob_big_subtract(r, *divisor);
+            ++q.digit[i];
+        }
+    }
+    cob_big_trim(&q);
+    cob_big_trim(&r);
+    *quotient = q;
+    *remainder = r;
+}
+
+CobBig cob_big_half(CobBig value) {
+    unsigned carry = 0;
+    for (size_t i = value.len; i-- > 0;) {
+        unsigned digit = carry * 10 + value.digit[i];
+        value.digit[i] = (unsigned char)(digit / 2);
+        carry = digit % 2;
+    }
+    cob_big_trim(&value);
+    return value;
+}
+
+int cob_big_power_try(CobBig base, unsigned long long exponent,
+                                   CobBig *result) {
+    CobBig value = cob_big_one();
+    while (exponent != 0) {
+        if ((exponent & 1U) != 0 &&
+            !cob_big_multiply_try(&value, &base, &value)) return 0;
+        exponent >>= 1;
+        if (exponent != 0 &&
+            !cob_big_multiply_try(&base, &base, &base)) return 0;
+    }
+    *result = value;
+    return 1;
+}
+
+unsigned long long cob_big_to_unsigned(const CobBig *value) {
+    unsigned long long result = 0;
+    for (size_t i = value->len; i-- > 0;) {
+        if (result > (ULLONG_MAX - value->digit[i]) / 10) {
+            cob_fail("numeric value exceeds runtime limits");
+        }
+        result = result * 10 + value->digit[i];
+    }
+    return result;
+}
+
+CobNum cob_num_make(int sign, CobBig numerator,
+                                 CobBig denominator) {
+    if (cob_big_is_zero(&denominator)) cob_fail("division by zero");
+    if (cob_big_is_zero(&numerator)) {
+        CobNum zero = {0, cob_big_zero(), cob_big_one()};
+        return zero;
+    }
+    CobBig a = numerator;
+    CobBig b = denominator;
+    while (!cob_big_is_zero(&b)) {
+        CobBig quotient, remainder;
+        cob_big_divmod(&a, &b, &quotient, &remainder);
+        a = b;
+        b = remainder;
+    }
+    CobBig quotient, remainder;
+    cob_big_divmod(&numerator, &a, &quotient, &remainder);
+    numerator = quotient;
+    cob_big_divmod(&denominator, &a, &quotient, &remainder);
+    CobNum result = {sign < 0 ? -1 : 1, numerator, quotient};
+    return result;
+}
+
+CobNum cob_num_parse(const char *text, size_t length) {
+    size_t first = 0;
+    size_t last = length;
+    while (first < last && isspace((unsigned char)text[first])) ++first;
+    while (last > first && isspace((unsigned char)text[last - 1])) --last;
+    int sign = 1;
+    if (first < last && (text[first] == '+' || text[first] == '-')) {
+        if (text[first] == '-') sign = -1;
+        ++first;
+    }
+    CobBig numerator = cob_big_zero();
+    CobBig denominator = cob_big_one();
+    size_t scale = 0;
+    int after_point = 0;
+    int saw_digit = 0;
+    for (size_t i = first; i < last; ++i) {
+        unsigned char ch = (unsigned char)text[i];
+        if (ch == '.' && !after_point) {
+            after_point = 1;
+        } else if (ch >= '0' && ch <= '9') {
+            cob_big_push(&numerator, ch - '0');
+            if (after_point) ++scale;
+            saw_digit = 1;
+        } else {
+            cob_fail("invalid numeric input");
+        }
+    }
+    if (!saw_digit) cob_fail("invalid numeric input");
+    cob_big_shift(&denominator, scale);
+    return cob_num_make(sign, numerator, denominator);
+}
+
+CobNum cob_num_integer(long long number) {
+    int sign = number < 0 ? -1 : 1;
+    unsigned long long magnitude = number < 0
+        ? (unsigned long long)(-(number + 1)) + 1
+        : (unsigned long long)number;
+    CobBig numerator = cob_big_zero();
+    numerator.len = 0;
+    do {
+        numerator.digit[numerator.len++] = (unsigned char)(magnitude % 10);
+        magnitude /= 10;
+    } while (magnitude != 0);
+    return cob_num_make(sign, numerator, cob_big_one());
+}
+
+CobNum cob_num_negate(CobNum number) {
+    number.sign = -number.sign;
+    return number;
+}
+
+CobNum cob_num_add(CobNum left, CobNum right) {
+    if (left.sign == 0) return right;
+    if (right.sign == 0) return left;
+    CobBig a = cob_big_multiply(left.numerator, right.denominator);
+    CobBig b = cob_big_multiply(right.numerator, left.denominator);
+    CobBig denominator = cob_big_multiply(left.denominator, right.denominator);
+    if (left.sign == right.sign) {
+        return cob_num_make(left.sign, cob_big_add(a, b), denominator);
+    }
+    if (cob_big_compare(&a, &b) >= 0) {
+        return cob_num_make(left.sign, cob_big_subtract(a, b), denominator);
+    }
+    return cob_num_make(right.sign, cob_big_subtract(b, a), denominator);
+}
+
+CobNum cob_num_subtract(CobNum left, CobNum right) {
+    return cob_num_add(left, cob_num_negate(right));
+}
+
+CobNum cob_num_multiply(CobNum left, CobNum right) {
+    return cob_num_make(left.sign * right.sign,
+        cob_big_multiply(left.numerator, right.numerator),
+        cob_big_multiply(left.denominator, right.denominator));
+}
+
+CobNum cob_num_divide(CobNum left, CobNum right) {
+    if (right.sign == 0) cob_fail("division by zero");
+    return cob_num_make(left.sign * right.sign,
+        cob_big_multiply(left.numerator, right.denominator),
+        cob_big_multiply(left.denominator, right.numerator));
+}
+
+int cob_num_compare(CobNum left, CobNum right) {
+    if (left.sign != right.sign) return left.sign < right.sign ? -1 : 1;
+    if (left.sign == 0) return 0;
+    CobBig a = cob_big_multiply(left.numerator, right.denominator);
+    CobBig b = cob_big_multiply(right.numerator, left.denominator);
+    return left.sign * cob_big_compare(&a, &b);
+}
+
+long long cob_num_to_integer(CobNum value) {
+    CobBig one = cob_big_one();
+    if (cob_big_compare(&value.denominator, &one) != 0) {
+        cob_fail("index must be an integer");
+    }
+    unsigned long long magnitude = cob_big_to_unsigned(&value.numerator);
+    if (magnitude > (unsigned long long)LLONG_MAX) {
+        cob_fail("index exceeds runtime limits");
+    }
+    return value.sign < 0 ? -(long long)magnitude : (long long)magnitude;
+}
+
+size_t cob_index(CobNum value, size_t count) {
+    long long index = cob_num_to_integer(value);
+    if (index < 1 || (unsigned long long)index > count) {
+        cob_fail("table subscript out of bounds");
+    }
+    return (size_t)(index - 1);
+}
+
+long long cob_index_add(long long left, long long right) {
+    if ((right > 0 && left > LLONG_MAX - right) ||
+        (right < 0 && left < LLONG_MIN - right)) {
+        cob_fail("index arithmetic overflow");
+    }
+    return left + right;
+}
+
+long long cob_index_subtract(long long left, long long right) {
+    if ((right > 0 && left < LLONG_MIN + right) ||
+        (right < 0 && left > LLONG_MAX + right)) {
+        cob_fail("index arithmetic overflow");
+    }
+    return left - right;
+}
+
+int cob_power_compare(const CobBig *candidate,
+                                    unsigned long long root,
+                                    const CobBig *denominator,
+                                    const CobBig *limit) {
+    CobBig power, product;
+    if (!cob_big_power_try(*candidate, root, &power) ||
+        !cob_big_multiply_try(&power, denominator, &product)) return 1;
+    return cob_big_compare(&product, limit);
+}
+
+CobNum cob_num_power(CobNum base, CobNum exponent,
+                                  size_t target_scale) {
+    unsigned long long power = cob_big_to_unsigned(&exponent.numerator);
+    unsigned long long root = cob_big_to_unsigned(&exponent.denominator);
+    if (power == 0) return cob_num_integer(1);
+    if (base.sign == 0) {
+        if (exponent.sign < 0) cob_fail("zero to a negative power");
+        return cob_num_integer(0);
+    }
+    if (root != 1 && base.sign < 0) {
+        cob_fail("fractional power of a negative value");
+    }
+    CobBig numerator, denominator;
+    if (!cob_big_power_try(base.numerator, power, &numerator) ||
+        !cob_big_power_try(base.denominator, power, &denominator)) {
+        cob_fail("power precision exceeded");
+    }
+    if (exponent.sign < 0) {
+        CobBig temporary = numerator;
+        numerator = denominator;
+        denominator = temporary;
+    }
+    if (root == 1) {
+        int sign = base.sign < 0 && (power & 1U) != 0 ? -1 : 1;
+        return cob_num_make(sign, numerator, denominator);
+    }
+    if (target_scale != 0 && root > COB_BIG_CAP / target_scale) {
+        cob_fail("power precision exceeded");
+    }
+    cob_big_shift(&numerator, target_scale * (size_t)root);
+    CobBig low = cob_big_zero();
+    CobBig high = cob_big_one();
+    while (cob_power_compare(&high, root, &denominator, &numerator) <= 0) {
+        low = high;
+        CobBig doubled;
+        if (!cob_big_add_try(&high, &high, &doubled)) {
+            cob_fail("power precision exceeded");
+        }
+        high = doubled;
+    }
+    CobBig one = cob_big_one();
+    while (1) {
+        CobBig distance = cob_big_subtract(high, low);
+        if (cob_big_compare(&distance, &one) <= 0) break;
+        CobBig middle = cob_big_half(cob_big_add(low, high));
+        if (cob_power_compare(&middle, root, &denominator, &numerator) <= 0) {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    CobBig scale = cob_big_one();
+    cob_big_shift(&scale, target_scale);
+    return cob_num_make(1, low, scale);
+}
+
+CobField cob_field(unsigned char *data, size_t length,
+                                 size_t digits, size_t scale, int kind,
+                                 int is_signed, const char *picture) {
+    CobField field = {data, length, digits, scale, kind, is_signed, picture};
+    return field;
+}
+
+CobText cob_text(const void *data, size_t length) {
+    CobText text = {(const unsigned char *)data, length};
+    return text;
+}
+
+CobText cob_field_text(CobField field) {
+    return cob_text(field.data, field.length);
+}
+
+CobNum cob_load(CobField field) {
+    CobBig number = cob_big_zero();
+    CobBig denominator = cob_big_one();
+    int sign = 1;
+    if (field.kind == 1) {
+        for (size_t i = 0; i < field.length; ++i) {
+            unsigned char ch = field.data[i];
+            if (field.is_signed && i + 1 == field.length) {
+                const char *overpunch = "pqrstuvwxy";
+                const char *negative = ch == 0 ? NULL : strchr(overpunch, ch);
+                if (negative != NULL) {
+                    sign = -1;
+                    ch = (unsigned char)('0' + (negative - overpunch));
+                }
+            }
+            if (ch < '0' || ch > '9') cob_fail("invalid numeric field");
+            cob_big_push(&number, ch - '0');
+        }
+    } else if (field.kind == 2) {
+        size_t position = 0;
+        for (const char *pic = field.picture; *pic != '\0'; ++pic) {
+            if (*pic == 'S' || *pic == 'V' || *pic == 'P') continue;
+            if (position >= field.length) cob_fail("invalid edited field");
+            unsigned char ch = field.data[position++];
+            if (*pic == '9' || *pic == 'Z' || *pic == '*') {
+                if (ch >= '0' && ch <= '9') cob_big_push(&number, ch - '0');
+                else if (ch == ' ' || ch == '*') cob_big_push(&number, 0);
+                else cob_fail("invalid edited numeric field");
+            } else if ((*pic == '+' || *pic == '-') && ch == '-') {
+                sign = -1;
+            }
+        }
+    } else {
+        cob_fail("non-numeric field used as a number");
+    }
+    cob_big_shift(&denominator, field.scale);
+    return cob_num_make(sign, number, denominator);
+}
+
+int cob_store(CobField field, CobNum number, int keep_on_size) {
+    if ((field.kind != 1 && field.kind != 2) || field.digits == 0 ||
+        field.digits > COB_BIG_CAP) cob_fail("invalid numeric destination");
+    CobBig scaled = number.numerator;
+    cob_big_shift(&scaled, field.scale);
+    CobBig integer, remainder;
+    cob_big_divmod(&scaled, &number.denominator, &integer, &remainder);
+    int overflow = integer.len > field.digits;
+    if (overflow && keep_on_size) return 1;
+    if (field.kind == 1) {
+        if (field.length != field.digits) cob_fail("invalid numeric picture");
+        memset(field.data, '0', field.length);
+        for (size_t i = 0; i < field.digits && i < integer.len; ++i) {
+            field.data[field.length - 1 - i] = (unsigned char)('0' + integer.digit[i]);
+        }
+        if (field.is_signed && number.sign < 0) {
+            unsigned digit = field.data[field.length - 1] - '0';
+            field.data[field.length - 1] = (unsigned char)"pqrstuvwxy"[digit];
+        }
+    } else {
+        unsigned char digits[COB_BIG_CAP];
+        memset(digits, '0', field.digits);
+        for (size_t i = 0; i < field.digits && i < integer.len; ++i) {
+            digits[field.digits - 1 - i] = (unsigned char)('0' + integer.digit[i]);
+        }
+        size_t position = 0;
+        size_t digit = 0;
+        int significant = 0;
+        for (const char *pic = field.picture; *pic != '\0'; ++pic) {
+            if (*pic == 'S' || *pic == 'V' || *pic == 'P') continue;
+            if (position >= field.length) cob_fail("invalid edited picture");
+            if (*pic == '9' || *pic == 'Z' || *pic == '*') {
+                if (digit >= field.digits) cob_fail("invalid edited picture");
+                unsigned char ch = digits[digit++];
+                if (*pic == '9' || ch != '0') significant = 1;
+                field.data[position++] = significant ? ch : (*pic == '*' ? '*' : ' ');
+            } else if (*pic == '+') {
+                field.data[position++] = number.sign < 0 ? '-' : '+';
+            } else if (*pic == '-') {
+                field.data[position++] = number.sign < 0 ? '-' : ' ';
+            } else {
+                field.data[position++] = *pic == 'B' ? ' ' : (unsigned char)*pic;
+            }
+        }
+    }
+    return overflow;
+}
+
+void cob_move_text(CobField destination, CobText source) {
+    size_t length = destination.length < source.length
+        ? destination.length : source.length;
+    memmove(destination.data, source.data, length);
+    memset(destination.data + length, ' ', destination.length - length);
+}
+
+void cob_fill(CobField destination, int byte) {
+    memset(destination.data, byte, destination.length);
+}
+
+unsigned char *cob_copy_text(CobText source) {
+    unsigned char *copy = malloc(source.length == 0 ? 1 : source.length);
+    if (copy == NULL) cob_fail("out of memory");
+    memcpy(copy, source.data, source.length);
+    return copy;
+}
+
+void cob_move_upper(CobField destination, CobText source) {
+    size_t length = destination.length < source.length
+        ? destination.length : source.length;
+    memmove(destination.data, source.data, length);
+    for (size_t i = 0; i < length; ++i) {
+        destination.data[i] = (unsigned char)toupper(destination.data[i]);
+    }
+    memset(destination.data + length, ' ', destination.length - length);
+}
+
+int cob_text_compare(CobText left, CobText right) {
+    size_t length = left.length > right.length ? left.length : right.length;
+    for (size_t i = 0; i < length; ++i) {
+        unsigned char a = i < left.length ? left.data[i] : ' ';
+        unsigned char b = i < right.length ? right.data[i] : ' ';
+        if (a != b) return a < b ? -1 : 1;
+    }
+    return 0;
+}
+
+void cob_display(const char *text, size_t length) {
+    if (fwrite(text, 1, length, stdout) != length) {
+        cob_fail("cannot write to stdout");
+    }
+}
+
+void cob_display_field(CobField field) {
+    if (field.kind == 1 && field.is_signed && field.length != 0) {
+        unsigned char last = field.data[field.length - 1];
+        const char *overpunch = "pqrstuvwxy";
+        const char *negative = last == 0 ? NULL : strchr(overpunch, last);
+        char sign = negative == NULL ? '+' : '-';
+        cob_display(&sign, 1);
+        cob_display((const char *)field.data, field.length - 1);
+        char digit = negative == NULL ? (char)last
+            : (char)('0' + (negative - overpunch));
+        cob_display(&digit, 1);
+    } else {
+        cob_display((const char *)field.data, field.length);
+    }
+}
+
+void cob_display_index(long long value) {
+    char buffer[128];
+    int length = snprintf(buffer, sizeof(buffer), "%lld", value);
+    if (length < 0 || (size_t)length >= sizeof(buffer)) {
+        cob_fail("cannot format index");
+    }
+    cob_display(buffer, (size_t)length);
+}
+
+void cob_accept(CobField field) {
+    if (fflush(stdout) != 0) cob_fail("cannot flush stdout");
+    size_t capacity = 128;
+    size_t length = 0;
+    char *line = malloc(capacity);
+    if (line == NULL) cob_fail("out of memory");
+    int ch;
+    while ((ch = getchar()) != EOF && ch != '\n') {
+        if (length == capacity) {
+            if (capacity > (size_t)-1 / 2) cob_fail("input is too long");
+            capacity *= 2;
+            char *larger = realloc(line, capacity);
+            if (larger == NULL) cob_fail("out of memory");
+            line = larger;
+        }
+        line[length++] = (char)ch;
+    }
+    if (ch == EOF && length == 0) {
+        free(line);
+        cob_fail("end of input during ACCEPT");
+    }
+    if (length != 0 && line[length - 1] == '\r') --length;
+    if (field.kind == 1 || field.kind == 2) {
+        CobNum value = cob_num_parse(line, length);
+        (void)cob_store(field, value, 0);
+    } else {
+        cob_move_text(field, cob_text(line, length));
+    }
+    free(line);
+}
+
+enum {
+    COB_INSPECT_CHARACTERS,
+    COB_INSPECT_ALL,
+    COB_INSPECT_LEADING,
+    COB_INSPECT_FIRST
+};
+
+typedef struct {
+    size_t start;
+    size_t end;
+} CobRegion;
+
+int cob_find(CobText text, CobText pattern, size_t start, size_t end,
+             size_t *position) {
+    if (pattern.length == 0) cob_fail("empty INSPECT pattern");
+    if (pattern.length > end - start) return 0;
+    for (size_t i = start; i <= end - pattern.length; ++i) {
+        if (memcmp(text.data + i, pattern.data, pattern.length) == 0) {
+            *position = i;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+CobRegion cob_inspect_region(CobField target, int has_after, CobText after,
+                             int has_before, CobText before) {
+    CobText text = cob_field_text(target);
+    CobRegion region = {0, target.length};
+    size_t position;
+    if (has_after) {
+        if (!cob_find(text, after, 0, target.length, &position)) {
+            region.start = region.end;
+            return region;
+        }
+        region.start = position + after.length;
+    }
+    if (has_before && cob_find(text, before, region.start, region.end, &position)) {
+        region.end = position;
+    }
+    return region;
+}
+
+void cob_inspect_tally(CobField target, CobField counter, int mode,
+                       CobText pattern, int has_after, CobText after,
+                       int has_before, CobText before) {
+    CobRegion region = cob_inspect_region(target, has_after, after, has_before, before);
+    size_t count = 0;
+    if (mode == COB_INSPECT_CHARACTERS) {
+        count = region.end - region.start;
+    } else {
+        if (pattern.length == 0) cob_fail("empty INSPECT pattern");
+        size_t position = region.start;
+        while (position < region.end && pattern.length <= region.end - position) {
+            if (memcmp(target.data + position, pattern.data, pattern.length) == 0) {
+                ++count;
+                position += pattern.length;
+                if (mode == COB_INSPECT_FIRST) break;
+            } else {
+                if (mode == COB_INSPECT_LEADING) break;
+                ++position;
+            }
+        }
+    }
+    if (count > (size_t)LLONG_MAX) cob_fail("INSPECT count exceeds runtime limits");
+    CobNum result = cob_num_add(cob_load(counter), cob_num_integer((long long)count));
+    (void)cob_store(counter, result, 0);
+}
+
+void cob_inspect_replace(CobField target, int mode, CobText pattern, CobText by,
+                         int has_after, CobText after, int has_before,
+                         CobText before) {
+    CobRegion region = cob_inspect_region(target, has_after, after, has_before, before);
+    if (mode == COB_INSPECT_CHARACTERS) {
+        if (by.length != 1) cob_fail("INSPECT CHARACTERS replacement must have length 1");
+        memset(target.data + region.start, by.data[0], region.end - region.start);
+        return;
+    }
+    if (pattern.length == 0 || pattern.length != by.length) {
+        cob_fail("INSPECT replacement lengths must be equal and nonzero");
+    }
+    unsigned char *pattern_copy = cob_copy_text(pattern);
+    unsigned char *by_copy = cob_copy_text(by);
+    size_t position = region.start;
+    while (position < region.end && pattern.length <= region.end - position) {
+        if (memcmp(target.data + position, pattern_copy, pattern.length) == 0) {
+            memcpy(target.data + position, by_copy, by.length);
+            position += pattern.length;
+            if (mode == COB_INSPECT_FIRST) break;
+        } else {
+            if (mode == COB_INSPECT_LEADING) break;
+            ++position;
+        }
+    }
+    free(by_copy);
+    free(pattern_copy);
+}
+
+void cob_inspect_convert(CobField target, CobText from, CobText to,
+                         int has_after, CobText after, int has_before,
+                         CobText before) {
+    CobRegion region = cob_inspect_region(target, has_after, after, has_before, before);
+    if (from.length != to.length) cob_fail("INSPECT conversion lengths must match");
+    unsigned char *from_copy = cob_copy_text(from);
+    unsigned char *to_copy = cob_copy_text(to);
+    for (size_t i = region.start; i < region.end; ++i) {
+        for (size_t j = 0; j < from.length; ++j) {
+            if (target.data[i] == from_copy[j]) {
+                target.data[i] = to_copy[j];
+                break;
+            }
+        }
+    }
+    free(to_copy);
+    free(from_copy);
+}
+
+enum {
+    COB_FILE_INPUT = 1,
+    COB_FILE_OUTPUT,
+    COB_FILE_IO,
+    COB_FILE_EXTEND
+};
+
+typedef struct {
+    size_t offset;
+    size_t length;
+    size_t digits;
+    size_t scale;
+    int kind;
+    int is_signed;
+} CobKey;
+
+typedef struct {
+    FILE *handle;
+    int mode;
+    int indexed;
+    unsigned char *record;
+    size_t record_size;
+    CobField status;
+    int has_status;
+    const CobKey *keys;
+    size_t key_count;
+} CobFile;
+
+int cob_file_status(CobFile *file, int status) {
+    if (file->has_status) {
+        if (file->status.kind == 0) {
+            char text[3];
+            if (snprintf(text, sizeof(text), "%02d", status) != 2) {
+                cob_fail("invalid file status");
+            }
+            cob_move_text(file->status, cob_text(text, 2));
+        } else {
+            (void)cob_store(file->status, cob_num_integer(status), 0);
+        }
+    }
+    return status;
+}
+
+void cob_file_check(CobFile *file, int status, int handled) {
+    if (status != 0 && !handled && !file->has_status) {
+        fprintf(stderr, "COBOL runtime: unhandled file status %02d\n", status);
+        exit(EXIT_FAILURE);
+    }
+}
+
+char *cob_file_name(CobText assignment) {
+    size_t length = assignment.length;
+    while (length != 0 && assignment.data[length - 1] == ' ') --length;
+    if (length == 0 || memchr(assignment.data, 0, length) != NULL) {
+        cob_fail("invalid file assignment");
+    }
+    char *name = malloc(length + 1);
+    if (name == NULL) cob_fail("out of memory");
+    memcpy(name, assignment.data, length);
+    name[length] = '\0';
+    return name;
+}
+
+int cob_file_open(CobFile *file, CobText assignment, int mode) {
+    if (file->handle != NULL) return cob_file_status(file, 41);
+    char *name = cob_file_name(assignment);
+    const char *open_mode;
+    switch (mode) {
+        case COB_FILE_INPUT: open_mode = "rb"; break;
+        case COB_FILE_OUTPUT: open_mode = file->indexed ? "w+b" : "wb"; break;
+        case COB_FILE_IO: open_mode = "r+b"; break;
+        case COB_FILE_EXTEND: open_mode = file->indexed ? "a+b" : "ab"; break;
+        default:
+            free(name);
+            cob_fail("invalid OPEN mode");
+            return cob_file_status(file, 30);
+    }
+    errno = 0;
+    FILE *handle = fopen(name, open_mode);
+    int saved_errno = errno;
+    free(name);
+    if (handle == NULL) {
+        int status = 30;
+#ifdef ENOENT
+        if ((mode == COB_FILE_INPUT || mode == COB_FILE_IO) && saved_errno == ENOENT) {
+            status = 35;
+        }
+#else
+        (void)saved_errno;
+#endif
+        return cob_file_status(file, status);
+    }
+    file->handle = handle;
+    file->mode = mode;
+    return cob_file_status(file, 0);
+}
+
+int cob_file_close(CobFile *file) {
+    if (file->handle == NULL) return cob_file_status(file, 42);
+    int result = fclose(file->handle);
+    file->handle = NULL;
+    file->mode = 0;
+    return cob_file_status(file, result == 0 ? 0 : 30);
+}
+
+int cob_key_equal(const CobKey *key, const unsigned char *left,
+                  const unsigned char *right) {
+    if (key->kind == 1) {
+        CobField a = cob_field((unsigned char *)(left + key->offset), key->length,
+                               key->digits, key->scale, 1, key->is_signed, "");
+        CobField b = cob_field((unsigned char *)(right + key->offset), key->length,
+                               key->digits, key->scale, 1, key->is_signed, "");
+        return cob_num_compare(cob_load(a), cob_load(b)) == 0;
+    }
+    return memcmp(left + key->offset, right + key->offset, key->length) == 0;
+}
+
+int cob_file_write(CobFile *file) {
+    if (file->handle == NULL ||
+        (file->mode != COB_FILE_OUTPUT && file->mode != COB_FILE_IO &&
+         file->mode != COB_FILE_EXTEND)) return cob_file_status(file, 48);
+    if (file->indexed) {
+        if (fseek(file->handle, 0, SEEK_SET) != 0) return cob_file_status(file, 30);
+        unsigned char *other = malloc(file->record_size);
+        if (other == NULL) cob_fail("out of memory");
+        size_t length;
+        while ((length = fread(other, 1, file->record_size, file->handle)) == file->record_size) {
+            for (size_t i = 0; i < file->key_count; ++i) {
+                if (cob_key_equal(&file->keys[i], file->record, other)) {
+                    free(other);
+                    return cob_file_status(file, 22);
+                }
+            }
+        }
+        free(other);
+        if (length != 0 || ferror(file->handle)) return cob_file_status(file, 30);
+        if (fseek(file->handle, 0, SEEK_END) != 0) return cob_file_status(file, 30);
+    } else if (file->mode == COB_FILE_IO && fseek(file->handle, 0, SEEK_CUR) != 0) {
+        return cob_file_status(file, 30);
+    }
+    if (fwrite(file->record, 1, file->record_size, file->handle) != file->record_size ||
+        fflush(file->handle) != 0) return cob_file_status(file, 30);
+    return cob_file_status(file, 0);
+}
+
+int cob_file_find(CobFile *file, size_t key_index, int position_only) {
+    if (key_index >= file->key_count) return cob_file_status(file, 23);
+    if (fseek(file->handle, 0, SEEK_SET) != 0) return cob_file_status(file, 30);
+    unsigned char *other = malloc(file->record_size);
+    if (other == NULL) cob_fail("out of memory");
+    size_t length;
+    long position = 0;
+    while ((length = fread(other, 1, file->record_size, file->handle)) == file->record_size) {
+        if (cob_key_equal(&file->keys[key_index], file->record, other)) {
+            if (position_only) {
+                if (fseek(file->handle, position, SEEK_SET) != 0) {
+                    free(other);
+                    return cob_file_status(file, 30);
+                }
+            } else {
+                memcpy(file->record, other, file->record_size);
+            }
+            free(other);
+            return cob_file_status(file, 0);
+        }
+        position = ftell(file->handle);
+        if (position < 0) {
+            free(other);
+            return cob_file_status(file, 30);
+        }
+    }
+    free(other);
+    if (length != 0 || ferror(file->handle)) return cob_file_status(file, 30);
+    return cob_file_status(file, 23);
+}
+
+int cob_file_read(CobFile *file, int key_index) {
+    if (file->handle == NULL ||
+        (file->mode != COB_FILE_INPUT && file->mode != COB_FILE_IO)) {
+        return cob_file_status(file, 47);
+    }
+    if (file->indexed && key_index >= 0) {
+        return cob_file_find(file, (size_t)key_index, 0);
+    }
+    if (key_index >= 0) return cob_file_status(file, 23);
+    if (fseek(file->handle, 0, SEEK_CUR) != 0) return cob_file_status(file, 30);
+    size_t length = fread(file->record, 1, file->record_size, file->handle);
+    if (length == file->record_size) return cob_file_status(file, 0);
+    if (length == 0 && feof(file->handle)) return cob_file_status(file, 10);
+    return cob_file_status(file, 30);
+}
+
+int cob_file_start(CobFile *file, size_t key_index) {
+    if (file->handle == NULL ||
+        (file->mode != COB_FILE_INPUT && file->mode != COB_FILE_IO)) {
+        return cob_file_status(file, 47);
+    }
+    if (!file->indexed) return cob_file_status(file, 23);
+    return cob_file_find(file, key_index, 1);
+}
+
+static unsigned char cob_ws[94];
+static unsigned char cob_file_buffer_0[64];
+static unsigned char cob_file_buffer_1[10];
+static const CobKey cob_keys_0[] = {
+    {0, 10, 10, 0, 1, 0},
+    {10, 10, 0, 0, 0, 0},
+};
+static CobFile cob_file_0;
+static CobFile cob_file_1;
+
+static void cob_initialize(void) {
+    memset(cob_ws, ' ', sizeof(cob_ws));
+    memset(cob_file_buffer_0, ' ', sizeof(cob_file_buffer_0));
+    memset(cob_file_buffer_1, ' ', sizeof(cob_file_buffer_1));
+    cob_move_text(cob_field(cob_ws + (0), 7, 0, 0, 0, 0, ""), cob_text("PROG10-", 7));
+    (void)cob_store(cob_field(cob_ws + (7), 3, 3, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (7), 3, 3, 0, 1, 0, ""), cob_num_parse("1", 1), 0);
+    cob_move_text(cob_field(cob_ws + (10), 4, 0, 0, 0, 0, ""), cob_text(".DAT", 4));
+    (void)cob_store(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (18), 10, 10, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (38), 12, 12, 2, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (50), 12, 12, 2, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (82), 1, 1, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_file_buffer_0 + (0), 10, 10, 0, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_file_buffer_0 + (20), 12, 12, 2, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_file_buffer_0 + (32), 12, 12, 2, 1, 0, ""), cob_num_integer(0), 0);
+    (void)cob_store(cob_field(cob_file_buffer_1 + (0), 10, 10, 0, 1, 0, ""), cob_num_integer(0), 0);
+    cob_file_0.record = cob_file_buffer_0;
+    cob_file_0.record_size = 64;
+    cob_file_0.indexed = 1;
+    cob_file_0.keys = cob_keys_0;
+    cob_file_0.key_count = 2;
+    cob_file_0.status = cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "");
+    cob_file_0.has_status = 1;
+    cob_file_1.record = cob_file_buffer_1;
+    cob_file_1.record_size = 10;
+    cob_file_1.indexed = 0;
+    cob_file_1.status = cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "");
+    cob_file_1.has_status = 1;
+}
+
+static void cob_paragraph_0(void);
+static void cob_paragraph_1(void);
+static void cob_paragraph_2(void);
+static void cob_paragraph_3(void);
+static void cob_paragraph_4(void);
+static void cob_paragraph_5(void);
+
+static void cob_paragraph_0(void) {
+    cob_display("PERFORM 00000-OPEN-FILE-PRODUTOS-KEY", 36);
+    cob_display("\n", 1);
+    cob_paragraph_1();
+    if ((cob_num_compare(cob_load(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+        cob_display("PERFORM 00000-OPEN-FILE-PRODUTOS", 32);
+        cob_display("\n", 1);
+        cob_paragraph_2();
+    }
+    while (!((cob_num_compare(cob_load(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, "")), cob_num_parse("1", 1)) == 0))) {
+        cob_paragraph_3();
+    }
+    if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+        {
+            int cob_status_0 = cob_file_close(&cob_file_1);
+            cob_file_check(&cob_file_1, cob_status_0, 0);
+        }
+        if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+            {
+                int cob_status_1 = cob_file_open(&cob_file_1, cob_text("PROG10-001.KEY", 14), COB_FILE_OUTPUT);
+                cob_file_check(&cob_file_1, cob_status_1, 0);
+            }
+            if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+                {
+                    CobNum cob_move_2 = cob_load(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""));
+                    (void)cob_store(cob_field(cob_file_buffer_1 + (0), 10, 10, 0, 1, 0, ""), cob_move_2, 0);
+                }
+                {
+                    int cob_status_3 = cob_file_write(&cob_file_1);
+                    cob_file_check(&cob_file_1, cob_status_3, (0 && cob_status_3 == 10) || (0 && (cob_status_3 == 21 || cob_status_3 == 22 || cob_status_3 == 23)));
+                }
+                if (!((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0))) {
+                    cob_display("-- ERRO AO GRAVAR CHAVE -->", 27);
+                    cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+                    cob_display("\n", 1);
+                }
+                {
+                    int cob_status_4 = cob_file_close(&cob_file_1);
+                    cob_file_check(&cob_file_1, cob_status_4, 0);
+                }
+            } else {
+                cob_display("-- ERRO AO ABRIR ARQUIVO DE CHAVES -->", 38);
+                cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+                cob_display("\n", 1);
+            }
+        } else {
+            cob_display("-- ERRO AO FECHAR ARQUIVO DE CHAVES -->", 39);
+            cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+            cob_display("\n", 1);
+        }
+    }
+    {
+        int cob_status_5 = cob_file_close(&cob_file_0);
+        cob_file_check(&cob_file_0, cob_status_5, 0);
+    }
+    cob_display("BYE", 3);
+    cob_display("\n", 1);
+    exit(EXIT_SUCCESS);
+}
+
+static void cob_paragraph_1(void) {
+    {
+        CobNum cob_move_6 = cob_num_parse("0", 1);
+        (void)cob_store(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""), cob_move_6, 0);
+    }
+    {
+        int cob_status_7 = cob_file_open(&cob_file_1, cob_text("PROG10-001.KEY", 14), COB_FILE_INPUT);
+        cob_file_check(&cob_file_1, cob_status_7, 0);
+    }
+    if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+        cob_display("-- PROG10-001.KEY FOUND", 23);
+        cob_display("\n", 1);
+        {
+            int cob_status_8 = cob_file_read(&cob_file_1, -1);
+            if (cob_status_8 == 0) {
+                {
+                    CobNum cob_move_9 = cob_load(cob_field(cob_file_buffer_1 + (0), 10, 10, 0, 1, 0, ""));
+                    (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_move_9, 0);
+                }
+            }
+            cob_file_check(&cob_file_1, cob_status_8, (0 && cob_status_8 == 10) || (0 && (cob_status_8 == 21 || cob_status_8 == 22 || cob_status_8 == 23)));
+        }
+        if (!((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0))) {
+            cob_display("-- ERRO AO LER ARQUIVO DE CHAVES -->", 36);
+            cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+            cob_display("\n", 1);
+            {
+                CobNum cob_move_10 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_10, 0);
+            }
+        }
+    } else {
+        if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("35", 2)) == 0)) {
+            cob_display("-- PROG10-001.KEY NOT FOUND - CREATING NEW", 42);
+            cob_display("\n", 1);
+            {
+                int cob_status_11 = cob_file_open(&cob_file_1, cob_text("PROG10-001.KEY", 14), COB_FILE_OUTPUT);
+                cob_file_check(&cob_file_1, cob_status_11, 0);
+            }
+            if ((cob_num_compare(cob_load(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+                {
+                    CobNum cob_move_12 = cob_num_parse("0", 1);
+                    (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_move_12, 0);
+                }
+            } else {
+                cob_display("-- ERRO AO CRIAR ARQUIVO DE CHAVES -->", 38);
+                cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+                cob_display("\n", 1);
+                {
+                    CobNum cob_move_13 = cob_num_parse("1", 1);
+                    (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_13, 0);
+                }
+            }
+        } else {
+            cob_display("-- ERRO AO ABRIR ARQUIVO DE CHAVES -->", 38);
+            cob_display_field(cob_field(cob_ws + (16), 2, 2, 0, 1, 0, ""));
+            cob_display("\n", 1);
+            {
+                CobNum cob_move_14 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_14, 0);
+            }
+        }
+    }
+}
+
+static void cob_paragraph_2(void) {
+    {
+        CobNum cob_move_15 = cob_num_parse("0", 1);
+        (void)cob_store(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, ""), cob_move_15, 0);
+    }
+    {
+        int cob_status_16 = cob_file_open(&cob_file_0, cob_field_text(cob_field(cob_ws + (0), 14, 0, 0, 0, 0, "")), COB_FILE_IO);
+        cob_file_check(&cob_file_0, cob_status_16, 0);
+    }
+    if ((cob_num_compare(cob_load(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "")), cob_num_parse("35", 2)) == 0)) {
+        cob_display("-- PROG10-001.DAT NOT FOUND - CREATING NEW", 42);
+        cob_display("\n", 1);
+        {
+            int cob_status_17 = cob_file_open(&cob_file_0, cob_field_text(cob_field(cob_ws + (0), 14, 0, 0, 0, 0, "")), COB_FILE_OUTPUT);
+            cob_file_check(&cob_file_0, cob_status_17, 0);
+        }
+        if ((cob_num_compare(cob_load(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+            {
+                int cob_status_18 = cob_file_close(&cob_file_0);
+                cob_file_check(&cob_file_0, cob_status_18, 0);
+            }
+            if ((cob_num_compare(cob_load(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+                {
+                    int cob_status_19 = cob_file_open(&cob_file_0, cob_field_text(cob_field(cob_ws + (0), 14, 0, 0, 0, 0, "")), COB_FILE_IO);
+                    cob_file_check(&cob_file_0, cob_status_19, 0);
+                }
+            }
+        }
+        if ((cob_num_compare(cob_load(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+            {
+                CobNum cob_move_20 = cob_num_parse("0", 1);
+                (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_move_20, 0);
+            }
+        } else {
+            cob_display("-- ERRO AO CRIAR ARQUIVO DE DADOS -->", 37);
+            cob_display_field(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, ""));
+            cob_display("\n", 1);
+            {
+                CobNum cob_move_21 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_21, 0);
+            }
+        }
+    } else {
+        if ((cob_num_compare(cob_load(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+            cob_display("-- PROG10-001.DAT FOUND", 23);
+            cob_display("\n", 1);
+            if ((cob_num_compare(cob_load(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, "")), cob_num_parse("0", 1)) == 0)) {
+                {
+                    CobNum cob_move_22 = cob_num_parse("0", 1);
+                    (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_move_22, 0);
+                }
+            } else {
+                {
+                    CobNum cob_move_23 = cob_load(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""));
+                    (void)cob_store(cob_field(cob_file_buffer_0 + (0), 10, 10, 0, 1, 0, ""), cob_move_23, 0);
+                }
+                {
+                    int cob_status_24 = cob_file_start(&cob_file_0, 0);
+                    if (cob_status_24 == 21 || cob_status_24 == 22 || cob_status_24 == 23) {
+                        cob_display("ERRO AO REGISTRO", 16);
+                        cob_display("\n", 1);
+                    }
+                    cob_file_check(&cob_file_0, cob_status_24, (0 && cob_status_24 == 10) || (1 && (cob_status_24 == 21 || cob_status_24 == 22 || cob_status_24 == 23)));
+                }
+            }
+        } else {
+            cob_display("-- ERRO AO ABRIR ARQUIVO DE PRODUTOS", 36);
+            cob_display_field(cob_field(cob_ws + (14), 2, 2, 0, 1, 0, ""));
+            cob_display("\n", 1);
+            {
+                CobNum cob_move_25 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_25, 0);
+            }
+        }
+    }
+}
+
+static void cob_paragraph_3(void) {
+    cob_display(" ", 1);
+    cob_display("\n", 1);
+    cob_display("====00001-MENU-OPCOES====", 25);
+    cob_display("\n", 1);
+    cob_display("OPCOES:", 7);
+    cob_display("\n", 1);
+    cob_display("1) ADICIONA PRODUTO", 19);
+    cob_display("\n", 1);
+    cob_display("2) REMOVE PRODUTO - NOT IMPLEMENTED", 35);
+    cob_display("\n", 1);
+    cob_display("3) ATUALIZA PRODUTO - NOT IMPLEMENTED", 37);
+    cob_display("\n", 1);
+    cob_display("4) CONSULTA PRODUTO", 19);
+    cob_display("\n", 1);
+    cob_display(" ", 1);
+    cob_display("\n", 1);
+    cob_display("5) SAIR DO PROGRAMA", 19);
+    cob_display("\n", 1);
+    cob_accept(cob_field(cob_ws + (82), 1, 1, 0, 1, 0, ""));
+    {
+        CobNum cob_subject_26 = cob_load(cob_field(cob_ws + (82), 1, 1, 0, 1, 0, ""));
+        (void)cob_subject_26;
+        if ((cob_num_compare(cob_subject_26, cob_num_parse("1", 1)) == 0)) {
+            cob_paragraph_4();
+        }
+        else if ((cob_num_compare(cob_subject_26, cob_num_parse("2", 1)) == 0)) {
+            cob_display("DELETE", 6);
+            cob_display("\n", 1);
+        }
+        else if ((cob_num_compare(cob_subject_26, cob_num_parse("3", 1)) == 0)) {
+            cob_display("UPDATE", 6);
+            cob_display("\n", 1);
+        }
+        else if ((cob_num_compare(cob_subject_26, cob_num_parse("4", 1)) == 0)) {
+            cob_paragraph_5();
+        }
+        else if ((cob_num_compare(cob_subject_26, cob_num_parse("5", 1)) == 0)) {
+            {
+                CobNum cob_move_27 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_27, 0);
+            }
+        }
+        else {
+            cob_display("OPCAO INVALIDA.", 15);
+            cob_display("\n", 1);
+        }
+    }
+}
+
+static void cob_paragraph_4(void) {
+    cob_display("CRIA UM NOVO PRODUTO", 20);
+    cob_display("\n", 1);
+    cob_display("NOME: ", 6);
+    cob_accept(cob_field(cob_ws + (28), 10, 0, 0, 0, 0, ""));
+    cob_display("VALOR: ", 7);
+    cob_accept(cob_field(cob_ws + (38), 12, 12, 2, 1, 0, ""));
+    cob_display("QUANTIDADE: ", 12);
+    cob_accept(cob_field(cob_ws + (50), 12, 12, 2, 1, 0, ""));
+    cob_display("DESCRICAO: ", 11);
+    cob_accept(cob_field(cob_ws + (62), 20, 0, 0, 0, 0, ""));
+    {
+        CobNum cob_value_28 = cob_num_add(cob_num_integer(0), cob_num_parse("1", 1));
+        (void)cob_store(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""), cob_num_add(cob_load(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, "")), cob_value_28), 0);
+    }
+    {
+        CobNum cob_move_29 = cob_load(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""));
+        (void)cob_store(cob_field(cob_ws + (18), 10, 10, 0, 1, 0, ""), cob_move_29, 0);
+    }
+    cob_display("--------------", 14);
+    cob_display("\n", 1);
+    cob_display_field(cob_field(cob_ws + (18), 64, 0, 0, 0, 0, ""));
+    cob_display("\n", 1);
+    cob_display("--------------", 14);
+    cob_display("\n", 1);
+    {
+        CobText cob_text_30 = cob_field_text(cob_field(cob_ws + (18), 64, 0, 0, 0, 0, ""));
+        unsigned char *cob_copy_30 = cob_copy_text(cob_text_30);
+        cob_text_30 = cob_text(cob_copy_30, cob_text_30.length);
+        cob_move_text(cob_field(cob_file_buffer_0 + (0), 64, 0, 0, 0, 0, ""), cob_text_30);
+        free(cob_copy_30);
+    }
+    {
+        int cob_status_31 = cob_file_write(&cob_file_0);
+        if (cob_status_31 == 0) {
+            cob_display("PRODUTO ARMAZENADO", 18);
+            cob_display("\n", 1);
+        }
+        if (cob_status_31 == 21 || cob_status_31 == 22 || cob_status_31 == 23) {
+            cob_display("CODIGO DE PRODUTO JAH EXISTE", 28);
+            cob_display_field(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""));
+            cob_display("\n", 1);
+            {
+                CobNum cob_move_32 = cob_num_parse("1", 1);
+                (void)cob_store(cob_field(cob_ws + (93), 1, 1, 0, 1, 0, ""), cob_move_32, 0);
+            }
+        }
+        cob_file_check(&cob_file_0, cob_status_31, (0 && cob_status_31 == 10) || (1 && (cob_status_31 == 21 || cob_status_31 == 22 || cob_status_31 == 23)));
+    }
+}
+
+static void cob_paragraph_5(void) {
+    cob_display("CONSULTA PRODUTO", 16);
+    cob_display("\n", 1);
+    cob_display("WS-ULTIMO-PID --> ", 18);
+    cob_display_field(cob_field(cob_ws + (83), 10, 10, 0, 1, 0, ""));
+    cob_display("\n", 1);
+    cob_display("PID: ", 5);
+    cob_display("\n", 1);
+    cob_accept(cob_field(cob_ws + (18), 10, 10, 0, 1, 0, ""));
+    {
+        CobNum cob_move_33 = cob_load(cob_field(cob_ws + (18), 10, 10, 0, 1, 0, ""));
+        (void)cob_store(cob_field(cob_file_buffer_0 + (0), 10, 10, 0, 1, 0, ""), cob_move_33, 0);
+    }
+    {
+        int cob_status_34 = cob_file_read(&cob_file_0, 0);
+        if (cob_status_34 == 0) {
+            {
+                CobText cob_text_35 = cob_field_text(cob_field(cob_file_buffer_0 + (0), 64, 0, 0, 0, 0, ""));
+                unsigned char *cob_copy_35 = cob_copy_text(cob_text_35);
+                cob_text_35 = cob_text(cob_copy_35, cob_text_35.length);
+                cob_move_text(cob_field(cob_ws + (18), 64, 0, 0, 0, 0, ""), cob_text_35);
+                free(cob_copy_35);
+            }
+            cob_display(" ", 1);
+            cob_display("\n", 1);
+            cob_display("NOME: ", 6);
+            cob_display_field(cob_field(cob_ws + (28), 10, 0, 0, 0, 0, ""));
+            cob_display("\n", 1);
+            cob_display("VALOR: ", 7);
+            cob_display_field(cob_field(cob_ws + (38), 12, 12, 2, 1, 0, ""));
+            cob_display("\n", 1);
+            cob_display("QUANTIDADE: ", 12);
+            cob_display_field(cob_field(cob_ws + (50), 12, 12, 2, 1, 0, ""));
+            cob_display("\n", 1);
+            cob_display("DESCRICAO: ", 11);
+            cob_display_field(cob_field(cob_ws + (62), 20, 0, 0, 0, 0, ""));
+            cob_display("\n", 1);
+        }
+        if (cob_status_34 == 21 || cob_status_34 == 22 || cob_status_34 == 23) {
+            cob_display("ERRO AO LOCALIZAR REGISTRO", 26);
+            cob_display("\n", 1);
+        }
+        cob_file_check(&cob_file_0, cob_status_34, (0 && cob_status_34 == 10) || (1 && (cob_status_34 == 21 || cob_status_34 == 22 || cob_status_34 == 23)));
+    }
+}
+
+int main(void) {
+    cob_initialize();
+    cob_paragraph_0();
+    cob_paragraph_1();
+    cob_paragraph_2();
+    cob_paragraph_3();
+    cob_paragraph_4();
+    cob_paragraph_5();
+    return EXIT_SUCCESS;
+}
+
+FIRST RUN:
+PERFORM 00000-OPEN-FILE-PRODUTOS-KEY
+-- PROG10-001.KEY NOT FOUND - CREATING NEW
+PERFORM 00000-OPEN-FILE-PRODUTOS
+-- PROG10-001.DAT NOT FOUND - CREATING NEW
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+CRIA UM NOVO PRODUTO
+NOME: VALOR: QUANTIDADE: DESCRICAO: --------------
+0000000001APPLE     000000001250000000000300FRESH               
+--------------
+PRODUTO ARMAZENADO
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+CONSULTA PRODUTO
+WS-ULTIMO-PID --> 0000000001
+PID: 
+ 
+NOME: APPLE     
+VALOR: 000000001250
+QUANTIDADE: 000000000300
+DESCRICAO: FRESH               
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+BYE
+
+
+SECOND RUN:
+PERFORM 00000-OPEN-FILE-PRODUTOS-KEY
+-- PROG10-001.KEY FOUND
+PERFORM 00000-OPEN-FILE-PRODUTOS
+-- PROG10-001.DAT FOUND
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+CONSULTA PRODUTO
+WS-ULTIMO-PID --> 0000000001
+PID: 
+ 
+NOME: APPLE     
+VALOR: 000000001250
+QUANTIDADE: 000000000300
+DESCRICAO: FRESH               
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+CRIA UM NOVO PRODUTO
+NOME: VALOR: QUANTIDADE: DESCRICAO: --------------
+0000000002PEAR      000000000275000000000500SWEET               
+--------------
+PRODUTO ARMAZENADO
+ 
+====00001-MENU-OPCOES====
+OPCOES:
+1) ADICIONA PRODUTO
+2) REMOVE PRODUTO - NOT IMPLEMENTED
+3) ATUALIZA PRODUTO - NOT IMPLEMENTED
+4) CONSULTA PRODUTO
+ 
+5) SAIR DO PROGRAMA
+BYE
+
+
+PROG10-001.DAT:
+0000000001APPLE     000000001250000000000300FRESH               0000000002PEAR      000000000275000000000500SWEET               
+
+PROG10-001.KEY:
+0000000002

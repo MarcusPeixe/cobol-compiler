@@ -20,7 +20,7 @@ A COBOL compiler in Rust, built in phases. Each phase is its own module with com
 - **Agents do not commit:** After implementing changes, do not create commits. Instead, summarize what you've changed **directly in the chat** (not in `/tmp/` or other temp files) and let the user manually commit using `jj commit`. This preserves user control over versioning and commit messages.
 - Never do: add `--format` options to the CLI, treat `cobol-examples/` as spec-conformant (they target GnuCOBOL), or hand-edit goldens without checking the diff against the lexer's real output; create summaries in temporary files like `/tmp/`.
 - Every new module needs unit tests. Each module is a directory with `mod.rs` for the code and a sibling `tests.rs` for its tests, declared at the bottom of `mod.rs` with `#[cfg(test)] mod tests;`. Single-purpose submodules (`lexer/scanner/`, `lexer/token/`, `source/reader/`) follow the same pattern.
-- Integration tests live in `tests/`; lexer regression goldens are under `tests/lexer-goldens/` and are exercised automatically by `cargo test`. Golden output contains the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
+- Integration tests live in `tests/`; insta snapshots are under `tests/snapshots/`. Lexer goldens contain the token listing followed by a plain `DIAGNOSTICS:` section with deterministic warning records; errors fail the integration test.
 - Library crate (`src/lib.rs`) plus a thin binary (`src/main.rs`). New phases get their own module and their own CLI subcommand (`cobol-compiler lex <file>`, and so on).
 
 ## Layout
@@ -35,8 +35,11 @@ src/preprocess/             COPY expansion (runs before the lexer)
 src/lexer/                  module root, re-exports the public API
 src/lexer/token/            token types
 src/lexer/scanner/          lexing
+src/parser/                 AST, parsing and complete AST formatter
+src/semantic/               checks, symbol table and storage layout
+src/codegen/                standalone C11 generation and embedded runtime
 tests/                      integration tests
-tests/lexer-goldens/        expected token output for professor example programs
+tests/snapshots/            insta golden output
 ```
 
 Each directory above holds `mod.rs` plus `tests.rs` (except `src/lexer/`, which only re-exports).
@@ -48,7 +51,7 @@ typst-src/                   Typst report source files (except example.typ)
 cobol-examples/             the professor's example programs (git subtree); they target GnuCOBOL, not strictly the spec
 ```
 
-Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> tokens.
+Pipeline: source file -> fixed-format reader -> `COPY` preprocessor -> lexer -> parser -> semantic analysis -> standalone C11.
 
 ## Conventions
 
@@ -98,16 +101,25 @@ Parser:
 - Procedure statements support `PERFORM ... UNTIL`, `COMPUTE target = expression`, intrinsic `FUNCTION name(arguments)` expressions, and abbreviated relational conditions such as `item = "A" OR "B"`.
 - Qualified data references using `OF` or `IN` are retained in the identifier expression.
 - **Error recovery:** Unsupported or malformed syntax produces a source-spanned `cobol::parser::unsupported_syntax` or `cobol::parser::parse_error` diagnostic. Recovery synchronizes at later divisions, `WORKING-STORAGE`, statement starts, sentence periods, and control-flow boundaries so later declarations and statements can still be parsed. Skipped syntax is diagnosed, not represented as successfully parsed AST nodes. All `prog001`–`prog007` examples parse without errors; the recovery path is exercised by `parser_test_unsupported_recovery.cob` (uses `CALL ... USING` and `UNSTRING`, which are unsupported; update the fixture if either gets implemented).
-- Beyond the spec, valid COBOL used by the examples is implemented: `FILE-CONTROL`/`SELECT` (ASSIGN, ORGANIZATION, ACCESS MODE, RECORD/ALTERNATE KEY, FILE STATUS), FD with `BLOCK`/`RECORD CONTAINS` and record layouts, `OCCURS n [TIMES]`, `INDEXED BY`, subscripts `NAME(i[, j])`, figurative constants as expressions, `DISPLAY ... WITH NO ADVANCING`, and the statements `SET`, `SEARCH` (AT END/WHEN), `INSPECT` (TALLYING/REPLACING/CONVERTING with BEFORE/AFTER), `EVALUATE` (subject value or `TRUE`/`FALSE`, stacked `WHEN`s, `THRU` ranges, `ANY`, `WHEN OTHER`; `EvaluateChoice` in the AST), `SEARCH ALL`, `INITIALIZE`, reference modification `NAME(start:[length])` (`Expression::RefMod`), `WRITE ... BEFORE|AFTER ADVANCING n LINES|PAGE`, `OPEN`, `CLOSE`, `READ`, `WRITE`, `START` with AT END / INVALID KEY handlers. `PERFORM` supports the plain form, `THRU`/`THROUGH`, `n TIMES`, `UNTIL`, `VARYING ... FROM ... BY ... UNTIL` (paragraph or inline) and inline bodies with `END-PERFORM`; `WITH TEST BEFORE|AFTER` is accepted and ignored. Not supported: `EVALUATE ... ALSO`, `PERFORM ... AFTER` (nested varying), `PERFORM THRU` combined with TIMES/UNTIL/VARYING, `A(i)(a:b)`.
-- **Target backend (phase 4):** generate MIPS assembly for the MARS simulator (not C). `mars-mips` is in `flake.nix`; inside `nix develop` the binary is `Mars`.
+- Beyond the spec, valid COBOL used by the examples is implemented: `FILE-CONTROL`/`SELECT` (ASSIGN, ORGANIZATION, ACCESS MODE, RECORD/ALTERNATE KEY, FILE STATUS), FD with `BLOCK`/`RECORD CONTAINS` and record layouts, `OCCURS n [TIMES]`, `INDEXED BY`, subscripts `NAME(i[, j])`, figurative constants as expressions, `DISPLAY ... WITH NO ADVANCING`, and the statements `SET`, `SEARCH` (AT END/WHEN), `INSPECT` (TALLYING/REPLACING/CONVERTING with BEFORE/AFTER), `EVALUATE` (subject value or `TRUE`/`FALSE`, stacked `WHEN`s, `THRU` ranges, `ANY`, `WHEN OTHER`; `EvaluateChoice` in the AST), `SEARCH ALL`, `INITIALIZE`, reference modification `NAME(start:[length])` (`Expression::RefMod`), `WRITE ... BEFORE|AFTER ADVANCING n LINES|PAGE`, `OPEN`, `CLOSE`, `READ`, `WRITE`, `START` with AT END / INVALID KEY handlers. The AST retains `WITH DUPLICATES` on alternate keys and `WITH TEST BEFORE|AFTER` on applicable `PERFORM` forms. `PERFORM` supports the plain form, `THRU`/`THROUGH`, `n TIMES`, `UNTIL`, `VARYING ... FROM ... BY ... UNTIL` (paragraph or inline) and inline bodies with `END-PERFORM`. Not supported: `EVALUATE ... ALSO`, `PERFORM ... AFTER` (nested varying), `PERFORM THRU` combined with TIMES/UNTIL/VARYING, `A(i)(a:b)`.
 - The AST dump lives in `src/parser/printer.rs` (`format_program`), shared by the CLI and the parser golden tests.
 - Edited pictures (`Z`, `*`, `$`, `+`, `-`, `B`, `0`, `/`, `,`, `.`) are accepted by the semantic picture check; `Z` makes the item numeric.
+
+Code generation:
+
+- **Target:** `src/codegen/` lowers the analyzed AST directly to one standalone C11 translation unit, embedding `runtime.c`; no separate runtime or math library is needed. `generate(&AnalyzedProgram)` returns C or source-spanned `cobol::codegen::unsupported` diagnostics. The seven examples are supported, but this is not yet a complete COBOL backend.
+- **Storage and decimal arithmetic:** fixed-width DISPLAY bytes use the semantic layout. Signed negatives use `p` through `y` as overpunched last digits; signed DISPLAY prints a leading sign. Basic arithmetic uses exact decimal rational intermediates, truncating to the receiving picture. `ON SIZE ERROR` retains the affected destination on overflow or division by zero. Fractional powers use integer root comparisons at the receiving scale; intermediate precision is limited to 2,048 decimal digits, and invalid domains or insufficient precision terminate explicitly.
+- **Pictures and control flow:** supported numeric editing uses `9`, leading `Z` or `*`, one decimal point or `V`, and at most one fixed leading or trailing sign. Paragraph `PERFORM` and `PERFORM ... UNTIL` (including `WITH TEST AFTER`), `IF`, value-subject `EVALUATE`, `SEARCH`, and the example `INSPECT` forms are lowered directly; unimplemented variants are diagnosed.
+- **Files:** sequential and indexed files contain raw fixed-length records, without delimiters or indexes in the file. Indexed lookup scans records; primary and alternate keys must be unique. This project-specific format is not GnuCOBOL-compatible. Indexed files require DYNAMIC or RANDOM access; keyed `READ` and `START ... KEY EQUAL` with DYNAMIC access are supported, not indexed sequential reads, duplicate alternate keys, or indexed `OPEN EXTEND`. Missing INPUT/I-O files return status 35 when `ENOENT` is available; otherwise open failures return 30. Unhandled file errors terminate explicitly.
+- **Other limitations:** `GO TO`, `PERFORM THRU`/`TIMES`/`VARYING`/inline, `SEARCH ALL`/`VARYING`, `INITIALIZE`, reference modification, `EVALUATE TRUE/FALSE`, `WRITE ADVANCING`, PICTURE `P` or complex editing, nested exponentiation, text-to-numeric MOVE, computed numeric-to-text MOVE, and intrinsic functions other than `UPPER-CASE` are not generated.
+- **Tests:** `tests/codegen_golden_tests.rs` snapshots complete generated C and byte-escaped output, compiles with `cc -std=c11 -pedantic-errors -Wall -Wextra -Werror`, and executes all seven examples in isolated directories. `cc` is required; tests do not skip when it is missing. The `prog007` fixture reopens new product files in I-O mode and reopens its key file for OUTPUT before persisting the ID.
 
 CLI:
 
 - `cobol-compiler lex <file> [-I dir]... [--debug-lines]`. Output is plain text, one token per line: `file:line:col<TAB>TOKEN`. There is no `--format` option. Diagnostics go to stderr, and the exit code is non-zero if any error occurred.
 - `cobol-compiler parse <file> [-I dir]... [--debug-lines]`. Output is a pretty-printed AST. Diagnostics go to stderr.
 - `cobol-compiler analyze <file> [-I dir]... [--debug-lines]`. Output is a pretty-printed AST followed by symbol table and diagnostics. Exit code is non-zero if semantic errors occur.
+- `cobol-compiler codegen <file> [-I dir]... [--debug-lines] [-o file]`. C is written to stdout unless `-o` is provided. Warnings go to stderr; any compiler error suppresses C output and leaves the output file untouched. Output cannot refer to the input file, including through a hard link.
 
 Semantic analysis:
 
@@ -130,5 +142,5 @@ Semantic analysis:
 - Lexer warnings do not fail lexing (exit code 0); lexer errors do and also fail the golden test.
 - A literal continuation pads the previous line to column 72; an unterminated string stops at end of line.
 - Comment-entry text ends at the first `.` followed by whitespace, so `Enio B. Basso` would end early.
-- Changing lexer output requires reviewing and updating `tests/lexer-goldens/` (there is no automatic regenerate mode yet).
-- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`, `cobol::parser::{parse_error, unsupported_syntax}`, `cobol::semantic::{identifier_duplicate, ambiguous_identifier, move_incompatible, undefined_identifier, undefined_paragraph, file_not_declared, invalid_picture, type_mismatch, numeric_operand_required, subscript_on_non_table, subscript_count, invalid_occurs, value_type_mismatch, value_too_long, group_with_picture, missing_picture, not_a_record, search_requires_table}`.
+- Changing lexer output requires reviewing the corresponding insta snapshots in `tests/snapshots/`.
+- Diagnostic codes in use: `cobol::source::{invalid_indicator, bad_continuation}`, `cobol::lexer::{illegal_character, unterminated_string, trailing_hyphen, identifier_too_long, underscore_in_identifier, missing_picture}`, `cobol::preprocess::{copybook_error, recursive_copy, missing_name, missing_period, replacing_unsupported}`, `cobol::parser::{parse_error, unsupported_syntax}`, `cobol::codegen::unsupported`, `cobol::semantic::{identifier_duplicate, ambiguous_identifier, move_incompatible, undefined_identifier, undefined_paragraph, file_not_declared, invalid_picture, type_mismatch, numeric_operand_required, subscript_on_non_table, subscript_count, invalid_occurs, value_type_mismatch, value_too_long, group_with_picture, missing_picture, not_a_record, search_requires_table}`.

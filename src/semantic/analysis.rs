@@ -9,7 +9,9 @@ use crate::source::Span;
 
 use super::errors;
 use super::layout::{StorageLayout, compute_layout, picture_info};
-use super::symbol_table::{Scope, Symbol, SymbolKind, SymbolTable};
+use super::symbol_table::{
+    Scope, Symbol, SymbolKind, SymbolTable, qualifiers_match, split_qualified_name,
+};
 use super::type_system::{
     DataType, can_operate_arithmetic, is_move_compatible, is_valid_picture, parse_picture,
 };
@@ -80,14 +82,9 @@ impl<'a> SemanticAnalyzer<'a> {
     }
 
     fn matching_data_items(&self, name: &str) -> Vec<Symbol> {
-        let (base_name, qualifiers) = split_qualified_name(name);
         self.symbol_table
-            .lookup_all(base_name, Scope::Global)
-            .iter()
-            .filter(|symbol| {
-                matches!(symbol.kind, SymbolKind::DataItem | SymbolKind::IndexName)
-                    && qualifiers_match(&symbol.qualifiers, &qualifiers)
-            })
+            .lookup_data_name(name, Scope::Global)
+            .into_iter()
             .cloned()
             .collect()
     }
@@ -265,7 +262,7 @@ impl<'a> SemanticAnalyzer<'a> {
                 .assign_to
                 .iter()
                 .chain(&control.record_key)
-                .chain(&control.alternate_keys)
+                .chain(control.alternate_keys.iter().map(|key| &key.expression))
                 .chain(&control.file_status)
             {
                 self.expression_type(expression);
@@ -411,6 +408,7 @@ impl<'a> SemanticAnalyzer<'a> {
                     condition,
                     paragraph,
                     span,
+                    ..
                 } => {
                     self.validate_condition(condition);
                     self.check_paragraph(paragraph, *span);
@@ -804,31 +802,6 @@ fn data_type_name(data_type: DataType) -> &'static str {
         DataType::Alphabetic => "alphabetic",
         DataType::Alphanumeric => "alphanumeric",
     }
-}
-
-fn split_qualified_name(name: &str) -> (&str, Vec<String>) {
-    let mut parts = name.split_whitespace();
-    let base_name = parts.next().unwrap_or(name);
-    let mut qualifiers = Vec::new();
-    while let Some(connector) = parts.next() {
-        let Some(qualifier) = parts.next() else {
-            break;
-        };
-        if connector.eq_ignore_ascii_case("OF") || connector.eq_ignore_ascii_case("IN") {
-            qualifiers.push(qualifier.to_ascii_uppercase());
-        } else {
-            break;
-        }
-    }
-    (base_name, qualifiers)
-}
-
-fn qualifiers_match(declared: &[String], requested: &[String]) -> bool {
-    declared.len() >= requested.len()
-        && declared
-            .iter()
-            .zip(requested)
-            .all(|(declared, requested)| declared.eq_ignore_ascii_case(requested))
 }
 
 fn is_arithmetic_operator(operator: BinaryOperator) -> bool {
