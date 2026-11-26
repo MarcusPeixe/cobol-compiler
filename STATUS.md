@@ -7,7 +7,7 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 | 1. Lexer (with fixed-format reader and `COPY` preprocessor) | Done (101 unit tests + golden test over the 7 examples) |
 | 2. Parser | Done (108 unit tests + 26 file-based golden tests using `insta`; full AST pretty-printing; all `prog001`–`prog007` parse cleanly) |
 | 3. Semantic analysis | Done (20 unit tests covering 8 semantic checks; CLI analyze subcommand added; 17 golden tests via `insta` snapshots) |
-| 4. Code generation | In progress (MIPS for MARS; `prog001`–`prog003` run correctly; `compile` CLI; 4 asm golden + 4 Mars end-to-end tests + 2 unit tests) |
+| 4. Code generation | In progress (MIPS for MARS; `prog001`–`prog007` compile and run, with seeded files for `prog007`; `compile` CLI; asm goldens and Mars end-to-end tests) |
 
 ## Deliverables
 
@@ -17,11 +17,19 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 
 ## Next steps
 
-- Code generation (phase 4): implement the remaining unsupported constructs (see AGENTS.md): file I/O (MARS syscalls 13–16), SEARCH, INSPECT, INITIALIZE, DIVIDE without GIVING, OCCURS/subscript tests, then `prog004`–`prog007`. Add `codegen_test_*.cob` fixtures and Mars run tests as each lands.
+- Code generation (phase 4): address the remaining limitations below and extend `codegen_test_*.cob` fixtures and Mars run tests as each lands. See [AGENTS.md](AGENTS.md) for supported behavior and backend decisions.
 - Report: Parser and Semantic Analysis reports need to be written in Typst and compiled to PDF.
+
+## Remaining codegen limitations
+
+- Relative files and indexed `WRITE` with advancement are unsupported. Indexed files use this compiler's raw fixed-record format, not GnuCOBOL's indexed-file format.
+- `prog007` requires pre-existing `PROG10-001.KEY` and `PROG10-001.DAT` files. MARS does not distinguish missing files from other open failures, so the backend reports status `30` rather than the `35` expected by the program's fresh-file path.
+- Wide exponentiation and text-to-numeric `MOVE` are unsupported. Nested wide arithmetic has a 512-digit intermediate precision limit; other arithmetic uses 32-bit scaled integers.
+- `SEARCH ALL` uses a linear scan; subscripted search table names are rejected. Numeric editing does not support floating insertion.
+- MARS indexed-file nodes are allocated without reclamation across repeated opens.
 
 ## Open questions
 
 - Semantic checks still skip: `INSPECT`/`SET` operand types, READ key fields, subscript index values vs `OCCURS` bounds, `READ ... INTO` compatibility, and level-88/`REDEFINES` (not parsed).
 - Remaining parser gaps (not needed by `prog001`–`prog007`): `EVALUATE ... ALSO`, `PERFORM ... AFTER`, `PERFORM THRU` with TIMES/UNTIL/VARYING, `A(i)(a:b)`, `CALL`, `STRING`/`UNSTRING`.
-- Phase 4 backend is MIPS assembly for MARS (`Mars` in the dev shell). Storage layout is done (DISPLAY-only, byte per position); codegen covers DISPLAY, ACCEPT, MOVE, arithmetic, IF, PERFORM, GO TO, EVALUATE and SET; file I/O is deferred. Arithmetic is limited to 32-bit ints (about 9 digits).
+- Phase 4 backend is MIPS assembly for MARS (`Mars` in the dev shell). Storage layout is DISPLAY-only, one byte per position. See [AGENTS.md](AGENTS.md) for implemented codegen and the remaining limitations.

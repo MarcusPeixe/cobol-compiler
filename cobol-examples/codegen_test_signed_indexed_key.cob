@@ -1,0 +1,78 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SIGNED-INDEXED-KEY.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT DATA-FILE ASSIGN TO "SIGNED.DAT"
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS DYNAMIC
+               RECORD KEY IS RECORD-ID
+               ALTERNATE RECORD KEY IS RECORD-ALT
+                   WITH DUPLICATES
+               FILE STATUS IS WS-STATUS.
+       DATA DIVISION.
+       FILE SECTION.
+       FD DATA-FILE.
+       01 DATA-RECORD.
+           05 RECORD-ID PIC S99.
+           05 RECORD-ALT PIC S99.
+       WORKING-STORAGE SECTION.
+       77 WS-STATUS PIC 99.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           OPEN OUTPUT DATA-FILE.
+           MOVE -2 TO RECORD-ID.
+           MOVE -1 TO RECORD-ALT.
+           WRITE DATA-RECORD.
+           MOVE 1 TO RECORD-ID.
+           MOVE -1 TO RECORD-ALT.
+           WRITE DATA-RECORD.
+           DISPLAY "ALT-DUP=" WS-STATUS.
+           MOVE -10 TO RECORD-ID.
+           MOVE 2 TO RECORD-ALT.
+           WRITE DATA-RECORD.
+           MOVE 0 TO RECORD-ID.
+           MOVE -2 TO RECORD-ALT.
+           WRITE DATA-RECORD.
+           MOVE "0p01" TO DATA-RECORD.
+           WRITE DATA-RECORD
+               INVALID KEY DISPLAY "ZERO-DUP=" WS-STATUS
+           END-WRITE.
+           CLOSE DATA-FILE.
+           OPEN INPUT DATA-FILE.
+           READ DATA-FILE
+               NOT AT END DISPLAY "ORDER=" RECORD-ID
+           END-READ.
+           READ DATA-FILE
+               NOT AT END DISPLAY "ORDER=" RECORD-ID
+           END-READ.
+           READ DATA-FILE
+               NOT AT END DISPLAY "ORDER=" RECORD-ID
+           END-READ.
+           READ DATA-FILE
+               NOT AT END DISPLAY "ORDER=" RECORD-ID
+           END-READ.
+           READ DATA-FILE AT END DISPLAY "END=" WS-STATUS END-READ.
+           MOVE -2 TO RECORD-ID.
+           START DATA-FILE KEY GREATER THAN RECORD-ID
+               INVALID KEY DISPLAY "BAD-START"
+           END-START.
+           READ DATA-FILE
+               NOT AT END DISPLAY "GREATER=" RECORD-ID
+           END-READ.
+           MOVE -2 TO RECORD-ID.
+           START DATA-FILE KEY LESS THAN OR EQUAL TO RECORD-ID
+               INVALID KEY DISPLAY "BAD-START"
+           END-START.
+           READ DATA-FILE
+               NOT AT END DISPLAY "LESS-EQUAL=" RECORD-ID
+           END-READ.
+           MOVE -1 TO RECORD-ALT.
+           READ DATA-FILE RECORD KEY RECORD-ALT
+               NOT INVALID KEY DISPLAY "ALT=" RECORD-ID ":" WS-STATUS
+           END-READ.
+           READ DATA-FILE
+               NOT AT END DISPLAY "ALT-NEXT=" RECORD-ID ":" WS-STATUS
+           END-READ.
+           CLOSE DATA-FILE.
+           STOP RUN.

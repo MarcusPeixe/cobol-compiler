@@ -103,10 +103,17 @@ impl<'a> Generator<'a> {
             self.unsupported(span, &format!("data reference {name}"));
             return None;
         };
-        if resolved.file.is_some() {
-            self.unsupported(span, "file record access");
-            return None;
-        }
+        let base = match resolved.file {
+            Some(file) => {
+                let Some(number) = self.layout.files.iter().position(|item| item.name == file)
+                else {
+                    self.unsupported(span, &format!("missing layout for file {file}"));
+                    return None;
+                };
+                format!("file_buf_{number}")
+            }
+            None => "ws".to_string(),
+        };
         let item = resolved.item();
         let mut offset = item.offset as i64;
         let mut dynamic = 0;
@@ -128,9 +135,9 @@ impl<'a> Generator<'a> {
             }
         }
         if offset == 0 {
-            self.emit("la $a0, ws");
+            self.emit(format!("la $a0, {base}"));
         } else {
-            self.emit(format!("la $a0, ws+{offset}"));
+            self.emit(format!("la $a0, {base}+{offset}"));
         }
         for _ in 0..dynamic {
             self.pop("$t0");
@@ -183,6 +190,10 @@ impl<'a> Generator<'a> {
                 };
                 if class_of(item) != Class::Plain {
                     self.unsupported(*span, &format!("non-numeric item {name} in arithmetic"));
+                    return 0;
+                }
+                if item.picture.as_ref().is_some_and(|info| info.digits > 9) {
+                    self.unsupported(*span, &format!("wide numeric item {name} in arithmetic"));
                     return 0;
                 }
                 let info = item.picture.as_ref().map_or(0, |info| info.scale);
@@ -431,6 +442,7 @@ impl<'a> Generator<'a> {
         }
         let skip = self.new_label("skip");
         if class == Class::Edited {
+            self.edit_digits_size = self.edit_digits_size.max(info.digits);
             self.pop("$a2");
             let pattern = self.literal(info.pattern.as_bytes());
             self.emit(format!("la $a1, {pattern}"));
@@ -492,6 +504,12 @@ impl<'a> Generator<'a> {
         jump_if: bool,
         span: Span,
     ) {
+        if self.kind(left) != Kind::Text
+            && self.kind(right) != Kind::Text
+            && self.wide_relation(left, op, right, label, jump_if, span)
+        {
+            return;
+        }
         let op = if jump_if { op } else { negate(op) };
         let text = self.kind(left) == Kind::Text || self.kind(right) == Kind::Text;
         if text {

@@ -1,0 +1,24 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CODEGEN-SEARCH.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-TABLE.
+          05 WS-ENTRY OCCURS 3 TIMES INDEXED BY WS-INDEX.
+             10 WS-ITEM PIC X.
+       77 WS-COUNT PIC 9 VALUE ZERO.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE "ABC" TO WS-TABLE.
+           SET WS-INDEX TO 1.
+           SEARCH WS-ENTRY VARYING WS-COUNT
+               AT END DISPLAY "NOT FOUND"
+               WHEN WS-ITEM(WS-INDEX) = "B"
+                   DISPLAY "FOUND " WS-INDEX " " WS-COUNT
+           END-SEARCH.
+           SET WS-INDEX TO 1.
+           SEARCH WS-ENTRY
+               AT END DISPLAY "END " WS-INDEX
+               WHEN WS-ITEM(WS-INDEX) = "Z"
+                   DISPLAY "UNEXPECTED"
+           END-SEARCH.
+           STOP RUN.

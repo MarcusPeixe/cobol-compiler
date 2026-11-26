@@ -47,8 +47,14 @@ pub struct FileControl {
     pub organization: Option<String>,
     pub access_mode: Option<String>,
     pub record_key: Option<Expression>,
-    pub alternate_keys: Vec<Expression>,
+    pub alternate_keys: Vec<AlternateKey>,
     pub file_status: Option<Expression>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AlternateKey {
+    pub expression: Expression,
+    pub duplicates: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -349,6 +355,8 @@ pub struct DivideStatement {
     pub span: Span,
     pub dividend: Expression,
     pub divisor: Expression,
+    /// Receiving operands of `DIVIDE ... INTO ...` without `GIVING`.
+    pub into_targets: Vec<Expression>,
     pub giving: Vec<Expression>,
     pub remainder: Option<Expression>,
     pub on_size_error: Vec<Statement>,

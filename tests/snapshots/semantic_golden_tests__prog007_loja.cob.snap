@@ -84,16 +84,30 @@ Program
                     00000-OPEN-FILE-PRODUTOS
       [3] PERFORM
             00001-MENU-OPCOES until WS-EXIT = 1
-      [4] WRITE
-            record: REGISTRO-CHAVE
-            from: WS-ULTIMO-PID
+      [4] IF
+            condition: WS-FILE-STATUS-PROD-KEY = 0
+            then:
+              [0] CLOSE
+                    files: FD-PRODUTOS-KEY
+              [1] OPEN
+                    OUTPUT: FD-PRODUTOS-KEY
+              [2] IF
+                    condition: WS-FILE-STATUS-PROD-KEY = 0
+                    then:
+                      [0] WRITE
+                            record: REGISTRO-CHAVE
+                            from: WS-ULTIMO-PID
+                      [1] CLOSE
+                            files: FD-PRODUTOS-KEY
+                    else:
+                      [0] DISPLAY
+                            "-- ERRO AO GRAVAR ARQUIVO DE CHAVES -->"
+                            WS-FILE-STATUS-PROD-KEY
       [5] CLOSE
-            files: FD-PRODUTOS-KEY
-      [6] CLOSE
             files: FD-PRODUTOS
-      [7] DISPLAY
+      [6] DISPLAY
             "BYE"
-      [8] STOP RUN
+      [7] STOP RUN
     Paragraph: 00000-OPEN-FILE-PRODUTOS-KEY
       [0] MOVE
             from: 0
@@ -388,4 +402,4 @@ FILE FD-PRODUTOS-KEY (record 10 bytes)
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG007_LOJA' contains '_'
-WARNING cobol::lexer::underscore_in_identifier test.cob:228:020 identifier 'PROG007_LOJA' contains '_'
+WARNING cobol::lexer::underscore_in_identifier test.cob:237:020 identifier 'PROG007_LOJA' contains '_'

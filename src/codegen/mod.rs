@@ -9,8 +9,13 @@
 
 mod data;
 mod expr;
+mod indexed;
+mod initialize;
+mod inspect;
+mod io;
 mod runtime;
 mod stmt;
+mod wide;
 
 use std::collections::{HashMap, HashSet};
 
@@ -34,6 +39,13 @@ pub(crate) struct Generator<'a> {
     pool: Vec<Vec<u8>>,
     words: Vec<String>,
     indexes: Vec<String>,
+    table_indexes: HashMap<Vec<String>, Vec<String>>,
+    file_controls: HashMap<String, &'a crate::parser::FileControl>,
+    needs_inspect: bool,
+    needs_indexed: bool,
+    needs_wide: bool,
+    needs_wide_arithmetic: bool,
+    edit_digits_size: usize,
     paragraphs: HashMap<String, usize>,
     perform_ends: HashSet<String>,
     labels: usize,
@@ -48,14 +60,28 @@ pub(crate) struct Generator<'a> {
 impl<'a> Generator<'a> {
     fn new(analyzed: &'a AnalyzedProgram) -> Self {
         let mut indexes = Vec::new();
+        let mut table_indexes = HashMap::new();
         if let Some(data) = &analyzed.program.data_division
             && let Some(section) = &data.working_storage_section
         {
             for item in &section.data_items {
-                collect_indexes(item, &mut indexes);
+                collect_indexes(item, &mut Vec::new(), &mut indexes, &mut table_indexes);
             }
         }
         let mut paragraphs = HashMap::new();
+        let file_controls = analyzed
+            .program
+            .environment_division
+            .as_ref()
+            .and_then(|division| division.input_output_section.as_ref())
+            .map(|section| {
+                section
+                    .file_controls
+                    .iter()
+                    .map(|control| (control.file_name.to_ascii_uppercase(), control))
+                    .collect()
+            })
+            .unwrap_or_default();
         if let Some(procedure) = &analyzed.program.procedure_division {
             for (number, paragraph) in procedure.paragraphs.iter().enumerate() {
                 paragraphs
@@ -69,6 +95,13 @@ impl<'a> Generator<'a> {
             pool: Vec::new(),
             words: Vec::new(),
             indexes,
+            table_indexes,
+            file_controls,
+            needs_inspect: false,
+            needs_indexed: false,
+            needs_wide: false,
+            needs_wide_arithmetic: false,
+            edit_digits_size: 32,
             paragraphs,
             perform_ends: HashSet::new(),
             labels: 0,
@@ -123,6 +156,21 @@ impl<'a> Generator<'a> {
         out.push_str(&data::data_directives(&data::initial_image(self.layout)));
         out.push_str("    .align 2\n");
         out.push_str("size_err: .word 0\nperf_sp: .word 0\n");
+        for (number, file) in self.layout.files.iter().enumerate() {
+            out.push_str(&format!(
+                "file_fd_{number}: .word -1\nfile_mode_{number}: .word 0\nfile_buf_{number}: .space {}\n    .align 2\n",
+                file.record_size.max(1)
+            ));
+            if self
+                .file_controls
+                .get(&file.name)
+                .is_some_and(|control| control.organization.as_deref() == Some("INDEXED"))
+            {
+                out.push_str(&format!(
+                    "file_index_{number}: .word 0\nfile_cursor_{number}: .word 0\nfile_cursor_pending_{number}: .word 0\nfile_cursor_offset_{number}: .word 0\nfile_cursor_length_{number}: .word 0\nfile_cursor_signed_{number}: .word 0\nfile_path_{number}: .space 256\n"
+                ));
+            }
+        }
         for index in &self.indexes {
             out.push_str(&format!("{}: .word 1\n", index_label(index)));
         }
@@ -130,12 +178,27 @@ impl<'a> Generator<'a> {
             out.push_str(&format!("{word}: .word 0\n"));
         }
         out.push_str("perf_stack: .space 1024\n");
-        out.push_str("tmp_buf: .space 256\nfn_buf: .space 256\ned_digits: .space 32\n");
+        out.push_str(&format!(
+            "tmp_buf: .space 256\nfn_buf: .space 256\ned_digits: .space {}\n",
+            self.edit_digits_size
+        ));
         for (number, bytes) in self.pool.iter().enumerate() {
             out.push_str(&format!("lit_{number}:\n"));
             out.push_str(&data::literal_directive(bytes, true));
         }
         out.push_str(&self.text);
+        if self.needs_indexed {
+            out.push_str(indexed::RUNTIME);
+        }
+        if self.needs_inspect {
+            out.push_str(inspect::RUNTIME);
+        }
+        if self.needs_wide {
+            out.push_str(wide::RUNTIME);
+        }
+        if self.needs_wide_arithmetic {
+            out.push_str(wide::ARITHMETIC_RUNTIME);
+        }
         out.push_str(runtime::RUNTIME);
         self.text = out;
         (self.text, self.diagnostics)
@@ -242,13 +305,29 @@ fn index_label(name: &str) -> String {
     format!("idx_{}", sanitize(name))
 }
 
-fn collect_indexes(item: &crate::parser::DataItem, out: &mut Vec<String>) {
+fn collect_indexes(
+    item: &crate::parser::DataItem,
+    path: &mut Vec<String>,
+    out: &mut Vec<String>,
+    table_indexes: &mut HashMap<Vec<String>, Vec<String>>,
+) {
+    path.push(item.name.to_ascii_uppercase());
+    if !item.indexed_by.is_empty() {
+        table_indexes.insert(
+            path.clone(),
+            item.indexed_by
+                .iter()
+                .map(|name| name.to_ascii_uppercase())
+                .collect(),
+        );
+    }
     for name in &item.indexed_by {
         out.push(name.to_ascii_uppercase());
     }
     for child in &item.children {
-        collect_indexes(child, out);
+        collect_indexes(child, path, out, table_indexes);
     }
+    path.pop();
 }
 
 /// Records every paragraph that some `PERFORM` can finish at.

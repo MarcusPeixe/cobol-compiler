@@ -101,8 +101,13 @@ fn format_file_control(output: &mut String, control: &FileControl) {
     }
     for key in &control.alternate_keys {
         output.push_str(&format!(
-            "        alternate key: {}\n",
-            format_expression(key)
+            "        alternate key: {}{}\n",
+            format_expression(&key.expression),
+            if key.duplicates {
+                " WITH DUPLICATES"
+            } else {
+                ""
+            }
         ));
     }
     if let Some(status) = &control.file_status {
@@ -372,6 +377,13 @@ pub(crate) fn format_statement(output: &mut String, stmt: &Statement, indent: us
                 ind,
                 format_expression(&divide.divisor)
             ));
+            if !divide.into_targets.is_empty() {
+                output.push_str(&format!(
+                    "{}      into: {}\n",
+                    ind,
+                    format_expression_list(&divide.into_targets)
+                ));
+            }
             if !divide.giving.is_empty() {
                 output.push_str(&format!(
                     "{}      giving: {}\n",

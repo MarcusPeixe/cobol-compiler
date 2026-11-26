@@ -1,0 +1,14 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CODEGEN-COMPUTED-MOVE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-TEXT PIC X(12).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE 5 + 2 TO WS-TEXT.
+           DISPLAY "ADD=" WS-TEXT.
+           MOVE 7 / 2 TO WS-TEXT.
+           DISPLAY "DIVIDE=" WS-TEXT.
+           MOVE -3 TO WS-TEXT.
+           DISPLAY "NEGATIVE=" WS-TEXT.
+           STOP RUN.

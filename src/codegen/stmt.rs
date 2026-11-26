@@ -6,8 +6,8 @@ use super::{Generator, expression_span, index_label, para_label};
 use crate::parser::{
     AcceptStatement, AddStatement, BinaryOperator, Condition, DisplayItem, DisplayStatement,
     DivideStatement, EvaluateChoice, EvaluateStatement, Expression, IfStatement, MoveStatement,
-    MultiplyStatement, PerformStatement, PerformVarying, SetKind, SetStatement, Statement,
-    SubtractStatement,
+    MultiplyStatement, PerformStatement, PerformVarying, SearchStatement, SetKind, SetStatement,
+    Statement, SubtractStatement,
 };
 use crate::source::Span;
 
@@ -37,6 +37,26 @@ pub(super) fn nested_statements(statement: &Statement) -> Vec<&[Statement]> {
                 .map(|when| when.statements.as_slice())
                 .collect();
             lists.extend(node.at_end.as_deref());
+            lists
+        }
+        Statement::Read(node) => {
+            let mut lists = Vec::new();
+            lists.extend(node.handlers.at_end.as_deref());
+            lists.extend(node.handlers.not_at_end.as_deref());
+            lists.extend(node.handlers.invalid_key.as_deref());
+            lists.extend(node.handlers.not_invalid_key.as_deref());
+            lists
+        }
+        Statement::Write(node) => {
+            let mut lists = Vec::new();
+            lists.extend(node.handlers.invalid_key.as_deref());
+            lists.extend(node.handlers.not_invalid_key.as_deref());
+            lists
+        }
+        Statement::Start(node) => {
+            let mut lists = Vec::new();
+            lists.extend(node.handlers.invalid_key.as_deref());
+            lists.extend(node.handlers.not_invalid_key.as_deref());
             lists
         }
         _ => Vec::new(),
@@ -106,14 +126,14 @@ impl Generator<'_> {
             Statement::Evaluate(node) => self.evaluate(node),
             Statement::Set(node) => self.set(node),
             Statement::Paragraph(..) => {}
-            Statement::Search(node) => self.unsupported(node.span, "SEARCH"),
-            Statement::Inspect(node) => self.unsupported(node.span, "INSPECT"),
-            Statement::Open(node) => self.unsupported(node.span, "OPEN"),
-            Statement::Close(node) => self.unsupported(node.span, "CLOSE"),
-            Statement::Read(node) => self.unsupported(node.span, "READ"),
-            Statement::Write(node) => self.unsupported(node.span, "WRITE"),
-            Statement::Start(node) => self.unsupported(node.span, "START"),
-            Statement::Initialize(node) => self.unsupported(node.span, "INITIALIZE"),
+            Statement::Search(node) => self.search(node),
+            Statement::Inspect(node) => self.inspect(node),
+            Statement::Open(node) => self.open(node),
+            Statement::Close(node) => self.close(node),
+            Statement::Read(node) => self.read(node),
+            Statement::Write(node) => self.write(node),
+            Statement::Start(node) => self.start_indexed(node),
+            Statement::Initialize(node) => self.initialize(node),
         }
     }
 
@@ -201,12 +221,18 @@ impl Generator<'_> {
         }
     }
 
-    fn move_one(&mut self, source: &Expression, target: &Expression, span: Span) {
+    pub(super) fn move_one(&mut self, source: &Expression, target: &Expression, span: Span) {
         let Some(class) = self.target_class(target) else {
             self.unsupported(span, "this MOVE target");
             return;
         };
         if class != Some(Class::Text) {
+            if self.move_wide_edited(source, target) {
+                return;
+            }
+            if self.move_wide(source, target) {
+                return;
+            }
             if self.kind(source) == Kind::Text {
                 self.unsupported(span, "MOVE of text to a numeric item");
             } else {
@@ -227,10 +253,12 @@ impl Generator<'_> {
         ) || matches!(source, Expression::FunctionCall { .. })
             && self.kind(source) == Kind::Num;
         if computed {
-            self.unsupported(span, "MOVE of a computed value to a text item");
-            return;
-        }
-        if !self.gen_text(source) {
+            let scale = self.gen_num(source);
+            self.needs_wide = true;
+            self.emit("move $a0, $v0");
+            self.emit(format!("li $a1, {scale}"));
+            self.emit("jal rt_wide_format");
+        } else if !self.gen_text(source) {
             return;
         }
         self.emit("addiu $sp, $sp, -8");
@@ -261,13 +289,23 @@ impl Generator<'_> {
     }
 
     /// `target = expression`.
-    fn assign(&mut self, target: &Expression, expression: &Expression) {
+    pub(super) fn assign(&mut self, target: &Expression, expression: &Expression) {
+        if self.assign_wide_sum(target, expression)
+            || self.assign_wide_product(target, expression)
+            || self.assign_wide_quotient(target, expression, None, None)
+            || self.assign_wide_expression(target, expression)
+        {
+            return;
+        }
         self.div_scale = self.target_scale(target).max(4);
         let scale = self.gen_num(expression);
         self.store_num(target, scale);
     }
 
     fn accept(&mut self, node: &AcceptStatement) {
+        if self.accept_wide(&node.target) {
+            return;
+        }
         match self.target_class(&node.target) {
             Some(Some(Class::Text)) => {
                 if self.gen_text(&node.target) {
@@ -316,6 +354,9 @@ impl Generator<'_> {
                 }
             } else {
                 for target in &node.targets {
+                    if this.increment_wide(target, &total) {
+                        continue;
+                    }
                     let value = binary(target.clone(), BinaryOperator::Add, total.clone());
                     this.assign(target, &value);
                 }
@@ -365,8 +406,65 @@ impl Generator<'_> {
     }
 
     fn divide(&mut self, node: &DivideStatement) {
-        if node.giving.is_empty() {
+        if node.giving.is_empty() && node.into_targets.is_empty() {
             self.unsupported(node.span, "DIVIDE without GIVING");
+            return;
+        }
+        if !node.into_targets.is_empty() {
+            if node.remainder.is_some() {
+                self.unsupported(node.span, "DIVIDE INTO with REMAINDER but no GIVING");
+                return;
+            }
+            if self.is_wide_number(&node.divisor)
+                || node
+                    .into_targets
+                    .iter()
+                    .any(|target| self.is_wide_number(target))
+            {
+                self.arithmetic(&node.on_size_error, |this| {
+                    let Some((divisor, allocation)) = this.save_wide_operand(&node.divisor) else {
+                        this.unsupported(node.span, "wide DIVIDE INTO divisor");
+                        return;
+                    };
+                    for target in &node.into_targets {
+                        let quotient =
+                            binary(target.clone(), BinaryOperator::Divide, node.divisor.clone());
+                        if !this.assign_wide_quotient(target, &quotient, None, Some(&divisor)) {
+                            this.unsupported(node.span, "wide DIVIDE INTO target");
+                        }
+                    }
+                    this.emit(format!("li $t0, {allocation}"));
+                    this.emit("addu $sp, $sp, $t0");
+                });
+                return;
+            }
+            self.arithmetic(&node.on_size_error, |this| {
+                let divisor = this.new_word("divide_divisor");
+                let divisor_scale = this.gen_num(&node.divisor);
+                this.emit(format!("sw $v0, {divisor}"));
+                for target in &node.into_targets {
+                    let dividend_scale = this.gen_num(target);
+                    let result_scale = dividend_scale.max(this.target_scale(target).max(4));
+                    let shift = result_scale - dividend_scale + divisor_scale;
+                    let nonzero = this.new_label("divide_nonzero");
+                    let done = this.new_label("divide_done");
+                    this.emit(format!("lw $t1, {divisor}"));
+                    this.emit(format!("bnez $t1, {nonzero}"));
+                    this.emit("li $t0, 1");
+                    this.emit("sw $t0, size_err");
+                    this.emit("li $v0, 0");
+                    this.emit(format!("j {done}"));
+                    this.label(&nonzero);
+                    if shift > 0 {
+                        this.emit(format!("li $t0, {}", super::expr::pow10(shift)));
+                        this.emit("mul $v0, $v0, $t0");
+                    }
+                    this.emit("div $v0, $t1");
+                    this.emit("mflo $v0");
+                    this.label(&done);
+                    this.store_num(target, result_scale);
+                }
+            });
             return;
         }
         self.arithmetic(&node.on_size_error, |this| {
@@ -375,17 +473,44 @@ impl Generator<'_> {
                 BinaryOperator::Divide,
                 node.divisor.clone(),
             );
+            if let Some(remainder) = &node.remainder
+                && this.assign_wide_quotient(&node.giving[0], &quotient, Some(remainder), None)
+            {
+                for target in &node.giving[1..] {
+                    this.assign(target, &quotient);
+                }
+                return;
+            }
             for target in &node.giving {
                 this.assign(target, &quotient);
             }
             if let Some(remainder) = &node.remainder {
-                let product = binary(
-                    node.giving[0].clone(),
-                    BinaryOperator::Multiply,
-                    node.divisor.clone(),
-                );
-                let value = binary(node.dividend.clone(), BinaryOperator::Subtract, product);
-                this.assign(remainder, &value);
+                let quotient_scale = this.gen_stored_quotient(&node.giving[0]);
+                this.push_v0();
+                let divisor_scale = this.gen_num(&node.divisor);
+                this.pop("$t0");
+                this.emit("mul $v0, $t0, $v0");
+                let product_scale = quotient_scale + divisor_scale;
+                this.push_v0();
+                let dividend_scale = this.gen_num(&node.dividend);
+                this.pop("$t0");
+                let scale = dividend_scale.max(product_scale);
+                if dividend_scale < scale {
+                    this.emit(format!(
+                        "li $t1, {}",
+                        super::expr::pow10(scale - dividend_scale)
+                    ));
+                    this.emit("mul $v0, $v0, $t1");
+                }
+                if product_scale < scale {
+                    this.emit(format!(
+                        "li $t1, {}",
+                        super::expr::pow10(scale - product_scale)
+                    ));
+                    this.emit("mul $t0, $t0, $t1");
+                }
+                this.emit("subu $v0, $v0, $t0");
+                this.store_num(remainder, scale);
             }
         });
     }
@@ -401,6 +526,73 @@ impl Generator<'_> {
             };
             self.assign(target, &value);
         }
+    }
+
+    fn search(&mut self, node: &SearchStatement) {
+        if node.all && node.varying.is_some() {
+            self.unsupported(node.span, "SEARCH ALL with VARYING");
+            return;
+        }
+        let Expression::Identifier(name, _) = &node.table else {
+            self.unsupported(node.span, "SEARCH of a subscripted table");
+            return;
+        };
+        let Some(Place::Item(resolved)) = self.place(name) else {
+            self.unsupported(node.span, "SEARCH table");
+            return;
+        };
+        let path: Vec<String> = resolved.path.iter().map(|item| item.name.clone()).collect();
+        let Some(index) = self
+            .table_indexes
+            .get(&path)
+            .and_then(|names| names.first())
+            .cloned()
+        else {
+            self.unsupported(node.span, "SEARCH table without an index");
+            return;
+        };
+        let Some(count) = resolved.item().occurs else {
+            self.unsupported(node.span, "SEARCH of a non-table item");
+            return;
+        };
+        let index_expr = Expression::Identifier(index.clone(), node.span);
+        if node.all {
+            self.emit("li $t0, 1");
+            self.emit(format!("sw $t0, {}", index_label(&index)));
+        }
+        let top = self.new_label("search_top");
+        let at_end = self.new_label("search_at_end");
+        let end = self.new_label("search_end");
+        self.label(&top);
+        self.emit(format!("lw $t0, {}", index_label(&index)));
+        self.emit(format!("li $t1, {count}"));
+        self.emit(format!("bgt $t0, $t1, {at_end}"));
+        for when in &node.whens {
+            let next = self.new_label("search_next");
+            self.gen_cond(&when.condition, &next, false);
+            self.statements(&when.statements);
+            self.emit(format!("j {end}"));
+            self.label(&next);
+        }
+        let one = Expression::NumericLiteral("1".to_string(), node.span);
+        if let Some(varying) = &node.varying
+            && !matches!(varying, Expression::Identifier(name, _) if name.eq_ignore_ascii_case(&index))
+        {
+            self.assign(
+                varying,
+                &binary(varying.clone(), BinaryOperator::Add, one.clone()),
+            );
+        }
+        self.assign(
+            &index_expr,
+            &binary(index_expr.clone(), BinaryOperator::Add, one),
+        );
+        self.emit(format!("j {top}"));
+        self.label(&at_end);
+        if let Some(statements) = &node.at_end {
+            self.statements(statements);
+        }
+        self.label(&end);
     }
 
     fn if_statement(&mut self, node: &IfStatement) {

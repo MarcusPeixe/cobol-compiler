@@ -1,0 +1,52 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. WIDE-ADD-SUBTRACT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-A PIC S9(12)V99.
+       77 WS-B PIC S9(12)V99.
+       77 WS-C PIC S9(12)V99.
+       77 WS-SMALL PIC 99.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE 99999999999.99 TO WS-A.
+           MOVE 0.02 TO WS-B.
+           ADD WS-B TO WS-A.
+           DISPLAY "ADD=" WS-A.
+           SUBTRACT 100000000001 FROM WS-A.
+           DISPLAY "SUBTRACT=" WS-A.
+           ADD -0.02 TO WS-A.
+           DISPLAY "NEGATIVE=" WS-A.
+           COMPUTE WS-C = WS-A - WS-B + 123456789012.34.
+           DISPLAY "COMPUTE=" WS-C.
+           COMPUTE WS-C = WS-A - WS-A.
+           DISPLAY "ZERO=" WS-C.
+           MOVE -1234567890.12 TO WS-A.
+           MULTIPLY 2.5 BY WS-A GIVING WS-C.
+           DISPLAY "PRODUCT=" WS-C.
+           DIVIDE WS-A BY 2.5 GIVING WS-C.
+           DISPLAY "QUOTIENT=" WS-C.
+           DIVIDE WS-A BY 2.5 GIVING WS-C REMAINDER WS-B.
+           DISPLAY "REMAINDER=" WS-B.
+           DIVIDE WS-A BY 0 GIVING WS-C
+               ON SIZE ERROR DISPLAY "DIVIDE-ZERO".
+           DISPLAY "QUOTIENT-PRESERVED=" WS-C.
+           COMPUTE WS-C = 1 / 0.0001.
+           DISPLAY "QUOTIENT-SMALL-DIVISOR=" WS-C.
+           MOVE 2000000000 TO WS-A.
+           MOVE 8000000000 TO WS-B.
+           DIVIDE WS-A INTO WS-A WS-B.
+           DISPLAY "INTO=" WS-A "," WS-B.
+           COMPUTE WS-C = 99999 * 99999.
+           DISPLAY "PRODUCT-NARROW=" WS-C.
+           MOVE 999999999999.99 TO WS-A.
+           MULTIPLY 2 BY WS-A GIVING WS-C
+               ON SIZE ERROR DISPLAY "PRODUCT-OVERFLOW".
+           DISPLAY "PRODUCT-PRESERVED=" WS-C.
+           ADD 0.01 TO WS-A
+               ON SIZE ERROR DISPLAY "OVERFLOW".
+           DISPLAY "PRESERVED=" WS-A.
+           MOVE 55 TO WS-SMALL.
+           ADD WS-A TO WS-SMALL
+               ON SIZE ERROR DISPLAY "SMALL-OVERFLOW".
+           DISPLAY "SMALL=" WS-SMALL.
+           STOP RUN.

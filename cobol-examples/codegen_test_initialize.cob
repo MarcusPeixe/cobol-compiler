@@ -1,0 +1,22 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CODEGEN-INITIALIZE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-TABLE.
+          05 WS-ENTRY OCCURS 2 TIMES.
+             10 WS-NAME PIC X(3).
+             10 WS-NUMBER PIC 99.
+             10 FILLER PIC X.
+       77 WS-EDIT PIC ZZZ9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE "ZZZ42QXXX13Q" TO WS-TABLE.
+           INITIALIZE WS-TABLE.
+           DISPLAY "ALL=" WS-TABLE.
+           MOVE "ABC54X" TO WS-ENTRY(2).
+           INITIALIZE WS-ENTRY(2).
+           DISPLAY "ONE=" WS-TABLE.
+           MOVE 1234 TO WS-EDIT.
+           INITIALIZE WS-EDIT.
+           DISPLAY "EDIT=" WS-EDIT.
+           STOP RUN.

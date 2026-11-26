@@ -265,7 +265,7 @@ impl<'a> SemanticAnalyzer<'a> {
                 .assign_to
                 .iter()
                 .chain(&control.record_key)
-                .chain(&control.alternate_keys)
+                .chain(control.alternate_keys.iter().map(|key| &key.expression))
                 .chain(&control.file_status)
             {
                 self.expression_type(expression);
@@ -488,6 +488,9 @@ impl<'a> SemanticAnalyzer<'a> {
             Statement::Divide(statement) => {
                 self.check_numeric_expression(&statement.dividend);
                 self.check_numeric_expression(&statement.divisor);
+                for expression in &statement.into_targets {
+                    self.check_numeric_expression(expression);
+                }
                 for expression in &statement.giving {
                     self.check_numeric_expression(expression);
                 }

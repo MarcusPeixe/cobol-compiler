@@ -498,11 +498,13 @@ impl Parser {
                 self.consume_identifier_matching("RECORD");
                 self.consume_identifier_matching("KEY");
                 self.consume_identifier_matching("IS");
-                if let Ok(key) = self.parse_primary_expression() {
-                    entry.alternate_keys.push(key);
-                }
-                if self.consume_identifier_matching("WITH") {
-                    self.consume_identifier_matching("DUPLICATES");
+                if let Ok(expression) = self.parse_primary_expression() {
+                    let duplicates = self.consume_identifier_matching("WITH")
+                        && self.consume_identifier_matching("DUPLICATES");
+                    entry.alternate_keys.push(AlternateKey {
+                        expression,
+                        duplicates,
+                    });
                 }
             } else if self.consume_identifier_matching("FILE") {
                 self.consume_identifier_matching("STATUS");
@@ -1131,15 +1133,37 @@ impl Parser {
 
     fn parse_divide_statement(&mut self) -> Result<Statement, ParseError> {
         let span = self.consume_verb("DIVIDE")?;
-        let dividend = self.parse_expression()?;
-        if !self.consume_identifier_matching("BY") {
+        let first = self.parse_expression()?;
+        let into = if self.consume_identifier_matching("BY") {
+            false
+        } else if self.consume_identifier_matching("INTO") {
+            true
+        } else {
             return Err(ParseError::InvalidStatement);
-        }
-        let divisor = self.parse_expression()?;
+        };
+        let mut operands = if into {
+            self.parse_expression_list_until(&["GIVING", "REMAINDER", "ON"])?
+        } else {
+            vec![self.parse_expression()?]
+        };
         let giving = if self.consume_identifier_matching("GIVING") {
             self.parse_expression_list_until(&["REMAINDER", "ON"])?
         } else {
             Vec::new()
+        };
+        if into && !giving.is_empty() && operands.len() != 1 {
+            return Err(ParseError::InvalidStatement);
+        }
+        let (dividend, divisor, into_targets) = if into {
+            let dividend = operands[0].clone();
+            let targets = if giving.is_empty() {
+                std::mem::take(&mut operands)
+            } else {
+                Vec::new()
+            };
+            (dividend, first, targets)
+        } else {
+            (first, operands.remove(0), Vec::new())
         };
         let remainder = if self.consume_identifier_matching("REMAINDER") {
             Some(self.parse_expression()?)
@@ -1152,6 +1176,7 @@ impl Parser {
             span,
             dividend,
             divisor,
+            into_targets,
             giving,
             remainder,
             on_size_error,
