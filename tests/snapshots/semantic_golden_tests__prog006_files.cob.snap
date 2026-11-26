@@ -7,81 +7,134 @@ Program
     program_id: PROG006_FILES
   EnvironmentDivision
     InputOutputSection
+      FileControl: MY-FILE
+        assign: "DADOS.TXT"
   DataDivision
     FileSection
       FileDescription: MY-FILE
-        DataItem: RC-TRABALHADOR (level 1)
-          DataItem: RC-TID (level 2, PIC 9(5))
-          DataItem: RC-NOME (level 2, PIC X(10))
-          DataItem: RC-SALARIO (level 2, PIC 9(10)V99)
-          DataItem: RC-DPTO-1 (level 2, PIC X(2))
-          DataItem: RC-DPTO-2 (level 2, PIC X(2))
+        DataItem (level 1): RC-TRABALHADOR
+          DataItem (level 2): RC-TID
+            PIC: 9(5)
+          DataItem (level 2): RC-NOME
+            PIC: X(10)
+          DataItem (level 2): RC-SALARIO
+            PIC: 9(10)V99
+          DataItem (level 2): RC-DPTO-1
+            PIC: X(2)
+          DataItem (level 2): RC-DPTO-2
+            PIC: X(2)
     WorkingStorageSection
-      DataItem: TAB-TRABALHADOR (level 1)
-        DataItem: TRABALHADOR (level 2)
+      DataItem (level 1): TAB-TRABALHADOR
+        DataItem (level 2): TRABALHADOR
           OCCURS: 3
           INDEXED BY: TID
-          DataItem: NOME (level 3, PIC X(5))
-          DataItem: SALARIO (level 3, PIC 9(5)V99)
-          DataItem: DPTO (level 3, PIC X(2))
-            OCCURS: 2
+          DataItem (level 3): NOME
+            PIC: X(5)
+          DataItem (level 3): SALARIO
+            PIC: 9(5)V99
+          DataItem (level 3): DPTO
+            PIC: X(2)
             VALUE: SPACES
-      DataItem: SAUX (level 77, PIC X(15))
-      DataItem: CONT (level 77, PIC 9(2))
-      DataItem: YESNO (level 77, PIC 9)
-      DataItem: IDX (level 77, PIC 9(1))
+            OCCURS: 2
+      DataItem (level 77): SAUX
+        PIC: X(15)
+      DataItem (level 77): CONT
+        PIC: 9(2)
+      DataItem (level 77): YESNO
+        PIC: 9
+      DataItem (level 77): IDX
+        PIC: 9(1)
   ProcedureDivision
     Paragraph: MAIN-PROCEDURE
-      Move
-      Display
-        String:  
-      Display
-        String: ====00001-DISPLAY-TRABALHADOR====
-      Open
-      Move
-      Perform
-      Close
-      StopRun
+      [0] MOVE
+            from: "JOSEA1111111A1A4MARIA2222222A2  FABIO3333333A2A3"
+            to: TAB-TRABALHADOR
+      [1] DISPLAY
+            " "
+      [2] DISPLAY
+            "====00001-DISPLAY-TRABALHADOR===="
+      [3] OPEN
+            OUTPUT: MY-FILE
+      [4] MOVE
+            from: 1
+            to: IDX
+      [5] PERFORM
+            00001-WRITE-TO-FILE until IDX > 3
+      [6] CLOSE
+            files: MY-FILE
+      [7] STOP RUN
     Paragraph: 00001-WRITE-TO-FILE
-      Display
-        String:  
-      Move
-      Display
-        String: IDX=
-        Expression: IDX
-      Display
-        String: TRABALHADOR(IDX)=
-        Expression: TRABALHADOR(IDX)
-      Move
-      Move
-      Move
-      Move
-      Move
-      Write
-      Add
-        Operands: 1
-        To: IDX
+      [0] DISPLAY
+            " "
+      [1] MOVE
+            from: LOW-VALUES
+            to: RC-TRABALHADOR
+      [2] DISPLAY
+            "IDX="
+            IDX
+      [3] DISPLAY
+            "TRABALHADOR(IDX)="
+            TRABALHADOR(IDX)
+      [4] MOVE
+            from: IDX
+            to: RC-TID
+      [5] MOVE
+            from: NOME(IDX)
+            to: RC-NOME
+      [6] MOVE
+            from: SALARIO(IDX)
+            to: RC-SALARIO
+      [7] MOVE
+            from: DPTO(IDX, 1)
+            to: RC-DPTO-1
+      [8] MOVE
+            from: DPTO(IDX, 2)
+            to: RC-DPTO-2
+      [9] WRITE
+            record: RC-TRABALHADOR
+      [10] ADD
+            operands: 1
+            to: IDX
 
 SYMBOL TABLE:
-  00001-WRITE-TO-FILE: Alphanumeric (level 0)
-  CONT: Numeric (level 77)
-  DPTO: Alphanumeric (level 3)
-  IDX: Numeric (level 77)
-  MAIN-PROCEDURE: Alphanumeric (level 0)
-  MY-FILE: Alphanumeric (level 0)
-  NOME: Alphanumeric (level 3)
-  RC-DPTO-1: Alphanumeric (level 2)
-  RC-DPTO-2: Alphanumeric (level 2)
-  RC-NOME: Alphanumeric (level 2)
-  RC-SALARIO: Numeric (level 2)
-  RC-TID: Numeric (level 2)
-  RC-TRABALHADOR: Alphanumeric (level 1)
-  SALARIO: Numeric (level 3)
-  SAUX: Alphanumeric (level 77)
-  TAB-TRABALHADOR: Alphanumeric (level 1)
-  TID: Numeric (level 0)
-  TRABALHADOR: Alphanumeric (level 2)
-  YESNO: Numeric (level 77)
+  00001-WRITE-TO-FILE: Paragraph
+  CONT: DataItem (Numeric, level 77)
+  DPTO OF TRABALHADOR OF TAB-TRABALHADOR: DataItem (Alphanumeric, level 3)
+  IDX: DataItem (Numeric, level 77)
+  MAIN-PROCEDURE: Paragraph
+  MY-FILE: File
+  NOME OF TRABALHADOR OF TAB-TRABALHADOR: DataItem (Alphanumeric, level 3)
+  RC-DPTO-1 OF RC-TRABALHADOR: DataItem (Alphanumeric, level 2)
+  RC-DPTO-2 OF RC-TRABALHADOR: DataItem (Alphanumeric, level 2)
+  RC-NOME OF RC-TRABALHADOR: DataItem (Alphanumeric, level 2)
+  RC-SALARIO OF RC-TRABALHADOR: DataItem (Numeric, level 2)
+  RC-TID OF RC-TRABALHADOR: DataItem (Numeric, level 2)
+  RC-TRABALHADOR: DataItem (Alphanumeric, level 1)
+  SALARIO OF TRABALHADOR OF TAB-TRABALHADOR: DataItem (Numeric, level 3)
+  SAUX: DataItem (Alphanumeric, level 77)
+  TAB-TRABALHADOR: DataItem (Alphanumeric, level 1)
+  TID: IndexName (Numeric)
+  TRABALHADOR OF TAB-TRABALHADOR: DataItem (Alphanumeric, level 2)
+  YESNO: DataItem (Numeric, level 77)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (67 bytes)
+  TAB-TRABALHADOR @0 size=48
+    TRABALHADOR @0 size=48 occurs=3 stride=16
+      NOME @0 size=5
+      SALARIO @5 size=7
+      DPTO @12 size=4 occurs=2 stride=2
+  SAUX @48 size=15
+  CONT @63 size=2
+  YESNO @65 size=1
+  IDX @66 size=1
+FILE MY-FILE (record 31 bytes)
+  RC-TRABALHADOR @0 size=31
+    RC-TID @0 size=5
+    RC-NOME @5 size=10
+    RC-SALARIO @15 size=12
+    RC-DPTO-1 @27 size=2
+    RC-DPTO-2 @29 size=2
 
 DIAGNOSTICS:
 WARNING cobol::lexer::underscore_in_identifier test.cob:012:020 identifier 'PROG006_FILES' contains '_'

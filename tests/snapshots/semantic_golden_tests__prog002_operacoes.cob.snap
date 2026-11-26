@@ -8,162 +8,209 @@ Program
   DataDivision
     FileSection
     WorkingStorageSection
-      DataItem: WRK-VALOR1 (level 77, PIC 9(10))
+      DataItem (level 77): WRK-VALOR1
+        PIC: 9(10)
         VALUE: 10
-      DataItem: WRK-VALOR2 (level 77, PIC 9(10))
+      DataItem (level 77): WRK-VALOR2
+        PIC: 9(10)
         VALUE: ZEROS
-      DataItem: WRK-A (level 77, PIC 9(2))
+      DataItem (level 77): WRK-A
+        PIC: 9(2)
         VALUE: 1
-      DataItem: WRK-B (level 77, PIC 9(2))
+      DataItem (level 77): WRK-B
+        PIC: 9(2)
         VALUE: 1
-      DataItem: WRK-C (level 77, PIC 9(2))
+      DataItem (level 77): WRK-C
+        PIC: 9(2)
         VALUE: ZEROS
-      DataItem: WRK-TOTAIS (level 1)
-        DataItem: WRK-TOTAL (level 5, PIC 9(10))
+      DataItem (level 1): WRK-TOTAIS
+        DataItem (level 5): WRK-TOTAL
+          PIC: 9(10)
           VALUE: 19
   ProcedureDivision
     Paragraph: MAIN-PROCEDURE
-      Display
-        String: ===== start =======
-      Move
-      Display
-        String: MOVE 20 TO WRK-VALOR2 -->
-        Expression: WRK-VALOR2
-      Move
-      Display
-        String: MOVE WRK-VALOR1 TO WRK-VALOR2 -->
-        Expression: WRK-VALOR2
-      Move
-      Display
-        String: MOVE 70 TO WRK-VALOR1 WRK-VALOR2 -->
-        Expression: WRK-VALOR2
-      Move
-      Display
-        String: MOVE WRK-TOTAL OF WRK-TOTAIS TO WRK-VALOR2. -->
-        Expression: WRK-VALOR2
-      Display
-        String: --------
-      Display
-        String: A = 1, B = 1, C = 1
-      Display
-        String:  
-      Add
-        Operands: 1, 1
-        To: WRK-A
-      Display
-        String: ADD B C TO A (A = B + C + A) -->
-        Expression: WRK-A
-      Move
-      Add
-        Operands: 1
-        To: WRK-A, WRK-B
-      Display
-        String:  
-      Display
-        String: ADD 1 TO A B (A = A + 1; B = B + 1) -->
-      Display
-        String: A= 
-        Expression: WRK-A
-        String:  , B= 
-        Expression: WRK-B
-      Display
-        String:  
-      Add
-        Operands: 1, 1
-        Giving: WRK-A
-      Display
-        String: ADD B C GIVING A (A = B + C) -->
-        Expression: WRK-A
-      Display
-        String: ============ SUBTRACT ============= 
-      Move
-      Move
-      Display
-        String: A= 99, B= 0
-      Subtract
-        Operands: 30, 23
-        From: WRK-A
-        Giving: WRK-B
-      Display
-        String: SUBTRACT 30 23 FROM A GIVING B.-->
-      Display
-        String: A= 
-        Expression: WRK-A
-        String:  , B= 
-        Expression: WRK-B
-      Display
-        String: ============ MULTIPLY ============= 
-      Move
-      Move
-      Display
-        String: A= 40, B= 0
-      Multiply
-        Factor: 2
-        By: WRK-A
-      Display
-        String: MULTIPLY A BY 2 -->
-      Display
-        String: A= 
-        Expression: WRK-A
-        String:  , B= 
-        Expression: WRK-B
-      Display
-        String: ============ MULTIPLY ============= 
-      Move
-      Move
-      Display
-        String: A= 40, B= 0
-      Multiply
-        Factor: 2
-        By: WRK-A
-        Giving: WRK-B
-      Display
-        String: MULTIPLY A BY 2 GIVING B.-->
-      Display
-        String: A= 
-        Expression: WRK-A
-        String:  , B= 
-        Expression: WRK-B
-      Display
-        String: ============ DIVIDE =============
-      Move
-      Move
-      Move
-      Display
-        String: A= 80, B= 0
-      Divide
-        Dividend: WRK-A
-        Divisor: 2
-        Giving: WRK-B
-        Remainder: WRK-C
-      Display
-        String: DIVIDE A BY 2 GIVING B REMAINDER C .-->
-      Display
-        String: A= 
-        Expression: WRK-A
-        String:  , B= 
-        Expression: WRK-B
-        String:  , C= 
-        Expression: WRK-C
-      Display
-        String:  
-      Move
-      Add
-        Operands: 1
-        To: WRK-A
-        Display
-          String: ON SIZE ERROR -->
-          Expression: WRK-A
-      StopRun
+      [0] DISPLAY
+            "===== start ======="
+      [1] MOVE
+            from: 20
+            to: WRK-VALOR2
+      [2] DISPLAY
+            "MOVE 20 TO WRK-VALOR2 -->"
+            WRK-VALOR2
+      [3] MOVE
+            from: WRK-VALOR1
+            to: WRK-VALOR2
+      [4] DISPLAY
+            "MOVE WRK-VALOR1 TO WRK-VALOR2 -->"
+            WRK-VALOR2
+      [5] MOVE
+            from: 70
+            to: WRK-VALOR1, WRK-VALOR2
+      [6] DISPLAY
+            "MOVE 70 TO WRK-VALOR1 WRK-VALOR2 -->"
+            WRK-VALOR2
+      [7] MOVE
+            from: WRK-TOTAL OF WRK-TOTAIS
+            to: WRK-VALOR2
+      [8] DISPLAY
+            "MOVE WRK-TOTAL OF WRK-TOTAIS TO WRK-VALOR2. -->"
+            WRK-VALOR2
+      [9] DISPLAY
+            "--------"
+      [10] DISPLAY
+            "A = 1, B = 1, C = 1"
+      [11] DISPLAY
+            " "
+      [12] ADD
+            operands: 1, 1
+            to: WRK-A
+      [13] DISPLAY
+            "ADD B C TO A (A = B + C + A) -->"
+            WRK-A
+      [14] MOVE
+            from: 1
+            to: WRK-A
+      [15] ADD
+            operands: 1
+            to: WRK-A, WRK-B
+      [16] DISPLAY
+            " "
+      [17] DISPLAY
+            "ADD 1 TO A B (A = A + 1; B = B + 1) -->"
+      [18] DISPLAY
+            "A= "
+            WRK-A
+            " , B= "
+            WRK-B
+      [19] DISPLAY
+            " "
+      [20] ADD
+            operands: 1, 1
+            giving: WRK-A
+      [21] DISPLAY
+            "ADD B C GIVING A (A = B + C) -->"
+            WRK-A
+      [22] DISPLAY
+            "============ SUBTRACT ============= "
+      [23] MOVE
+            from: 99
+            to: WRK-A
+      [24] MOVE
+            from: 0
+            to: WRK-B
+      [25] DISPLAY
+            "A= 99, B= 0"
+      [26] SUBTRACT
+            operands: 30, 23
+            from: WRK-A
+            giving: WRK-B
+      [27] DISPLAY
+            "SUBTRACT 30 23 FROM A GIVING B.-->"
+      [28] DISPLAY
+            "A= "
+            WRK-A
+            " , B= "
+            WRK-B
+      [29] DISPLAY
+            "============ MULTIPLY ============= "
+      [30] MOVE
+            from: 40
+            to: WRK-A
+      [31] MOVE
+            from: 0
+            to: WRK-B
+      [32] DISPLAY
+            "A= 40, B= 0"
+      [33] MULTIPLY
+            factor: 2
+            by: WRK-A
+      [34] DISPLAY
+            "MULTIPLY A BY 2 -->"
+      [35] DISPLAY
+            "A= "
+            WRK-A
+            " , B= "
+            WRK-B
+      [36] DISPLAY
+            "============ MULTIPLY ============= "
+      [37] MOVE
+            from: 40
+            to: WRK-A
+      [38] MOVE
+            from: 0
+            to: WRK-B
+      [39] DISPLAY
+            "A= 40, B= 0"
+      [40] MULTIPLY
+            factor: 2
+            by: WRK-A
+            giving: WRK-B
+      [41] DISPLAY
+            "MULTIPLY A BY 2 GIVING B.-->"
+      [42] DISPLAY
+            "A= "
+            WRK-A
+            " , B= "
+            WRK-B
+      [43] DISPLAY
+            "============ DIVIDE ============="
+      [44] MOVE
+            from: 81
+            to: WRK-A
+      [45] MOVE
+            from: 0
+            to: WRK-B
+      [46] MOVE
+            from: 0
+            to: WRK-C
+      [47] DISPLAY
+            "A= 80, B= 0"
+      [48] DIVIDE
+            dividend: WRK-A
+            divisor: 2
+            giving: WRK-B
+            remainder: WRK-C
+      [49] DISPLAY
+            "DIVIDE A BY 2 GIVING B REMAINDER C .-->"
+      [50] DISPLAY
+            "A= "
+            WRK-A
+            " , B= "
+            WRK-B
+            " , C= "
+            WRK-C
+      [51] DISPLAY
+            " "
+      [52] MOVE
+            from: 99
+            to: WRK-A
+      [53] ADD
+            operands: 1
+            to: WRK-A
+            ON SIZE ERROR
+            [0] DISPLAY
+                  "ON SIZE ERROR -->"
+                  WRK-A
+      [54] STOP RUN
 
 SYMBOL TABLE:
-  MAIN-PROCEDURE: Alphanumeric (level 0)
-  WRK-A: Numeric (level 77)
-  WRK-B: Numeric (level 77)
-  WRK-C: Numeric (level 77)
-  WRK-TOTAIS: Alphanumeric (level 1)
-  WRK-TOTAL: Numeric (level 5)
-  WRK-VALOR1: Numeric (level 77)
-  WRK-VALOR2: Numeric (level 77)
+  MAIN-PROCEDURE: Paragraph
+  WRK-A: DataItem (Numeric, level 77)
+  WRK-B: DataItem (Numeric, level 77)
+  WRK-C: DataItem (Numeric, level 77)
+  WRK-TOTAIS: DataItem (Alphanumeric, level 1)
+  WRK-TOTAL OF WRK-TOTAIS: DataItem (Numeric, level 5)
+  WRK-VALOR1: DataItem (Numeric, level 77)
+  WRK-VALOR2: DataItem (Numeric, level 77)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (36 bytes)
+  WRK-VALOR1 @0 size=10
+  WRK-VALOR2 @10 size=10
+  WRK-A @20 size=2
+  WRK-B @22 size=2
+  WRK-C @24 size=2
+  WRK-TOTAIS @26 size=10
+    WRK-TOTAL @26 size=10
 
 DIAGNOSTICS:

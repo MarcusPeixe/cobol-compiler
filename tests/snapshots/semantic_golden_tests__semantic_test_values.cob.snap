@@ -1,0 +1,79 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: VALUES
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-OK-NUM
+        PIC: 9(3)V99
+        VALUE: 12.5
+      DataItem (level 77): WS-OK-TXT
+        PIC: X(5)
+        VALUE: "HELLO"
+      DataItem (level 77): WS-NUM-STR
+        PIC: 9(2)
+        VALUE: "AB"
+      DataItem (level 77): WS-TXT-NUM
+        PIC: X(2)
+        VALUE: 5
+      DataItem (level 77): WS-LONG-TXT
+        PIC: X(2)
+        VALUE: "TOO LONG"
+      DataItem (level 77): WS-BIG-NUM
+        PIC: 99
+        VALUE: 123
+      DataItem (level 77): WS-FRACTION
+        PIC: 99
+        VALUE: 1.5
+      DataItem (level 77): WS-NO-PIC
+      DataItem (level 1): WS-GROUP
+        PIC: X(4)
+        DataItem (level 5): WS-CHILD
+          PIC: X
+      DataItem (level 77): WS-BAD-OCCURS
+        PIC: 9
+        OCCURS: 0
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] STOP RUN
+
+SYMBOL TABLE:
+  MAIN-PARA: Paragraph
+  WS-BAD-OCCURS: DataItem (Numeric, level 77)
+  WS-BIG-NUM: DataItem (Numeric, level 77)
+  WS-CHILD OF WS-GROUP: DataItem (Alphanumeric, level 5)
+  WS-FRACTION: DataItem (Numeric, level 77)
+  WS-GROUP: DataItem (Alphanumeric, level 1)
+  WS-LONG-TXT: DataItem (Alphanumeric, level 77)
+  WS-NO-PIC: DataItem (Alphanumeric, level 77)
+  WS-NUM-STR: DataItem (Numeric, level 77)
+  WS-OK-NUM: DataItem (Numeric, level 77)
+  WS-OK-TXT: DataItem (Alphanumeric, level 77)
+  WS-TXT-NUM: DataItem (Alphanumeric, level 77)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (21 bytes)
+  WS-OK-NUM @0 size=5
+  WS-OK-TXT @5 size=5
+  WS-NUM-STR @10 size=2
+  WS-TXT-NUM @12 size=2
+  WS-LONG-TXT @14 size=2
+  WS-BIG-NUM @16 size=2
+  WS-FRACTION @18 size=2
+  WS-NO-PIC @20 size=0
+  WS-GROUP @20 size=1
+    WS-CHILD @20 size=1
+  WS-BAD-OCCURS @21 size=0 occurs=0 stride=1
+
+DIAGNOSTICS:
+ERROR cobol::semantic::value_type_mismatch test.cob:007:037 VALUE of 'WS-NUM-STR' does not match its PICTURE category
+ERROR cobol::semantic::value_type_mismatch test.cob:008:037 VALUE of 'WS-TXT-NUM' does not match its PICTURE category
+ERROR cobol::semantic::value_too_long test.cob:009:038 VALUE of 'WS-LONG-TXT' does not fit its PICTURE
+ERROR cobol::semantic::value_too_long test.cob:010:035 VALUE of 'WS-BIG-NUM' does not fit its PICTURE
+ERROR cobol::semantic::value_too_long test.cob:011:036 VALUE of 'WS-FRACTION' does not fit its PICTURE
+ERROR cobol::semantic::missing_picture test.cob:012:011 Elementary item 'WS-NO-PIC' requires a PICTURE clause
+ERROR cobol::semantic::group_with_picture test.cob:013:011 Group item 'WS-GROUP' cannot have a PICTURE clause
+ERROR cobol::semantic::invalid_occurs test.cob:015:011 OCCURS count of 'WS-BAD-OCCURS' must be a positive integer

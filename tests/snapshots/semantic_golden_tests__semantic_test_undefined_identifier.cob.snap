@@ -7,16 +7,21 @@ Program
     program_id: UNDEFINED-VAR-TEST
   DataDivision
     WorkingStorageSection
-      DataItem: NAME (level 1, PIC A(10))
+      DataItem (level 1): NAME
+        PIC: A(10)
   ProcedureDivision
     Paragraph: MAIN
-      Display
-        Expression: UNDEFINED-VARIABLE
-      StopRun
+      [0] DISPLAY
+            UNDEFINED-VARIABLE
+      [1] STOP RUN
 
 SYMBOL TABLE:
-  MAIN: Alphanumeric (level 0)
-  NAME: Alphabetic (level 1)
+  MAIN: Paragraph
+  NAME: DataItem (Alphabetic, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (10 bytes)
+  NAME @0 size=10
 
 DIAGNOSTICS:
 ERROR cobol::semantic::undefined_identifier test.cob:010:024 Identifier 'UNDEFINED-VARIABLE' is not defined

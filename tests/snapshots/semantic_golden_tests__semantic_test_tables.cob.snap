@@ -1,0 +1,69 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: TABLES
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 77): WS-PLAIN
+        PIC: 9
+      DataItem (level 77): WS-I
+        PIC: 9
+      DataItem (level 1): WS-TABLE
+        DataItem (level 5): WS-ROW
+          OCCURS: 3
+          INDEXED BY: ROW-IDX
+          DataItem (level 10): WS-COL
+            PIC: 9
+            OCCURS: 2
+          DataItem (level 10): WS-NAME
+            PIC: X(4)
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] MOVE
+            from: 1
+            to: WS-PLAIN(1)
+      [1] MOVE
+            from: 1
+            to: WS-COL(WS-I)
+      [2] MOVE
+            from: 1
+            to: WS-COL(WS-I, WS-I)
+      [3] MOVE
+            from: "AB"
+            to: WS-NAME(ROW-IDX)
+      [4] SEARCH
+            table: WS-PLAIN
+            at end:
+              [0] DISPLAY
+                    "NONE"
+            when: WS-PLAIN = 1
+              [0] DISPLAY
+                    "ONE"
+      [5] STOP RUN
+
+SYMBOL TABLE:
+  MAIN-PARA: Paragraph
+  ROW-IDX: IndexName (Numeric)
+  WS-COL OF WS-ROW OF WS-TABLE: DataItem (Numeric, level 10)
+  WS-I: DataItem (Numeric, level 77)
+  WS-NAME OF WS-ROW OF WS-TABLE: DataItem (Alphanumeric, level 10)
+  WS-PLAIN: DataItem (Numeric, level 77)
+  WS-ROW OF WS-TABLE: DataItem (Alphanumeric, level 5)
+  WS-TABLE: DataItem (Alphanumeric, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (20 bytes)
+  WS-PLAIN @0 size=1
+  WS-I @1 size=1
+  WS-TABLE @2 size=18
+    WS-ROW @2 size=18 occurs=3 stride=6
+      WS-COL @2 size=2 occurs=2 stride=1
+      WS-NAME @4 size=4
+
+DIAGNOSTICS:
+ERROR cobol::semantic::subscript_on_non_table test.cob:013:022 'WS-PLAIN' is subscripted but is not part of a table (no OCCURS)
+ERROR cobol::semantic::subscript_count test.cob:014:022 'WS-COL' needs 2 subscript(s) but 1 given
+ERROR cobol::semantic::search_requires_table test.cob:017:019 SEARCH requires a table item with OCCURS, but 'WS-PLAIN' has none

@@ -7,11 +7,15 @@ Program
     program_id: UNDEFINED-TEST
   ProcedureDivision
     Paragraph: MAIN
-      Perform
-      StopRun
+      [0] PERFORM
+            UNDEFINED-PARAGRAPH
+      [1] STOP RUN
 
 SYMBOL TABLE:
-  MAIN: Alphanumeric (level 0)
+  MAIN: Paragraph
+
+STORAGE LAYOUT:
+WORKING-STORAGE (0 bytes)
 
 DIAGNOSTICS:
 ERROR cobol::semantic::undefined_paragraph test.cob:006:016 Paragraph 'UNDEFINED-PARAGRAPH' is not defined

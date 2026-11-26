@@ -1,13 +1,14 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::diagnostics::Diagnostic;
 use crate::parser::{
     BinaryOperator, Condition, DataItem, EvaluateChoice, Expression, FileDescription,
-    InspectRegion, IoHandlers, PerformStatement, Program, Statement,
+    InspectRegion, IoHandlers, Literal, PerformStatement, Program, Statement,
 };
 use crate::source::Span;
 
 use super::errors;
+use super::layout::{StorageLayout, compute_layout, picture_info};
 use super::symbol_table::{Scope, Symbol, SymbolKind, SymbolTable};
 use super::type_system::{
     DataType, can_operate_arithmetic, is_move_compatible, is_valid_picture, parse_picture,
@@ -17,6 +18,16 @@ use super::type_system::{
 pub struct AnalyzedProgram {
     pub program: Program,
     pub symbol_table: SymbolTable,
+    pub layout: StorageLayout,
+}
+
+/// Table facts about a declared data item, used to check subscripts and I/O.
+#[derive(Debug, Clone, Default)]
+struct ItemInfo {
+    /// Number of `OCCURS` clauses on the item and its ancestors.
+    table_depth: usize,
+    /// For a record under an FD, the file it belongs to.
+    file: Option<String>,
 }
 
 pub struct SemanticAnalyzer<'a> {
@@ -24,6 +35,7 @@ pub struct SemanticAnalyzer<'a> {
     symbol_table: SymbolTable,
     paragraphs: HashSet<String>,
     files: HashSet<String>,
+    items: HashMap<(String, Vec<String>), ItemInfo>,
     diagnostics: Vec<Diagnostic>,
 }
 
@@ -35,6 +47,7 @@ pub fn analyze(program: &Program) -> (AnalyzedProgram, Vec<Diagnostic>) {
         AnalyzedProgram {
             program: program.clone(),
             symbol_table: analyzer.symbol_table,
+            layout: compute_layout(program.data_division.as_ref()),
         },
         analyzer.diagnostics,
     )
@@ -47,7 +60,58 @@ impl<'a> SemanticAnalyzer<'a> {
             symbol_table: SymbolTable::default(),
             paragraphs: HashSet::new(),
             files: HashSet::new(),
+            items: HashMap::new(),
             diagnostics: Vec::new(),
+        }
+    }
+
+    fn item_info(&self, name: &str) -> Option<&ItemInfo> {
+        let (base_name, qualifiers) = split_qualified_name(name);
+        let mut matches = self
+            .items
+            .iter()
+            .filter(|((item_name, item_qualifiers), _)| {
+                item_name == &base_name.to_ascii_uppercase()
+                    && qualifiers_match(item_qualifiers, &qualifiers)
+            })
+            .map(|(_, info)| info);
+        let info = matches.next()?;
+        matches.next().is_none().then_some(info)
+    }
+
+    fn matching_data_items(&self, name: &str) -> Vec<Symbol> {
+        let (base_name, qualifiers) = split_qualified_name(name);
+        self.symbol_table
+            .lookup_all(base_name, Scope::Global)
+            .iter()
+            .filter(|symbol| {
+                matches!(symbol.kind, SymbolKind::DataItem | SymbolKind::IndexName)
+                    && qualifiers_match(&symbol.qualifiers, &qualifiers)
+            })
+            .cloned()
+            .collect()
+    }
+
+    fn unique_data_item(&self, name: &str) -> Option<Symbol> {
+        let mut matches = self.matching_data_items(name).into_iter();
+        let item = matches.next()?;
+        matches.next().is_none().then_some(item)
+    }
+
+    fn resolve_data_item(&mut self, name: &str, span: Span) -> Option<Symbol> {
+        let matches = self.matching_data_items(name);
+        match matches.as_slice() {
+            [symbol] => Some(symbol.clone()),
+            [] => {
+                self.diagnostics
+                    .push(errors::undefined_identifier(name, span));
+                None
+            }
+            _ => {
+                self.diagnostics
+                    .push(errors::ambiguous_identifier(name, span));
+                None
+            }
         }
     }
 
@@ -60,7 +124,7 @@ impl<'a> SemanticAnalyzer<'a> {
             }
             if let Some(working_storage) = &data_division.working_storage_section {
                 for item in &working_storage.data_items {
-                    self.declare_data_item(item);
+                    self.declare_data_item(item, 0, None, &[]);
                 }
             }
         }
@@ -71,6 +135,7 @@ impl<'a> SemanticAnalyzer<'a> {
                 self.paragraphs.insert(name.clone());
                 self.declare(Symbol {
                     name,
+                    qualifiers: Vec::new(),
                     span: paragraph.span,
                     data_type: DataType::Alphanumeric,
                     kind: SymbolKind::Paragraph,
@@ -81,7 +146,25 @@ impl<'a> SemanticAnalyzer<'a> {
         }
     }
 
-    fn declare_data_item(&mut self, item: &DataItem) {
+    fn declare_data_item(
+        &mut self,
+        item: &DataItem,
+        parent_depth: usize,
+        file: Option<&str>,
+        parents: &[String],
+    ) {
+        let depth = parent_depth + usize::from(item.occurs.is_some());
+        let qualifiers: Vec<_> = parents
+            .iter()
+            .rev()
+            .map(|parent| parent.to_ascii_uppercase())
+            .collect();
+        self.items
+            .entry((item.name.to_ascii_uppercase(), qualifiers.clone()))
+            .or_insert(ItemInfo {
+                table_depth: depth,
+                file: file.map(str::to_string),
+            });
         let data_type = item
             .picture
             .as_deref()
@@ -89,6 +172,7 @@ impl<'a> SemanticAnalyzer<'a> {
             .unwrap_or(DataType::Alphanumeric);
         self.declare(Symbol {
             name: item.name.to_ascii_uppercase(),
+            qualifiers: qualifiers.clone(),
             span: item.span,
             data_type,
             kind: SymbolKind::DataItem,
@@ -98,15 +182,18 @@ impl<'a> SemanticAnalyzer<'a> {
         for index_name in &item.indexed_by {
             self.declare(Symbol {
                 name: index_name.to_ascii_uppercase(),
+                qualifiers: Vec::new(),
                 span: item.span,
                 data_type: DataType::Numeric,
-                kind: SymbolKind::DataItem,
+                kind: SymbolKind::IndexName,
                 level: 0,
                 scope: Scope::Global,
             });
         }
+        let mut child_parents = parents.to_vec();
+        child_parents.push(item.name.clone());
         for child in &item.children {
-            self.declare_data_item(child);
+            self.declare_data_item(child, depth, file, &child_parents);
         }
     }
 
@@ -115,6 +202,7 @@ impl<'a> SemanticAnalyzer<'a> {
         self.files.insert(name.clone());
         self.declare(Symbol {
             name,
+            qualifiers: Vec::new(),
             span: file.span,
             data_type: DataType::Alphanumeric,
             kind: SymbolKind::File,
@@ -122,7 +210,7 @@ impl<'a> SemanticAnalyzer<'a> {
             scope: Scope::Global,
         });
         for record in &file.records {
-            self.declare_data_item(record);
+            self.declare_data_item(record, 0, Some(&file.file_name.to_ascii_uppercase()), &[]);
         }
     }
 
@@ -225,8 +313,56 @@ impl<'a> SemanticAnalyzer<'a> {
             self.diagnostics
                 .push(errors::invalid_picture(picture, item.span));
         }
+        if item.picture.is_some() && !item.children.is_empty() {
+            self.diagnostics
+                .push(errors::group_with_picture(&item.name, item.span));
+        }
+        if item.picture.is_none() && item.children.is_empty() {
+            self.diagnostics
+                .push(errors::missing_picture(&item.name, item.span));
+        }
+        if let Some(count) = &item.occurs
+            && !count.parse::<usize>().is_ok_and(|count| count > 0)
+        {
+            self.diagnostics
+                .push(errors::invalid_occurs(&item.name, item.span));
+        }
+        self.validate_value(item);
         for child in &item.children {
             self.validate_data_item(child);
+        }
+    }
+
+    fn validate_value(&mut self, item: &DataItem) {
+        let (Some(value), Some(info)) =
+            (&item.value, item.picture.as_deref().and_then(picture_info))
+        else {
+            return;
+        };
+        match value {
+            Literal::String(text, span) => {
+                if info.data_type == DataType::Numeric {
+                    self.diagnostics
+                        .push(errors::value_type_mismatch(&item.name, *span));
+                } else if text.chars().count() > info.size {
+                    self.diagnostics
+                        .push(errors::value_too_long(&item.name, *span));
+                }
+            }
+            Literal::Numeric(text, span) => {
+                if info.data_type != DataType::Numeric {
+                    self.diagnostics
+                        .push(errors::value_type_mismatch(&item.name, *span));
+                } else if !info.edited {
+                    let (integer, fraction) = text.split_once('.').unwrap_or((text, ""));
+                    let integer_digits = integer.trim_start_matches('0').len();
+                    if integer_digits > info.integer_digits() || fraction.len() > info.scale {
+                        self.diagnostics
+                            .push(errors::value_too_long(&item.name, *span));
+                    }
+                }
+            }
+            Literal::FigurativeConstant(..) => {}
         }
     }
 
@@ -372,6 +508,15 @@ impl<'a> SemanticAnalyzer<'a> {
             }
             Statement::Search(statement) => {
                 self.expression_type(&statement.table);
+                if let Expression::Identifier(name, span) | Expression::Subscript { name, span, .. } =
+                    &statement.table
+                    && self
+                        .item_info(name)
+                        .is_some_and(|info| info.table_depth == 0)
+                {
+                    self.diagnostics
+                        .push(errors::search_requires_table(name, *span));
+                }
                 if let Some(varying) = &statement.varying {
                     self.expression_type(varying);
                 }
@@ -406,16 +551,19 @@ impl<'a> SemanticAnalyzer<'a> {
                 }
             }
             Statement::Evaluate(statement) => {
-                self.expression_type(&statement.subject);
+                let subject_type = self.expression_type(&statement.subject);
                 for when in &statement.whens {
                     for choice in &when.choices {
                         match choice {
                             EvaluateChoice::Value(expression) => {
-                                self.expression_type(expression);
+                                let choice_type = self.expression_type(expression);
+                                self.check_comparable(subject_type, expression, choice_type);
                             }
                             EvaluateChoice::Range(first, last) => {
-                                self.expression_type(first);
-                                self.expression_type(last);
+                                for bound in [first, last] {
+                                    let bound_type = self.expression_type(bound);
+                                    self.check_comparable(subject_type, bound, bound_type);
+                                }
                             }
                             EvaluateChoice::Condition(condition) => {
                                 self.validate_condition(condition);
@@ -446,9 +594,27 @@ impl<'a> SemanticAnalyzer<'a> {
                 self.validate_handlers(&statement.handlers);
             }
             Statement::Write(statement) => {
-                self.expression_type(&statement.record);
+                let record_type = self.expression_type(&statement.record);
+                if let Expression::Identifier(name, span) = &statement.record {
+                    let is_record = self.item_info(name).is_some_and(|info| info.file.is_some())
+                        && self.unique_data_item(name).is_some_and(|symbol| {
+                            symbol.kind == SymbolKind::DataItem && symbol.level == 1
+                        });
+                    if !is_record && self.item_info(name).is_some() {
+                        self.diagnostics.push(errors::not_a_record(name, *span));
+                    }
+                }
                 if let Some(from) = &statement.from {
-                    self.expression_type(from);
+                    let from_type = self.expression_type(from);
+                    if let (Some(from_type), Some(record_type)) = (from_type, record_type)
+                        && !is_move_compatible(from_type, record_type)
+                    {
+                        self.diagnostics.push(errors::incompatible_move(
+                            data_type_name(from_type),
+                            data_type_name(record_type),
+                            statement.span,
+                        ));
+                    }
                 }
                 if let Some(lines) = statement
                     .advancing
@@ -483,17 +649,9 @@ impl<'a> SemanticAnalyzer<'a> {
 
     fn expression_type(&mut self, expression: &Expression) -> Option<DataType> {
         match expression {
-            Expression::Identifier(name, span) => {
-                let base_name = name.split_whitespace().next().unwrap_or(name);
-                match self.symbol_table.lookup(base_name, Scope::Global) {
-                    Some(symbol) if symbol.kind == SymbolKind::DataItem => Some(symbol.data_type),
-                    _ => {
-                        self.diagnostics
-                            .push(errors::undefined_identifier(name, *span));
-                        None
-                    }
-                }
-            }
+            Expression::Identifier(name, span) => self
+                .resolve_data_item(name, *span)
+                .map(|symbol| symbol.data_type),
             Expression::Subscript {
                 name,
                 indices,
@@ -502,15 +660,26 @@ impl<'a> SemanticAnalyzer<'a> {
                 for index in indices {
                     self.check_numeric_expression(index);
                 }
-                let base_name = name.split_whitespace().next().unwrap_or(name);
-                match self.symbol_table.lookup(base_name, Scope::Global) {
-                    Some(symbol) if symbol.kind == SymbolKind::DataItem => Some(symbol.data_type),
-                    _ => {
+                let symbol = self.resolve_data_item(name, *span)?;
+                if symbol.kind != SymbolKind::DataItem {
+                    self.diagnostics
+                        .push(errors::subscript_on_non_table(name, *span));
+                    return None;
+                }
+                if let Some(depth) = self.item_info(name).map(|info| info.table_depth) {
+                    if depth == 0 {
                         self.diagnostics
-                            .push(errors::undefined_identifier(name, *span));
-                        None
+                            .push(errors::subscript_on_non_table(name, *span));
+                    } else if depth != indices.len() {
+                        self.diagnostics.push(errors::subscript_count(
+                            name,
+                            depth,
+                            indices.len(),
+                            *span,
+                        ));
                     }
                 }
+                Some(symbol.data_type)
             }
             Expression::RefMod {
                 name,
@@ -522,16 +691,16 @@ impl<'a> SemanticAnalyzer<'a> {
                 if let Some(length) = length {
                     self.check_numeric_expression(length);
                 }
-                let base_name = name.split_whitespace().next().unwrap_or(name);
-                match self.symbol_table.lookup(base_name, Scope::Global) {
+                match self.resolve_data_item(name, *span) {
                     Some(symbol) if symbol.kind == SymbolKind::DataItem => {
                         Some(DataType::Alphanumeric)
                     }
-                    _ => {
+                    Some(_) => {
                         self.diagnostics
                             .push(errors::undefined_identifier(name, *span));
                         None
                     }
+                    None => None,
                 }
             }
             Expression::FigurativeConstant(_, _) => None,
@@ -594,22 +763,31 @@ impl<'a> SemanticAnalyzer<'a> {
         }
     }
 
+    fn check_comparable(
+        &mut self,
+        left_type: Option<DataType>,
+        right: &Expression,
+        right_type: Option<DataType>,
+    ) {
+        if let (Some(left_type), Some(right_type)) = (left_type, right_type)
+            && left_type != right_type
+            && !(is_move_compatible(left_type, right_type)
+                && is_move_compatible(right_type, left_type))
+        {
+            self.diagnostics.push(errors::type_mismatch(
+                expression_span(right),
+                left_type,
+                right_type,
+            ));
+        }
+    }
+
     fn validate_condition(&mut self, condition: &Condition) {
         match condition {
             Condition::Relation { left, right, .. } => {
                 let left_type = self.expression_type(left);
                 let right_type = self.expression_type(right);
-                if let (Some(left_type), Some(right_type)) = (left_type, right_type)
-                    && left_type != right_type
-                    && !(is_move_compatible(left_type, right_type)
-                        && is_move_compatible(right_type, left_type))
-                {
-                    self.diagnostics.push(errors::type_mismatch(
-                        expression_span(right),
-                        left_type,
-                        right_type,
-                    ));
-                }
+                self.check_comparable(left_type, right, right_type);
             }
             Condition::And { left, right, .. } | Condition::Or { left, right, .. } => {
                 self.validate_condition(left);
@@ -626,6 +804,31 @@ fn data_type_name(data_type: DataType) -> &'static str {
         DataType::Alphabetic => "alphabetic",
         DataType::Alphanumeric => "alphanumeric",
     }
+}
+
+fn split_qualified_name(name: &str) -> (&str, Vec<String>) {
+    let mut parts = name.split_whitespace();
+    let base_name = parts.next().unwrap_or(name);
+    let mut qualifiers = Vec::new();
+    while let Some(connector) = parts.next() {
+        let Some(qualifier) = parts.next() else {
+            break;
+        };
+        if connector.eq_ignore_ascii_case("OF") || connector.eq_ignore_ascii_case("IN") {
+            qualifiers.push(qualifier.to_ascii_uppercase());
+        } else {
+            break;
+        }
+    }
+    (base_name, qualifiers)
+}
+
+fn qualifiers_match(declared: &[String], requested: &[String]) -> bool {
+    declared.len() >= requested.len()
+        && declared
+            .iter()
+            .zip(requested)
+            .all(|(declared, requested)| declared.eq_ignore_ascii_case(requested))
 }
 
 fn is_arithmetic_operator(operator: BinaryOperator) -> bool {

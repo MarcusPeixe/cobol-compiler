@@ -1,0 +1,49 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: QUALIFIED-NAMES
+  DataDivision
+    WorkingStorageSection
+      DataItem (level 1): GROUP-A
+        DataItem (level 5): ITEM-NAME
+          PIC: X(5)
+      DataItem (level 1): GROUP-B
+        DataItem (level 5): ITEM-NAME
+          PIC: 9(3)
+      DataItem (level 1): TEXT-VALUE
+        PIC: X(5)
+  ProcedureDivision
+    Paragraph: MAIN
+      [0] MOVE
+            from: ITEM-NAME OF GROUP-A
+            to: TEXT-VALUE
+      [1] DISPLAY
+            ITEM-NAME OF GROUP-B
+      [2] DISPLAY
+            ITEM-NAME
+      [3] DISPLAY
+            ITEM-NAME OF GROUP-C
+      [4] STOP RUN
+
+SYMBOL TABLE:
+  GROUP-A: DataItem (Alphanumeric, level 1)
+  GROUP-B: DataItem (Alphanumeric, level 1)
+  ITEM-NAME OF GROUP-A: DataItem (Alphanumeric, level 5)
+  ITEM-NAME OF GROUP-B: DataItem (Numeric, level 5)
+  MAIN: Paragraph
+  TEXT-VALUE: DataItem (Alphanumeric, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (13 bytes)
+  GROUP-A @0 size=5
+    ITEM-NAME @0 size=5
+  GROUP-B @5 size=3
+    ITEM-NAME @5 size=3
+  TEXT-VALUE @8 size=5
+
+DIAGNOSTICS:
+ERROR cobol::semantic::ambiguous_identifier test.cob:014:020 Identifier 'ITEM-NAME' is ambiguous; qualify it with OF or IN
+ERROR cobol::semantic::undefined_identifier test.cob:015:020 Identifier 'ITEM-NAME OF GROUP-C' is not defined

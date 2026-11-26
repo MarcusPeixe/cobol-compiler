@@ -7,17 +7,26 @@ Program
     program_id: MOVE-COMPAT-TEST
   DataDivision
     WorkingStorageSection
-      DataItem: ALPHABETIC-VAR (level 1, PIC A(10))
-      DataItem: NUMERIC-VAR (level 1, PIC 9(5))
+      DataItem (level 1): ALPHABETIC-VAR
+        PIC: A(10)
+      DataItem (level 1): NUMERIC-VAR
+        PIC: 9(5)
   ProcedureDivision
     Paragraph: MAIN
-      Move
-      StopRun
+      [0] MOVE
+            from: ALPHABETIC-VAR
+            to: NUMERIC-VAR
+      [1] STOP RUN
 
 SYMBOL TABLE:
-  ALPHABETIC-VAR: Alphabetic (level 1)
-  MAIN: Alphanumeric (level 0)
-  NUMERIC-VAR: Numeric (level 1)
+  ALPHABETIC-VAR: DataItem (Alphabetic, level 1)
+  MAIN: Paragraph
+  NUMERIC-VAR: DataItem (Numeric, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (15 bytes)
+  ALPHABETIC-VAR @0 size=10
+  NUMERIC-VAR @10 size=5
 
 DIAGNOSTICS:
 ERROR cobol::semantic::move_incompatible test.cob:011:016 Cannot MOVE alphabetic to numeric

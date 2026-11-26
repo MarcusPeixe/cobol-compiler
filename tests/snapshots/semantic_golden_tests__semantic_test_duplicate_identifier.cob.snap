@@ -7,16 +7,25 @@ Program
     program_id: DUPLICATE-TEST
   DataDivision
     WorkingStorageSection
-      DataItem: MESSAGE (level 1, PIC X(20))
-      DataItem: MESSAGE (level 1, PIC 9(5))
+      DataItem (level 1): MESSAGE
+        PIC: X(20)
+      DataItem (level 1): MESSAGE
+        PIC: 9(5)
   ProcedureDivision
     Paragraph: MAIN
-      Move
-      StopRun
+      [0] MOVE
+            from: "Hello"
+            to: MESSAGE
+      [1] STOP RUN
 
 SYMBOL TABLE:
-  MAIN: Alphanumeric (level 0)
-  MESSAGE: Alphanumeric (level 1)
+  MAIN: Paragraph
+  MESSAGE: DataItem (Alphanumeric, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (25 bytes)
+  MESSAGE @0 size=20
+  MESSAGE @20 size=5
 
 DIAGNOSTICS:
 ERROR cobol::semantic::identifier_duplicate test.cob:007:015 Identifier 'MESSAGE' is declared more than once

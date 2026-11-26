@@ -1,0 +1,63 @@
+---
+source: tests/semantic_golden_tests.rs
+expression: actual
+---
+Program
+  IdentificationDivision
+    program_id: RECORDS
+  EnvironmentDivision
+    InputOutputSection
+      FileControl: OUT-FILE
+        assign: "OUT.DAT"
+        organization: SEQUENTIAL
+  DataDivision
+    FileSection
+      FileDescription: OUT-FILE
+        DataItem (level 1): OUT-RECORD
+          PIC: X(10)
+    WorkingStorageSection
+      DataItem (level 77): WS-LINE
+        PIC: X(10)
+      DataItem (level 77): WS-NUM
+        PIC: 99
+  ProcedureDivision
+    Paragraph: MAIN-PARA
+      [0] OPEN
+            OUTPUT: OUT-FILE
+      [1] WRITE
+            record: OUT-RECORD
+            from: WS-LINE
+      [2] WRITE
+            record: WS-LINE
+      [3] WRITE
+            record: OUT-RECORD
+            from: WS-NUM
+      [4] CLOSE
+            files: OUT-FILE
+      [5] EVALUATE
+            subject: WS-NUM
+            when: 1 thru 5
+              [0] DISPLAY
+                    "LOW"
+            when: "A"
+              [0] DISPLAY
+                    "TEXT"
+      [6] STOP RUN
+
+SYMBOL TABLE:
+  MAIN-PARA: Paragraph
+  OUT-FILE: File
+  OUT-RECORD: DataItem (Alphanumeric, level 1)
+  WS-LINE: DataItem (Alphanumeric, level 77)
+  WS-NUM: DataItem (Numeric, level 77)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (12 bytes)
+  WS-LINE @0 size=10
+  WS-NUM @10 size=2
+FILE OUT-FILE (record 10 bytes)
+  OUT-RECORD @0 size=10
+
+DIAGNOSTICS:
+ERROR cobol::semantic::not_a_record test.cob:019:018 'WS-LINE' is not a record of a file declared in the FILE SECTION
+ERROR cobol::semantic::type_mismatch test.cob:025:021 Cannot compare values of type Numeric and Alphanumeric

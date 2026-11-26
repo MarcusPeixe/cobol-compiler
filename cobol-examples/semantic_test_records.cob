@@ -1,0 +1,28 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. RECORDS.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT OUT-FILE ASSIGN TO "OUT.DAT"
+               ORGANIZATION IS SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD OUT-FILE.
+       01 OUT-RECORD PIC X(10).
+       WORKING-STORAGE SECTION.
+       77 WS-LINE PIC X(10).
+       77 WS-NUM PIC 99.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           OPEN OUTPUT OUT-FILE.
+           WRITE OUT-RECORD FROM WS-LINE.
+           WRITE WS-LINE.
+           WRITE OUT-RECORD FROM WS-NUM.
+           CLOSE OUT-FILE.
+           EVALUATE WS-NUM
+               WHEN 1 THRU 5
+                   DISPLAY "LOW"
+               WHEN "A"
+                   DISPLAY "TEXT"
+           END-EVALUATE.
+           STOP RUN.

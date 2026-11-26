@@ -5,19 +5,28 @@ expression: actual
 Program
   IdentificationDivision
     program_id: PROG0001
+    author: Enio Basso
+    installation: ebasso(dot)net
+    date_written: 2018-02-24
+    date_compiled: 2018-02-24
+    security: O programa usa criptografia XPTO
+    remarks: O programa recebe um valor e imprime na tela
   EnvironmentDivision
     ConfigurationSection
     InputOutputSection
   DataDivision
   ProcedureDivision
     Paragraph: MAIN-PROCEDURE
-      Display
-        String: Hello world
-      Display
-        String: Enio Basso - 2
-      StopRun
+      [0] DISPLAY
+            "Hello world"
+      [1] DISPLAY
+            "Enio Basso - 2"
+      [2] STOP RUN
 
 SYMBOL TABLE:
-  MAIN-PROCEDURE: Alphanumeric (level 0)
+  MAIN-PROCEDURE: Paragraph
+
+STORAGE LAYOUT:
+WORKING-STORAGE (0 bytes)
 
 DIAGNOSTICS:

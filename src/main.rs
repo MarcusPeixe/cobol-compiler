@@ -8,7 +8,7 @@ use cobol_compiler::diagnostics::Diagnostic;
 use cobol_compiler::lexer::lex;
 use cobol_compiler::parser::parse;
 use cobol_compiler::preprocess::{FsLoader, preprocess};
-use cobol_compiler::semantic::analyze;
+use cobol_compiler::semantic::{analyze, format_symbol_table};
 use cobol_compiler::source::{ReaderOptions, SourceMap};
 
 #[derive(Parser)]
@@ -191,11 +191,14 @@ fn run_analyze(
 
     // Print symbol table summary
     println!("\nSYMBOL TABLE:");
-    for sym in annotated.symbol_table.all_symbols() {
-        println!("  {}: {:?} (level {})", sym.name, sym.data_type, sym.level);
-    }
+    print!("{}", format_symbol_table(&annotated.symbol_table));
 
     let failed = diagnostics.iter().any(Diagnostic::is_error);
+    println!("\nSTORAGE LAYOUT:");
+    print!(
+        "{}",
+        cobol_compiler::semantic::format_layout(&annotated.layout)
+    );
     println!("\nDIAGNOSTICS:");
     if diagnostics.is_empty() {
         println!("  (none)");

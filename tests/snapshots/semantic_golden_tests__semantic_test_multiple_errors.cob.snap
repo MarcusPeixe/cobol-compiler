@@ -7,21 +7,33 @@ Program
     program_id: MULTIPLE-ERRORS-TEST
   DataDivision
     WorkingStorageSection
-      DataItem: NAME (level 1, PIC A(10))
-      DataItem: NAME (level 1, PIC X(20))
-      DataItem: COUNT (level 1, PIC 9(5))
+      DataItem (level 1): NAME
+        PIC: A(10)
+      DataItem (level 1): NAME
+        PIC: X(20)
+      DataItem (level 1): COUNT
+        PIC: 9(5)
   ProcedureDivision
     Paragraph: MAIN
-      Perform
-      Move
-      Display
-        Expression: UNDEFINED-VAR
-      StopRun
+      [0] PERFORM
+            UNDEFINED-PARAGRAPH
+      [1] MOVE
+            from: NAME
+            to: COUNT
+      [2] DISPLAY
+            UNDEFINED-VAR
+      [3] STOP RUN
 
 SYMBOL TABLE:
-  COUNT: Numeric (level 1)
-  MAIN: Alphanumeric (level 0)
-  NAME: Alphabetic (level 1)
+  COUNT: DataItem (Numeric, level 1)
+  MAIN: Paragraph
+  NAME: DataItem (Alphabetic, level 1)
+
+STORAGE LAYOUT:
+WORKING-STORAGE (35 bytes)
+  NAME @0 size=10
+  NAME @10 size=20
+  COUNT @30 size=5
 
 DIAGNOSTICS:
 ERROR cobol::semantic::identifier_duplicate test.cob:007:015 Identifier 'NAME' is declared more than once
