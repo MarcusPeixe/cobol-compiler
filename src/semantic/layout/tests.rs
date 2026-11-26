@@ -74,3 +74,19 @@ fn groups_sum_children_and_occurs_multiplies() {
     assert_eq!(layout.find("COUNTER").unwrap().offset, 40);
     assert_eq!(layout.working_storage_size, 43);
 }
+
+#[test]
+fn resolves_qualified_names_and_table_chain() {
+    let mut a = item(1, "GROUP-A", None, None);
+    a.children = vec![item(5, "NAME", Some("X(5)"), None)];
+    let mut b = item(1, "GROUP-B", None, Some("2"));
+    b.children = vec![item(5, "NAME", Some("9(3)"), None)];
+    let layout = compute_layout(Some(&division(vec![a, b])));
+
+    let in_a = layout.resolve("NAME OF GROUP-A").unwrap();
+    assert_eq!(in_a.item().size, 5);
+    let in_b = layout.resolve("name in group-b").unwrap();
+    assert_eq!((in_b.item().offset, in_b.tables().len()), (5, 1));
+    assert_eq!(layout.resolve("NAME").unwrap().item().size, 5);
+    assert!(layout.resolve("NAME OF GROUP-C").is_none());
+}

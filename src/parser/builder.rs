@@ -675,8 +675,22 @@ impl Parser {
                 }
                 TokenKind::Identifier(ref id) if id == "VALUE" || id == "VALUES" => {
                     self.advance();
+                    let negative = matches!(
+                        self.current_token().map(|t| &t.kind),
+                        Some(TokenKind::Minus)
+                    );
+                    if negative
+                        || matches!(self.current_token().map(|t| &t.kind), Some(TokenKind::Plus))
+                    {
+                        self.advance();
+                    }
                     if let Some(lit) = self.parse_literal() {
-                        value = Some(lit);
+                        value = Some(match lit {
+                            Literal::Numeric(digits, span) if negative => {
+                                Literal::Numeric(format!("-{digits}"), span)
+                            }
+                            other => other,
+                        });
                     }
                 }
                 TokenKind::Identifier(ref id) if id == "OCCURS" => {
@@ -1908,6 +1922,7 @@ impl Parser {
     fn parse_goto_statement(&mut self) -> Result<Statement, ParseError> {
         let span = self.current_token().ok_or(ParseError::UnexpectedEof)?.span;
         self.advance();
+        self.consume_identifier_matching("TO");
         let (target, _) = self.expect_identifier()?;
         Ok(Statement::GoTo(GoToStatement { span, target }))
     }

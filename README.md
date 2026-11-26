@@ -9,10 +9,17 @@ A COBOL compiler written in Rust, built in phases. The language specification is
 | Fixed-format source reader, `COPY` preprocessor, and lexer | Complete |
 | Parser | Complete |
 | Semantic analysis | Complete |
-| Code generation | Not started |
+| Code generation (MIPS for MARS) | In progress |
 
-The available pipeline is: fixed-format source reader -> `COPY` expansion -> lexer -> parser -> semantic analysis.
-Code generation has not been implemented yet.
+The pipeline is: fixed-format source reader -> `COPY` expansion -> lexer -> parser -> semantic analysis -> MIPS code generation.
+Code generation covers `prog001`–`prog003`; file I/O, `SEARCH`, `INSPECT` and `INITIALIZE` are not yet supported.
+
+Compile and run a program (inside `nix develop`):
+
+```sh
+cargo run -- compile cobol-examples/prog001_divisoes.cob --run
+cargo run -- compile prog.cob -o prog.asm   # then: Mars nc prog.asm
+```
 
 ## Setup
 

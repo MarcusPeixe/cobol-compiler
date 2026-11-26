@@ -50,6 +50,22 @@ enum Command {
         #[arg(long)]
         debug_lines: bool,
     },
+    /// Compile a source file to MIPS assembly for the MARS simulator.
+    Compile {
+        file: PathBuf,
+        /// Directory to search for COPY books (repeatable). The source file's own directory is always searched first.
+        #[arg(short = 'I', long = "include", value_name = "DIR")]
+        include: Vec<PathBuf>,
+        /// Compile lines with 'D' in column 7 instead of skipping them.
+        #[arg(long)]
+        debug_lines: bool,
+        /// Write the assembly to this file instead of stdout.
+        #[arg(short, long, value_name = "FILE")]
+        output: Option<PathBuf>,
+        /// Run the result with `Mars nc` (requires Mars on PATH).
+        #[arg(long)]
+        run: bool,
+    },
 }
 
 fn main() -> anyhow::Result<ExitCode> {
@@ -69,7 +85,86 @@ fn main() -> anyhow::Result<ExitCode> {
             include,
             debug_lines,
         } => run_analyze(&file, include, debug_lines),
+        Command::Compile {
+            file,
+            include,
+            debug_lines,
+            output,
+            run,
+        } => run_compile(&file, include, debug_lines, output.as_deref(), run),
     }
+}
+
+fn run_compile(
+    path: &Path,
+    mut include: Vec<PathBuf>,
+    debug_lines: bool,
+    output: Option<&Path>,
+    run: bool,
+) -> anyhow::Result<ExitCode> {
+    let text =
+        std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+    let mut map = SourceMap::default();
+    let root = map.add_file(path.display().to_string(), text);
+
+    let dir = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    include.insert(0, dir.to_path_buf());
+    let loader = FsLoader {
+        search_dirs: include,
+    };
+
+    let (logical, mut diagnostics) =
+        preprocess(&mut map, root, ReaderOptions { debug_lines }, &loader);
+    let (tokens, lex_diagnostics) = lex(&logical);
+    diagnostics.extend(lex_diagnostics);
+    let (program, parse_diagnostics) = parse(tokens);
+    diagnostics.extend(parse_diagnostics);
+    let (analyzed, semantic_diagnostics) = analyze(&program);
+    diagnostics.extend(semantic_diagnostics);
+
+    let mut assembly = None;
+    if !diagnostics.iter().any(Diagnostic::is_error) {
+        let (text, codegen_diagnostics) = cobol_compiler::codegen::generate(&analyzed);
+        diagnostics.extend(codegen_diagnostics);
+        assembly = Some(text);
+    }
+    let failed = diagnostics.iter().any(Diagnostic::is_error);
+    for diagnostic in diagnostics {
+        eprintln!("{:?}", diagnostic.into_report(&map));
+    }
+    let Some(assembly) = assembly.filter(|_| !failed) else {
+        return Ok(ExitCode::FAILURE);
+    };
+
+    if run {
+        let asm_path = output
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| std::env::temp_dir().join("cobol-compiler-out.asm"));
+        std::fs::write(&asm_path, &assembly)
+            .with_context(|| format!("cannot write {}", asm_path.display()))?;
+        let status = std::process::Command::new("Mars")
+            .arg("nc")
+            .arg(&asm_path)
+            .status()
+            .context("cannot run Mars (enter `nix develop` first)")?;
+        if output.is_none() {
+            let _ = std::fs::remove_file(&asm_path);
+        }
+        return Ok(if status.success() {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::FAILURE
+        });
+    }
+    match output {
+        Some(out) => std::fs::write(out, &assembly)
+            .with_context(|| format!("cannot write {}", out.display()))?,
+        None => print!("{assembly}"),
+    }
+    Ok(ExitCode::SUCCESS)
 }
 
 fn run_lex(path: &Path, mut include: Vec<PathBuf>, debug_lines: bool) -> anyhow::Result<ExitCode> {

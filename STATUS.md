@@ -7,7 +7,7 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 | 1. Lexer (with fixed-format reader and `COPY` preprocessor) | Done (101 unit tests + golden test over the 7 examples) |
 | 2. Parser | Done (108 unit tests + 26 file-based golden tests using `insta`; full AST pretty-printing; all `prog001`–`prog007` parse cleanly) |
 | 3. Semantic analysis | Done (20 unit tests covering 8 semantic checks; CLI analyze subcommand added; 17 golden tests via `insta` snapshots) |
-| 4. Code generation | Not started |
+| 4. Code generation | In progress (MIPS for MARS; `prog001`–`prog003` run correctly; `compile` CLI; 4 asm golden + 4 Mars end-to-end tests + 2 unit tests) |
 
 ## Deliverables
 
@@ -17,11 +17,11 @@ Volatile project state. Rules and decisions are in [AGENTS.md](AGENTS.md); updat
 
 ## Next steps
 
-- Code generation (phase 4): backend decided — MIPS assembly for the MARS simulator (`Mars` in the dev shell). Not started.
+- Code generation (phase 4): implement the remaining unsupported constructs (see AGENTS.md): file I/O (MARS syscalls 13–16), SEARCH, INSPECT, INITIALIZE, DIVIDE without GIVING, OCCURS/subscript tests, then `prog004`–`prog007`. Add `codegen_test_*.cob` fixtures and Mars run tests as each lands.
 - Report: Parser and Semantic Analysis reports need to be written in Typst and compiled to PDF.
 
 ## Open questions
 
 - Semantic checks still skip: `INSPECT`/`SET` operand types, READ key fields, subscript index values vs `OCCURS` bounds, `READ ... INTO` compatibility, and level-88/`REDEFINES` (not parsed).
 - Remaining parser gaps (not needed by `prog001`–`prog007`): `EVALUATE ... ALSO`, `PERFORM ... AFTER`, `PERFORM THRU` with TIMES/UNTIL/VARYING, `A(i)(a:b)`, `CALL`, `STRING`/`UNSTRING`.
-- Phase 4 backend is MIPS assembly for MARS (`Mars` in the dev shell). Storage layout is done (DISPLAY-only, byte per position); next is codegen: runtime for `DISPLAY`, fixed-point arithmetic and file I/O.
+- Phase 4 backend is MIPS assembly for MARS (`Mars` in the dev shell). Storage layout is done (DISPLAY-only, byte per position); codegen covers DISPLAY, ACCEPT, MOVE, arithmetic, IF, PERFORM, GO TO, EVALUATE and SET; file I/O is deferred. Arithmetic is limited to 32-bit ints (about 9 digits).

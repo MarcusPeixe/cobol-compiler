@@ -3,7 +3,7 @@
 //! Every item uses DISPLAY usage (one byte per picture position). Sign (`S`),
 //! implied decimal point (`V`) and scaling (`P`) positions occupy no storage.
 
-use crate::parser::{DataDivision, DataItem};
+use crate::parser::{DataDivision, DataItem, Literal};
 
 use super::DataType;
 use super::type_system::parse_picture;
@@ -21,6 +21,9 @@ pub struct PictureInfo {
     pub signed: bool,
     /// Contains insertion/editing symbols (`Z`, `.`, `,`, `$`, `B`, ...).
     pub edited: bool,
+    /// The picture with repetition counts expanded and `S`/`V`/`P` removed
+    /// (one character per storage byte for edited items).
+    pub pattern: String,
 }
 
 impl PictureInfo {
@@ -58,9 +61,13 @@ pub fn picture_info(picture: &str) -> Option<PictureInfo> {
         scale: 0,
         signed: false,
         edited: false,
+        pattern: String::new(),
     };
     let mut after_point = false;
     for (symbol, count) in symbols {
+        if !matches!(symbol, 'S' | 'V' | 'P') {
+            info.pattern.extend(std::iter::repeat_n(symbol, count));
+        }
         match symbol {
             '9' => {
                 info.size += count;
@@ -116,7 +123,17 @@ pub struct ItemLayout {
     /// Total size including all occurrences.
     pub size: usize,
     pub picture: Option<PictureInfo>,
+    /// Initial `VALUE`, if any.
+    pub value: Option<ItemValue>,
     pub children: Vec<ItemLayout>,
+}
+
+/// A `VALUE` clause literal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ItemValue {
+    Numeric(String),
+    String(String),
+    Figurative(String),
 }
 
 impl ItemLayout {
@@ -159,6 +176,86 @@ impl StorageLayout {
             .iter()
             .find(|file| file.name.eq_ignore_ascii_case(name))
     }
+
+    /// Resolves a possibly qualified name (`A OF B IN C`) to the chain of
+    /// items from the 01-level record down to the item, plus the storage
+    /// area it lives in (`None` for working storage, `Some(file)` for an FD record).
+    pub fn resolve<'a>(&'a self, name: &str) -> Option<Resolved<'a>> {
+        let mut words = name.split_whitespace();
+        let target = words.next()?;
+        let qualifiers: Vec<&str> = words
+            .filter(|word| !word.eq_ignore_ascii_case("OF") && !word.eq_ignore_ascii_case("IN"))
+            .collect();
+        let areas = std::iter::once((None, self.working_storage.as_slice())).chain(
+            self.files
+                .iter()
+                .map(|file| (Some(file.name.as_str()), file.records.as_slice())),
+        );
+        for (file, roots) in areas {
+            for root in roots {
+                let mut chain = Vec::new();
+                if let Some(path) = find_path(root, target, &qualifiers, &mut chain) {
+                    return Some(Resolved { file, path });
+                }
+            }
+        }
+        None
+    }
+}
+
+/// An item found by [`StorageLayout::resolve`].
+#[derive(Debug, Clone)]
+pub struct Resolved<'a> {
+    pub file: Option<&'a str>,
+    /// Ancestors from the 01-level item down to the item itself.
+    pub path: Vec<&'a ItemLayout>,
+}
+
+impl<'a> Resolved<'a> {
+    pub fn item(&self) -> &'a ItemLayout {
+        self.path[self.path.len() - 1]
+    }
+
+    /// Items on the path that have `OCCURS`, outermost first.
+    pub fn tables(&self) -> Vec<&'a ItemLayout> {
+        self.path
+            .iter()
+            .copied()
+            .filter(|item| item.occurs.is_some())
+            .collect()
+    }
+}
+
+fn find_path<'a>(
+    item: &'a ItemLayout,
+    target: &str,
+    qualifiers: &[&str],
+    chain: &mut Vec<&'a ItemLayout>,
+) -> Option<Vec<&'a ItemLayout>> {
+    chain.push(item);
+    let mut found = None;
+    if item.name.eq_ignore_ascii_case(target) && qualifies(chain, qualifiers) {
+        found = Some(chain.clone());
+    } else {
+        for child in &item.children {
+            found = find_path(child, target, qualifiers, chain);
+            if found.is_some() {
+                break;
+            }
+        }
+    }
+    chain.pop();
+    found
+}
+
+/// Qualifiers must appear among the ancestors in order, innermost first.
+fn qualifies(chain: &[&ItemLayout], qualifiers: &[&str]) -> bool {
+    let mut ancestors = chain[..chain.len() - 1].iter().rev();
+    qualifiers.iter().all(|qualifier| {
+        ancestors
+            .by_ref()
+            .any(|ancestor| ancestor.name.eq_ignore_ascii_case(qualifier))
+    })
 }
 
 pub fn compute_layout(data_division: Option<&DataDivision>) -> StorageLayout {
@@ -220,6 +317,13 @@ fn layout_item(item: &DataItem, offset: usize) -> ItemLayout {
         occurs,
         size,
         picture,
+        value: item.value.as_ref().map(|literal| match literal {
+            Literal::Numeric(text, _) => ItemValue::Numeric(text.clone()),
+            Literal::String(text, _) => ItemValue::String(text.clone()),
+            Literal::FigurativeConstant(word, _) => {
+                ItemValue::Figurative(word.to_ascii_uppercase())
+            }
+        }),
         children,
     }
 }
